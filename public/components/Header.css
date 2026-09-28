@@ -1,0 +1,32 @@
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.header__logo {
+  font-size: 20px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.header__nav {
+  display: flex;
+  gap: 16px;
+}
+
+.header__link {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.header__link:hover {
+  text-decoration: underline;
+}

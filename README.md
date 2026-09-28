@@ -1,6 +1,6 @@
 # 2026_2_Villain_Go_Sync
 
-Frontend-репозиторий команды "Злодей Go Synс". Проект - Headhunter
+Frontend-репозиторий команды "Злодей Go Synс". Проект — HireNoon, аналог HeadHunter
 
 ## Участники команды
 - [Михаил Фролов](https://github.com/frolovme74)
@@ -14,3 +14,11 @@ Frontend-репозиторий команды "Злодей Go Synс". Прое
 
 ## Ссылки
 [Backend](https://github.com/go-park-mail-ru/2026_2_villain_go_sync_backend)
+
+## Запуск
+
+```bash
+npm install
+npm run dev   # сервер на http://localhost:8000, перезапускается при изменениях в server/
+npm run lint  # проверка линтером (npm run lint:fix — исправить автоматически)
+```
