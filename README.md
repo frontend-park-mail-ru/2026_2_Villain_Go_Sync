@@ -1,6 +1,6 @@
 # 2026_2_Villain_Go_Sync
 
-Frontend-репозиторий команды "Злодей Go Synс". Проект — HeadHunter
+Frontend-репозиторий команды "Злодей Go Synс". Проект - HeadHunter
 
 ## Участники команды
 - [Михаил Фролов](https://github.com/frolovme74)
