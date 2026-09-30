@@ -1,9 +1,6 @@
-const template = Handlebars.compile(`
-  <section class="page-stub">
-    <h1 class="page-stub__title">Вакансии</h1>
-    <p class="page-stub__text">Здесь будет лента вакансий.</p>
-  </section>
-`);
+import { loadTemplate } from '../template.js';
+
+const template = await loadTemplate(new URL('./VacanciesPage.hbs', import.meta.url));
 
 /**
  * Главная страница — лента вакансий.
