@@ -1,15 +1,7 @@
 import { APP_NAME } from '../config.js';
+import { loadTemplate } from '../template.js';
 
-const template = Handlebars.compile(`
-  <div class="header">
-    <a class="header__logo" href="/">{{appName}}</a>
-    <nav class="header__nav">
-      {{#each links}}
-        <a class="header__link" href="{{href}}">{{title}}</a>
-      {{/each}}
-    </nav>
-  </div>
-`);
+const template = await loadTemplate(new URL('./Header.hbs', import.meta.url));
 
 const LINKS = [
   { title: 'Вакансии', href: '/' },

@@ -1,9 +1,6 @@
-const template = Handlebars.compile(`
-  <section class="page-stub">
-    <h1 class="page-stub__title">Вход</h1>
-    <p class="page-stub__text">Здесь будет форма авторизации.</p>
-  </section>
-`);
+import { loadTemplate } from '../template.js';
+
+const template = await loadTemplate(new URL('./LoginPage.hbs', import.meta.url));
 
 /**
  * Страница авторизации.

@@ -23,6 +23,10 @@ app.use((req, res, next) => {
   res.sendFile(indexHtml);
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, (error) => {
+  if (error) {
+    throw error;
+  }
+
   console.log(`HireNoon: http://localhost:${PORT}`);
 });
