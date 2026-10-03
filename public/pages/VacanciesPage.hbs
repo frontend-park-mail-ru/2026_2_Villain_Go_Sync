@@ -1,4 +1,49 @@
-<section class="page-stub">
-  <h1 class="page-stub__title">Вакансии</h1>
-  <p class="page-stub__text">Здесь будет лента вакансий.</p>
+<section class="vacancies">
+  <div>
+    <h1 class="vacancies__title">Вакансии</h1>
+    <p class="vacancies__subtitle">Найдите работу, которая подходит именно вам.</p>
+  </div>
+
+  <form class="vacancies__search" novalidate>
+    <div class="field vacancies__search-field">
+      <label class="field__label" for="vacancies-query">Поиск вакансий</label>
+      <input
+        class="field__input"
+        id="vacancies-query"
+        name="query"
+        type="search"
+        placeholder="Должность, профессия или компания"
+      />
+      <p class="field__message"></p>
+    </div>
+    <button class="button vacancies__search-button" type="submit">Найти</button>
+  </form>
+
+  <div class="chips">
+    {{#each filters}}
+      <button class="chip" type="button">{{this}}</button>
+    {{/each}}
+  </div>
+
+  <div class="vacancies__list">
+    {{#each vacancies}}
+      <article class="vacancy-card">
+        <div>
+          <h2 class="vacancy-card__title">{{title}}</h2>
+          <p class="vacancy-card__company">{{company}}</p>
+        </div>
+        <p class="vacancy-card__details">{{details}}</p>
+        <p class="vacancy-card__date">{{published}}</p>
+        <div class="chips">
+          {{#each tags}}
+            <span class="chip">{{this}}</span>
+          {{/each}}
+        </div>
+        <div class="vacancy-card__footer">
+          <span class="vacancy-card__salary">{{salary}}</span>
+          <button class="button vacancy-card__button" type="button">Смотреть вакансию</button>
+        </div>
+      </article>
+    {{/each}}
+  </div>
 </section>
