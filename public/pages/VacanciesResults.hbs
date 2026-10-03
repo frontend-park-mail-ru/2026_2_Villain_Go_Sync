@@ -1,0 +1,48 @@
+{{#if isLoading}}
+  {{#each skeletons}}
+    <div class="vacancy-card vacancy-card_skeleton" aria-hidden="true">
+      <div class="skeleton vacancy-card__skeleton-title"></div>
+      <div class="skeleton vacancy-card__skeleton-text"></div>
+      <div class="skeleton vacancy-card__skeleton-date"></div>
+      <div class="vacancy-card__footer">
+        <div class="skeleton vacancy-card__skeleton-salary"></div>
+        <div class="skeleton vacancy-card__skeleton-button"></div>
+      </div>
+    </div>
+  {{/each}}
+{{else if error}}
+  <div class="vacancies__empty">
+    <h2 class="vacancies__empty-title">Не удалось загрузить вакансии</h2>
+    <p class="vacancies__empty-text">{{error}}</p>
+    <button class="button button_secondary vacancies__empty-button" type="button" data-action="retry">
+      Повторить
+    </button>
+  </div>
+{{else if vacancies}}
+  {{#each vacancies}}
+    <article class="vacancy-card">
+      <div>
+        <h2 class="vacancy-card__title">{{title}}</h2>
+        <p class="vacancy-card__description">{{description}}</p>
+      </div>
+      <p class="vacancy-card__date">{{published}}</p>
+      <div class="vacancy-card__footer">
+        <span class="vacancy-card__salary">{{salary}}</span>
+        <button class="button vacancy-card__button" type="button">Смотреть вакансию</button>
+      </div>
+    </article>
+  {{/each}}
+{{else if hasQuery}}
+  <div class="vacancies__empty">
+    <h2 class="vacancies__empty-title">По вашему запросу ничего не найдено</h2>
+    <p class="vacancies__empty-text">Попробуйте изменить запрос или сбросить выбранные фильтры.</p>
+    <button class="button button_secondary vacancies__empty-button" type="button" data-action="reset">
+      Сбросить поиск и фильтры
+    </button>
+  </div>
+{{else}}
+  <div class="vacancies__empty">
+    <h2 class="vacancies__empty-title">Вакансий пока нет</h2>
+    <p class="vacancies__empty-text">Загляните позже — здесь появятся новые предложения.</p>
+  </div>
+{{/if}}
