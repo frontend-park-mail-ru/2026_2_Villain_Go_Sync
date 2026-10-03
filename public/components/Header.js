@@ -3,14 +3,10 @@ import { loadTemplate } from '../template.js';
 
 const template = await loadTemplate(new URL('./Header.hbs', import.meta.url));
 
-const LINKS = [
-  { title: 'Вакансии', href: '/' },
-  { title: 'Войти', href: '/login' },
-  { title: 'Регистрация', href: '/register' },
-];
+const LINKS = [{ title: 'Вакансии', href: '/' }];
 
 /**
- * Шапка сайта: логотип и навигация.
+ * Шапка сайта: логотип, навигация и кнопки входа.
  */
 export default class Header {
   /**

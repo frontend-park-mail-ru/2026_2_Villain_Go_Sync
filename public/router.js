@@ -8,6 +8,7 @@
  * @typedef {object} Route
  * @property {string} title Заголовок вкладки.
  * @property {new (props: { router: Router }) => Page} page Класс страницы.
+ * @property {string} [layout] Вариант оформления шапки, например `auth`.
  */
 
 /**
@@ -147,6 +148,7 @@ export default class Router {
     this.#currentPage = new route.page({ router: this });
 
     document.title = `${route.title} — ${this.#appName}`;
+    document.body.dataset.layout = route.layout ?? 'default';
     this.#currentPage.render(this.#container);
   }
 }

@@ -12,5 +12,6 @@ export default class RegisterPage {
    */
   render(container) {
     container.innerHTML = template();
+    container.querySelector('.auth__form').addEventListener('submit', (event) => event.preventDefault());
   }
 }

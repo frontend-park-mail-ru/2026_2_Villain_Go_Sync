@@ -10,7 +10,7 @@ new Header().render(document.getElementById('header'));
 
 new Router(document.getElementById('page'), { appName: APP_NAME })
   .register('/', { title: 'Вакансии', page: VacanciesPage })
-  .register('/login', { title: 'Вход', page: LoginPage })
-  .register('/register', { title: 'Регистрация', page: RegisterPage })
+  .register('/login', { title: 'Вход', page: LoginPage, layout: 'auth' })
+  .register('/register', { title: 'Регистрация', page: RegisterPage, layout: 'auth' })
   .setNotFound({ title: 'Страница не найдена', page: NotFoundPage })
   .start();
