@@ -16,6 +16,18 @@ const STORAGE_KEY = 'hirenoon.tokens';
  * @property {UserRole} role Роль: соискатель или работодатель.
  */
 
+/** @type {Set<() => void>} */
+const listeners = new Set();
+
+/**
+ * Сообщает подписчикам, что пользователь вошёл или вышел.
+ */
+function notify() {
+  for (const listener of listeners) {
+    listener();
+  }
+}
+
 /**
  * Читает пару токенов из localStorage.
  * @returns {TokenPair | null} Токены или `null`, если их нет или хранилище недоступно.
@@ -68,6 +80,8 @@ export function saveTokens(tokens) {
   } catch {
     // Хранилище недоступно — сессия не переживёт перезагрузку страницы.
   }
+
+  notify();
 }
 
 /**
@@ -79,6 +93,16 @@ export function clearTokens() {
   } catch {
     // Хранилище недоступно — удалять нечего.
   }
+
+  notify();
+}
+
+/**
+ * Подписывает на вход и выход пользователя.
+ * @param {() => void} listener Вызывается после сохранения или удаления токенов.
+ */
+export function onSessionChange(listener) {
+  listeners.add(listener);
 }
 
 /**

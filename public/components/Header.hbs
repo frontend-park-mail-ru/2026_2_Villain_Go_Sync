@@ -9,7 +9,11 @@
     {{/each}}
   </nav>
   <div class="header__actions">
-    <a class="button button_ghost header__login" href="/login">Войти</a>
-    <a class="button header__register" href="/register">Зарегистрироваться</a>
+    {{#if isAuthorized}}
+      <button class="button button_ghost header__logout" type="button">Выйти</button>
+    {{else}}
+      <a class="button button_ghost header__login" href="/login">Войти</a>
+      <a class="button header__register" href="/register">Зарегистрироваться</a>
+    {{/if}}
   </div>
 </div>

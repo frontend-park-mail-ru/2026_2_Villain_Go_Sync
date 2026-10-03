@@ -25,6 +25,10 @@
   cursor: default;
 }
 
+.button_loading {
+  pointer-events: none;
+}
+
 .button_secondary {
   background: var(--color-accent);
 }
@@ -93,6 +97,10 @@
   color: var(--color-text-muted);
 }
 
+.field__message_collapsible:empty {
+  display: none;
+}
+
 .field_invalid .field__input {
   border: 2px solid var(--color-danger);
 }
@@ -153,10 +161,15 @@ label.chip:hover {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin: 0;
   padding: 16px;
   border: 2px solid var(--color-danger);
   border-radius: var(--radius);
   background: var(--color-surface);
+}
+
+.toast[hidden] {
+  display: none;
 }
 
 .toast::before {
