@@ -19,12 +19,6 @@
   background: var(--color-primary-hover);
 }
 
-.button:disabled {
-  color: var(--color-text-disabled);
-  background: var(--color-primary-disabled);
-  cursor: default;
-}
-
 .button_loading {
   pointer-events: none;
 }
@@ -37,10 +31,6 @@
   background: var(--color-accent-hover);
 }
 
-.button_secondary:disabled {
-  background: var(--color-surface-hover);
-}
-
 .button_ghost {
   color: var(--color-text);
   background: var(--color-surface);
@@ -48,10 +38,6 @@
 
 .button_ghost:hover {
   background: var(--color-surface-hover);
-}
-
-.button_ghost:disabled {
-  background: var(--color-surface);
 }
 
 .field {
@@ -83,10 +69,6 @@
 
 .field__input:focus {
   border: 2px solid var(--color-accent);
-}
-
-.field__input:disabled {
-  background: var(--color-surface-hover);
 }
 
 .field__message {

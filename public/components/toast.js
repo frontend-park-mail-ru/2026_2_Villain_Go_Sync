@@ -12,7 +12,8 @@ export function showToast(message, type = 'success') {
   const text = document.createElement('span');
   const close = document.createElement('button');
 
-  toast.className = `toast toast_${type} toast_floating`;
+  toast.className = 'toast toast_floating';
+  toast.classList.toggle('toast_success', type === 'success');
   toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
 
   text.className = 'toast__message';

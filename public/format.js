@@ -35,17 +35,16 @@ export function formatSalary(from, to) {
 /**
  * Описывает, как давно опубликована вакансия.
  * @param {string} isoDate Дата публикации в формате ISO 8601.
- * @param {Date} [now] Текущий момент.
  * @returns {string} Например, `Опубликовано 2 часа назад`; пустая строка, если дата некорректна.
  */
-export function formatPublished(isoDate, now = new Date()) {
+export function formatPublished(isoDate) {
   const date = new Date(isoDate);
 
   if (Number.isNaN(date.getTime())) {
     return '';
   }
 
-  const hours = Math.floor((now - date) / HOUR_MS);
+  const hours = Math.floor((Date.now() - date) / HOUR_MS);
   const days = Math.floor(hours / HOURS_IN_DAY);
 
   if (hours < 1) {

@@ -1,11 +1,10 @@
 import { API_URL } from './config.js';
-import { isAuthorized, setAuthorized } from './session.js';
+import { setAuthorized } from './session.js';
 
 const STATUS_MESSAGES = {
   0: 'Не удалось связаться с сервером',
   400: 'Некорректный запрос',
   401: 'Нужно войти в аккаунт',
-  403: 'Недостаточно прав',
   404: 'Не найдено',
   409: 'Такие данные уже существуют',
   422: 'Проверьте правильность заполнения полей',
@@ -42,7 +41,7 @@ function getStatusMessage(status) {
 /**
  * Ошибка запроса к API. В `message` — текст для пользователя.
  */
-export class ApiError extends Error {
+class ApiError extends Error {
   /**
    * @param {number} status HTTP-статус ответа, 0 — сервер недоступен.
    * @param {unknown} [body] Тело ответа сервера.
@@ -169,7 +168,6 @@ export async function logout() {
 /**
  * Проверяет по cookie, вошёл ли пользователь, и заодно продлевает сессию.
  * Отдельной ручки для проверки на бэкенде нет, поэтому используется обновление токенов.
- * @returns {Promise<boolean>} `true`, если сессия действует.
  */
 export async function restoreSession() {
   try {
@@ -178,8 +176,6 @@ export async function restoreSession() {
   } catch {
     setAuthorized(false);
   }
-
-  return isAuthorized();
 }
 
 /**
