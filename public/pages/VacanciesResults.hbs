@@ -1,15 +1,17 @@
 {{#if isLoading}}
-  {{#each skeletons}}
-    <div class="vacancy-card vacancy-card_skeleton" aria-hidden="true">
-      <div class="skeleton vacancy-card__skeleton-title"></div>
-      <div class="skeleton vacancy-card__skeleton-text"></div>
-      <div class="skeleton vacancy-card__skeleton-date"></div>
-      <div class="vacancy-card__footer">
-        <div class="skeleton vacancy-card__skeleton-salary"></div>
-        <div class="skeleton vacancy-card__skeleton-button"></div>
+  <div class="vacancies__list">
+    {{#each skeletons}}
+      <div class="vacancy-card vacancy-card_skeleton" aria-hidden="true">
+        <div class="skeleton vacancy-card__skeleton-title"></div>
+        <div class="skeleton vacancy-card__skeleton-text"></div>
+        <div class="skeleton vacancy-card__skeleton-date"></div>
+        <div class="vacancy-card__footer">
+          <div class="skeleton vacancy-card__skeleton-salary"></div>
+          <div class="skeleton vacancy-card__skeleton-button"></div>
+        </div>
       </div>
-    </div>
-  {{/each}}
+    {{/each}}
+  </div>
 {{else if error}}
   <div class="vacancies__empty">
     <h2 class="vacancies__empty-title">Не удалось загрузить вакансии</h2>
@@ -19,19 +21,21 @@
     </button>
   </div>
 {{else if vacancies}}
-  {{#each vacancies}}
-    <article class="vacancy-card">
-      <div>
-        <h2 class="vacancy-card__title">{{title}}</h2>
-        <p class="vacancy-card__description">{{description}}</p>
-      </div>
-      <p class="vacancy-card__date">{{published}}</p>
-      <div class="vacancy-card__footer">
-        <span class="vacancy-card__salary">{{salary}}</span>
-        <button class="button vacancy-card__button" type="button">Смотреть вакансию</button>
-      </div>
-    </article>
-  {{/each}}
+  <div class="vacancies__list">
+    {{#each vacancies}}
+      <article class="vacancy-card">
+        <div>
+          <h2 class="vacancy-card__title">{{title}}</h2>
+          <p class="vacancy-card__description">{{description}}</p>
+        </div>
+        <p class="vacancy-card__date">{{published}}</p>
+        <div class="vacancy-card__footer">
+          <span class="vacancy-card__salary">{{salary}}</span>
+          <button class="button vacancy-card__button" type="button">Смотреть вакансию</button>
+        </div>
+      </article>
+    {{/each}}
+  </div>
 {{else if hasQuery}}
   <div class="vacancies__empty">
     <h2 class="vacancies__empty-title">По вашему запросу ничего не найдено</h2>
