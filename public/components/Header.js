@@ -1,9 +1,9 @@
-import { getCurrentUser, logout } from '../api.js';
+import { logout } from '../api.js';
 import { APP_NAME } from '../config.js';
-import { onSessionChange } from '../session.js';
+import { isAuthorized, onSessionChange } from '../session.js';
 import { loadTemplate } from '../template.js';
 import { confirmAction } from './Modal.js';
-import { showSuccessToast } from './toast.js';
+import { showToast } from './toast.js';
 
 const template = await loadTemplate(new URL('./Header.hbs', import.meta.url));
 
@@ -50,11 +50,7 @@ export default class Header {
    * Рисует шапку для гостя или для вошедшего пользователя.
    */
   #update() {
-    this.#container.innerHTML = template({
-      appName: APP_NAME,
-      links: LINKS,
-      isAuthorized: Boolean(getCurrentUser()),
-    });
+    this.#container.innerHTML = template({ appName: APP_NAME, links: LINKS, isAuthorized: isAuthorized() });
   }
 
   /**
@@ -81,9 +77,15 @@ export default class Header {
       cancelLabel: 'Отмена',
     });
 
-    if (isConfirmed) {
-      logout();
-      showSuccessToast('Вы вышли из аккаунта');
+    if (!isConfirmed) {
+      return;
+    }
+
+    try {
+      await logout();
+      showToast('Вы вышли из аккаунта');
+    } catch {
+      showToast('Не удалось выйти из аккаунта', 'error');
     }
   }
 }

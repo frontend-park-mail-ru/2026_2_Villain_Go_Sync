@@ -1,5 +1,5 @@
 import { API_URL } from './config.js';
-import { clearTokens, getAccessToken, getCurrentUser, saveTokens } from './session.js';
+import { isAuthorized, setAuthorized } from './session.js';
 
 const STATUS_MESSAGES = {
   0: 'Не удалось связаться с сервером',
@@ -7,12 +7,12 @@ const STATUS_MESSAGES = {
   401: 'Нужно войти в аккаунт',
   403: 'Недостаточно прав',
   404: 'Не найдено',
+  409: 'Такие данные уже существуют',
   422: 'Проверьте правильность заполнения полей',
 };
 
 /**
- * @typedef {import('./session.js').UserRole} UserRole
- * @typedef {import('./session.js').SessionUser} SessionUser
+ * @typedef {'seeker' | 'employer'} UserRole
  */
 
 /**
@@ -75,7 +75,7 @@ async function readBody(response) {
 }
 
 /**
- * Отправляет запрос к API с access-токеном, если он есть, и разбирает ответ.
+ * Отправляет запрос к API вместе с cookie сессии и разбирает ответ.
  * @param {string} method HTTP-метод.
  * @param {string} path Путь относительно `API_URL`, например `/login`.
  * @param {object} [options] Настройки запроса.
@@ -85,15 +85,10 @@ async function readBody(response) {
  * @throws {ApiError} Сервер недоступен или ответил ошибкой; в `body` — текст из поля `error`.
  */
 async function request(method, path, { body, signal } = {}) {
-  const init = { method, headers: {}, signal };
-  const accessToken = getAccessToken();
-
-  if (accessToken) {
-    init.headers.Authorization = `Bearer ${accessToken}`;
-  }
+  const init = { method, credentials: 'include', signal };
 
   if (body !== undefined) {
-    init.headers['Content-Type'] = 'application/json';
+    init.headers = { 'Content-Type': 'application/json' };
     init.body = JSON.stringify(body);
   }
 
@@ -120,39 +115,37 @@ async function request(method, path, { body, signal } = {}) {
 }
 
 /**
- * Регистрирует пользователя и сохраняет выданные токены.
+ * Регистрирует пользователя; сессию бэкенд сохраняет в cookie.
  * @param {object} data Данные формы.
  * @param {string} data.email Почта.
  * @param {string} data.password Пароль.
  * @param {UserRole} data.role Роль.
- * @returns {Promise<SessionUser | null>} Вошедший пользователь.
- * @throws {ApiError} 400 — почта уже занята или роль некорректна, 422 — почта или пароль не прошли проверку.
+ * @throws {ApiError} 409 — почта уже занята, 400 — роль некорректна, 422 — почта или пароль не прошли проверку.
  */
 export async function register({ email, password, role }) {
   try {
-    saveTokens(await request('POST', '/register', { body: { email, password, role } }));
+    await request('POST', '/register', { body: { email, password, role } });
   } catch (error) {
-    if (error instanceof ApiError && error.status === 400 && error.body === 'email already taken') {
+    if (error instanceof ApiError && error.status === 409) {
       error.message = 'Аккаунт с таким email уже существует';
     }
 
     throw error;
   }
 
-  return getCurrentUser();
+  setAuthorized(true);
 }
 
 /**
- * Входит в аккаунт и сохраняет выданные токены.
+ * Входит в аккаунт; сессию бэкенд сохраняет в cookie.
  * @param {object} data Данные формы.
  * @param {string} data.email Почта.
  * @param {string} data.password Пароль.
- * @returns {Promise<SessionUser | null>} Вошедший пользователь.
  * @throws {ApiError} 401 — неверная почта или пароль, 422 — почта или пароль не прошли проверку.
  */
 export async function login({ email, password }) {
   try {
-    saveTokens(await request('POST', '/login', { body: { email, password } }));
+    await request('POST', '/login', { body: { email, password } });
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
       error.message = 'Неверный email или пароль';
@@ -161,17 +154,33 @@ export async function login({ email, password }) {
     throw error;
   }
 
-  return getCurrentUser();
+  setAuthorized(true);
 }
 
 /**
- * Выходит из аккаунта: удаляет токены. Запроса к бэкенду нет — сессий он не хранит.
+ * Выходит из аккаунта: cookie сессии может удалить только бэкенд.
+ * @throws {ApiError} Сервер недоступен или ответил ошибкой.
  */
-export function logout() {
-  clearTokens();
+export async function logout() {
+  await request('POST', '/logout');
+  setAuthorized(false);
 }
 
-export { getCurrentUser };
+/**
+ * Проверяет по cookie, вошёл ли пользователь, и заодно продлевает сессию.
+ * Отдельной ручки для проверки на бэкенде нет, поэтому используется обновление токенов.
+ * @returns {Promise<boolean>} `true`, если сессия действует.
+ */
+export async function restoreSession() {
+  try {
+    await request('POST', '/refresh');
+    setAuthorized(true);
+  } catch {
+    setAuthorized(false);
+  }
+
+  return isAuthorized();
+}
 
 /**
  * Загружает ленту вакансий.
