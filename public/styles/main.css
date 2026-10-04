@@ -1,13 +1,30 @@
+@import url('./fonts.css');
+@import url('./ui.css');
 @import url('../components/Header.css');
+@import url('../pages/AuthPage.css');
+@import url('../pages/VacanciesPage.css');
 
 :root {
-  --content-width: 1100px;
-  --color-bg: #f4f6f8;
-  --color-surface: #ffffff;
-  --color-text: #1f2328;
-  --color-text-muted: #59636e;
-  --color-link: #0b62d6;
-  --color-border: #d8dee4;
+  --content-width: 1440px;
+  --page-padding: 48px;
+
+  --color-bg: #fff7f2;
+  --color-surface: #fffcfa;
+  --color-surface-hover: #f9eae2;
+  --color-border: #e3d8d5;
+  --color-text: #2d2324;
+  --color-text-muted: #6a6063;
+  --color-text-on-color: #fff9f7;
+  --color-primary: #c14a3b;
+  --color-primary-hover: #a83b32;
+  --color-accent: #247a78;
+  --color-accent-hover: #1b605f;
+  --color-danger: #b4232c;
+  --color-success: #137a52;
+  --color-skeleton: #e3d8d5;
+
+  --radius: 12px;
+  --radius-small: 8px;
 }
 
 *,
@@ -18,31 +35,46 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
   color: var(--color-text);
   background: var(--color-bg);
 }
 
-#header {
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
 }
 
 .page {
   max-width: var(--content-width);
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 0 var(--page-padding) var(--page-padding);
 }
 
-a {
-  color: var(--color-link);
+.page-stub {
+  padding-top: 16px;
 }
 
 .page-stub__title {
-  margin: 0 0 8px;
+  margin: 0 0 4px;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 40px;
 }
 
 .page-stub__text {
   margin: 0;
   color: var(--color-text-muted);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --page-padding: 16px;
+  }
 }
