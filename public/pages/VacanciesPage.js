@@ -37,7 +37,7 @@ export default class VacanciesPage {
 
     this.#input = container.querySelector('#vacancies-query');
     this.#filters = container.querySelector('.vacancies__filters');
-    this.#results = container.querySelector('.vacancies__list');
+    this.#results = container.querySelector('.vacancies__results');
 
     container.querySelector('.vacancies__search').addEventListener('submit', (event) => {
       event.preventDefault();

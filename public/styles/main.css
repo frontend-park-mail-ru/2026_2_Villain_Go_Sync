@@ -23,6 +23,7 @@
   --color-accent-hover: #1b605f;
   --color-accent-soft: #e6f4f2;
   --color-danger: #b4232c;
+  --color-success: #137a52;
   --color-skeleton: #e3d8d5;
 
   --radius: 12px;
@@ -60,7 +61,7 @@ a:hover {
 }
 
 .page-stub {
-  padding-top: 32px;
+  padding-top: 16px;
 }
 
 .page-stub__title {

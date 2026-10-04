@@ -172,6 +172,41 @@ label.chip:hover {
   display: none;
 }
 
+.toast_success {
+  border-color: var(--color-success);
+}
+
+.toast_floating {
+  position: fixed;
+  right: var(--page-padding);
+  bottom: var(--page-padding);
+  z-index: 20;
+  width: 480px;
+  max-width: calc(100vw - 2 * var(--page-padding));
+}
+
+.toast__message {
+  flex: 1;
+}
+
+.toast__close {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-small);
+  font: inherit;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.toast__close:hover {
+  background: var(--color-surface-hover);
+}
+
 .toast::before {
   content: '×';
   flex: none;
@@ -183,6 +218,80 @@ label.chip:hover {
   text-align: center;
   color: var(--color-text-on-color);
   background: var(--color-danger);
+}
+
+.toast_success::before {
+  content: '✓';
+  background: var(--color-success);
+}
+
+.modal {
+  width: 560px;
+  max-width: calc(100vw - 32px);
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.modal::backdrop {
+  background: rgb(45 35 36 / 12%);
+}
+
+.modal__content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px;
+}
+
+.modal__header {
+  display: flex;
+  gap: 16px;
+}
+
+.modal__title {
+  flex: 1;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+}
+
+.modal__close {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.modal__close:hover {
+  background: var(--color-surface-hover);
+}
+
+.modal__text {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.modal__button {
+  width: 160px;
 }
 
 .skeleton {
