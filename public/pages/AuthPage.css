@@ -1,6 +1,7 @@
 .auth {
   display: grid;
-  grid-template-columns: minmax(0, 560px) minmax(0, 720px);
+  /* Минимумы колонок не дают карточке сжиматься: сначала уступает место пустое пространство вокруг. */
+  grid-template-columns: minmax(240px, 560px) minmax(544px, 720px);
   gap: 64px;
   min-height: calc(100vh - 168px);
   margin-top: 24px;
@@ -52,7 +53,9 @@
   gap: 24px;
   align-self: start;
   max-width: 480px;
-  margin-top: 176px;
+
+  /* При высоте окна 1024px отступ как в макете — 176px; на экранах ниже карточка поднимается, чтобы поместиться. */
+  margin-top: clamp(0px, calc(100vh - 848px), 176px);
   margin-left: 64px;
   padding: 48px;
   border: 1px solid var(--color-border);
