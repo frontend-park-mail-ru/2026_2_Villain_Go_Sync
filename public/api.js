@@ -81,8 +81,8 @@ async function readBody(response) {
  * @param {object} [options] Настройки запроса.
  * @param {object} [options.body] Тело запроса, отправляется как JSON.
  * @param {AbortSignal} [options.signal] Сигнал для отмены запроса.
- * @returns {Promise<unknown>} Тело ответа.
- * @throws {ApiError} Сервер недоступен или ответил ошибкой.
+ * @returns {Promise<unknown>} Содержимое поля `data` из ответа или `null`, если его нет.
+ * @throws {ApiError} Сервер недоступен или ответил ошибкой; в `body` — текст из поля `error`.
  */
 async function request(method, path, { body, signal } = {}) {
   const init = { method, headers: {}, signal };
@@ -111,11 +111,12 @@ async function request(method, path, { body, signal } = {}) {
     throw new ApiError(0);
   }
 
+  // Бэкенд оборачивает ответы: { "data": ... } при успехе и { "error": "..." } при ошибке.
   if (!response.ok) {
-    throw new ApiError(response.status, data);
+    throw new ApiError(response.status, data?.error ?? data);
   }
 
-  return data;
+  return data?.data ?? null;
 }
 
 /**
@@ -177,8 +178,14 @@ export { getCurrentUser };
  * @param {object} [options] Настройки запроса.
  * @param {AbortSignal} [options.signal] Сигнал для отмены запроса.
  * @returns {Promise<Vacancy[]>} Вакансии; пустой массив, если их нет.
- * @throws {ApiError} Сервер недоступен или ответил ошибкой.
+ * @throws {ApiError} Сервер недоступен, ответил ошибкой или прислал не список.
  */
 export async function getVacancies({ signal } = {}) {
-  return (await request('GET', '/vacancies', { signal })) ?? [];
+  const vacancies = (await request('GET', '/vacancies', { signal })) ?? [];
+
+  if (!Array.isArray(vacancies)) {
+    throw new ApiError(500, vacancies);
+  }
+
+  return vacancies;
 }
