@@ -1,3 +1,4 @@
 export const APP_NAME = 'HireNoon';
 
-export const API_URL = 'http://localhost:8080/api';
+// Адрес бэкенда задаётся при запуске сервера: файл env.js он формирует из переменной окружения API_URL.
+export { API_URL } from './env.js';
