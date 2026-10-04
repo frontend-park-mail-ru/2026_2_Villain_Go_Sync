@@ -50,7 +50,8 @@
   margin-left: auto;
 }
 
-.header__login {
+.header__login,
+.header__logout {
   width: 160px;
 }
 
@@ -75,6 +76,7 @@
   }
 
   .header__login,
+  .header__logout,
   .header__register {
     width: auto;
   }

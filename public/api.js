@@ -1,4 +1,5 @@
 import { API_URL } from './config.js';
+import { clearTokens, getAccessToken, getCurrentUser, saveTokens } from './session.js';
 
 const STATUS_MESSAGES = {
   0: 'Не удалось связаться с сервером',
@@ -10,15 +11,8 @@ const STATUS_MESSAGES = {
 };
 
 /**
- * @typedef {'seeker' | 'employer'} UserRole
- */
-
-/**
- * @typedef {object} User
- * @property {number} id Идентификатор пользователя.
- * @property {string} email Почта.
- * @property {UserRole} role Роль: соискатель или работодатель.
- * @property {string} created_at Дата регистрации в формате ISO 8601.
+ * @typedef {import('./session.js').UserRole} UserRole
+ * @typedef {import('./session.js').SessionUser} SessionUser
  */
 
 /**
@@ -81,7 +75,7 @@ async function readBody(response) {
 }
 
 /**
- * Отправляет запрос к API вместе с cookie сессии и разбирает ответ.
+ * Отправляет запрос к API с access-токеном, если он есть, и разбирает ответ.
  * @param {string} method HTTP-метод.
  * @param {string} path Путь относительно `API_URL`, например `/login`.
  * @param {object} [options] Настройки запроса.
@@ -91,10 +85,15 @@ async function readBody(response) {
  * @throws {ApiError} Сервер недоступен или ответил ошибкой.
  */
 async function request(method, path, { body, signal } = {}) {
-  const init = { method, credentials: 'include', signal };
+  const init = { method, headers: {}, signal };
+  const accessToken = getAccessToken();
+
+  if (accessToken) {
+    init.headers.Authorization = `Bearer ${accessToken}`;
+  }
 
   if (body !== undefined) {
-    init.headers = { 'Content-Type': 'application/json' };
+    init.headers['Content-Type'] = 'application/json';
     init.body = JSON.stringify(body);
   }
 
@@ -120,54 +119,58 @@ async function request(method, path, { body, signal } = {}) {
 }
 
 /**
- * Регистрирует пользователя; сессию бэкенд сохраняет в cookie.
+ * Регистрирует пользователя и сохраняет выданные токены.
  * @param {object} data Данные формы.
  * @param {string} data.email Почта.
  * @param {string} data.password Пароль.
  * @param {UserRole} data.role Роль.
- * @throws {ApiError} 400 — почта уже занята, 422 — почта или пароль не прошли проверку.
+ * @returns {Promise<SessionUser | null>} Вошедший пользователь.
+ * @throws {ApiError} 400 — почта уже занята или роль некорректна, 422 — почта или пароль не прошли проверку.
  */
 export async function register({ email, password, role }) {
-  await request('POST', '/register', { body: { email, password, role } });
-}
-
-/**
- * Входит в аккаунт; сессию бэкенд сохраняет в cookie.
- * @param {object} data Данные формы.
- * @param {string} data.email Почта.
- * @param {string} data.password Пароль.
- * @throws {ApiError} 401 — неверная почта или пароль, 422 — почта или пароль не прошли проверку.
- */
-export async function login({ email, password }) {
-  await request('POST', '/login', { body: { email, password } });
-}
-
-/**
- * Выходит из аккаунта; бэкенд удаляет cookie сессии.
- * @throws {ApiError} Сервер недоступен или ответил ошибкой.
- */
-export async function logout() {
-  await request('POST', '/logout');
-}
-
-/**
- * Узнаёт по cookie сессии, кто вошёл.
- * @param {object} [options] Настройки запроса.
- * @param {AbortSignal} [options.signal] Сигнал для отмены запроса.
- * @returns {Promise<User | null>} Пользователь или `null`, если сессии нет.
- * @throws {ApiError} Сервер недоступен или ответил ошибкой, кроме 401.
- */
-export async function getCurrentUser({ signal } = {}) {
   try {
-    return await request('GET', '/me', { signal });
+    saveTokens(await request('POST', '/register', { body: { email, password, role } }));
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) {
-      return null;
+    if (error instanceof ApiError && error.status === 400 && error.body === 'email already taken') {
+      error.message = 'Аккаунт с таким email уже существует';
     }
 
     throw error;
   }
+
+  return getCurrentUser();
 }
+
+/**
+ * Входит в аккаунт и сохраняет выданные токены.
+ * @param {object} data Данные формы.
+ * @param {string} data.email Почта.
+ * @param {string} data.password Пароль.
+ * @returns {Promise<SessionUser | null>} Вошедший пользователь.
+ * @throws {ApiError} 401 — неверная почта или пароль, 422 — почта или пароль не прошли проверку.
+ */
+export async function login({ email, password }) {
+  try {
+    saveTokens(await request('POST', '/login', { body: { email, password } }));
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      error.message = 'Неверный email или пароль';
+    }
+
+    throw error;
+  }
+
+  return getCurrentUser();
+}
+
+/**
+ * Выходит из аккаунта: удаляет токены. Запроса к бэкенду нет — сессий он не хранит.
+ */
+export function logout() {
+  clearTokens();
+}
+
+export { getCurrentUser };
 
 /**
  * Загружает ленту вакансий.

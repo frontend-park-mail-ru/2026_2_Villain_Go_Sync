@@ -11,6 +11,7 @@
   <div class="auth__card auth__card_compact">
     <h1 class="auth__title">Создать аккаунт</h1>
     <p class="auth__subtitle">Зарегистрируйтесь, чтобы начать.</p>
+    <p class="toast" role="alert" hidden></p>
 
     <form class="auth__form" novalidate>
       <div class="field">
@@ -21,6 +22,7 @@
           <input class="chip__control" id="register-role-employer" name="role" type="radio" value="employer" />
           <label class="chip" for="register-role-employer">Ищу сотрудников</label>
         </div>
+        <p class="field__message field__message_collapsible"></p>
       </div>
 
       <div class="field">

@@ -9,6 +9,8 @@
  * @property {string} title Заголовок вкладки.
  * @property {new (props: { router: Router }) => Page} page Класс страницы.
  * @property {string} [layout] Вариант оформления шапки, например `auth`.
+ * @property {() => string | null} [redirect] Проверка доступа: возвращает путь, на который нужно уйти
+ * вместо показа страницы, или `null`, если страницу можно показать.
  */
 
 /**
@@ -143,6 +145,13 @@ export default class Router {
   #render() {
     const path = normalizePath(window.location.pathname);
     const route = this.#routes.get(path) ?? this.#notFound;
+    const redirectUrl = route.redirect?.();
+
+    if (redirectUrl) {
+      window.history.replaceState(null, '', redirectUrl);
+      this.#render();
+      return;
+    }
 
     this.#currentPage?.destroy?.();
     this.#currentPage = new route.page({ router: this });
