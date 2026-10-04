@@ -1,0 +1,48 @@
+<section class="auth">
+  <div class="auth__hero">
+    <div class="auth__hero-accent">
+      <img class="auth__hero-image" src="/images/hero-arc.svg" alt="" width="64" height="32" />
+    </div>
+    <p class="auth__hero-title">It's HireNoon.</p>
+    <p class="auth__hero-slogan">Time to get hired.</p>
+    <p class="auth__hero-text">Самое время найти работу.</p>
+  </div>
+
+  <div class="auth__card">
+    <h1 class="auth__title">Войти в HireNoon</h1>
+    <p class="auth__subtitle">Войдите, чтобы продолжить.</p>
+    <p class="toast" role="alert" hidden></p>
+
+    <form class="auth__form" novalidate>
+      <div class="field">
+        <label class="field__label" for="login-email">Email</label>
+        <input
+          class="field__input"
+          id="login-email"
+          name="email"
+          type="email"
+          placeholder="name@example.com"
+          autocomplete="email"
+        />
+        <p class="field__message"></p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="login-password">Пароль</label>
+        <input
+          class="field__input"
+          id="login-password"
+          name="password"
+          type="password"
+          placeholder="Введите пароль"
+          autocomplete="current-password"
+        />
+        <p class="field__message"></p>
+      </div>
+
+      <button class="button" type="submit">Войти</button>
+    </form>
+
+    <p class="auth__footer">Нет аккаунта? <a href="/register">Зарегистрироваться</a></p>
+  </div>
+</section>

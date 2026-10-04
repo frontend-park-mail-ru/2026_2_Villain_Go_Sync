@@ -1,0 +1,147 @@
+.vacancies {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-top: 32px;
+}
+
+.vacancies__title {
+  margin: 0 0 4px;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 40px;
+}
+
+.vacancies__subtitle {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.vacancies__search {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.vacancies__search-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.vacancies__search-button {
+  width: 160px;
+  margin-top: 32px;
+}
+
+.vacancies__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  max-width: 1064px;
+}
+
+.vacancies__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 64px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  text-align: center;
+  background: var(--color-surface);
+}
+
+.vacancies__empty-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+}
+
+.vacancies__empty-text {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.vacancies__empty-button {
+  width: 320px;
+  max-width: 100%;
+}
+
+.vacancy-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 520px;
+  max-width: 100%;
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.vacancy-card__title {
+  display: -webkit-box;
+  height: 56px;
+  margin: 0 0 4px;
+  overflow: hidden;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.vacancy-card__company {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.vacancy-card__details,
+.vacancy-card__date {
+  min-height: 20px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-text-muted);
+}
+
+.vacancy-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.vacancy-card__salary {
+  font-weight: 500;
+}
+
+.vacancy-card__button {
+  width: 176px;
+  padding: 12px 8px;
+}
+
+@media (max-width: 768px) {
+  .vacancies__search {
+    flex-wrap: wrap;
+    gap: 0;
+  }
+
+  .vacancies__search-field {
+    flex-basis: 100%;
+  }
+
+  .vacancies__search-button {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .vacancies__empty {
+    padding: 24px;
+  }
+}
