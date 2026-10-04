@@ -1,6 +1,9 @@
-import { loadTemplate } from '../template.js';
-
-const template = await loadTemplate(new URL('./NotFoundPage.hbs', import.meta.url));
+const template = Handlebars.compile(`
+  <section class="page-stub">
+    <h1 class="page-stub__title">Страница не найдена</h1>
+    <p class="page-stub__text">Такой страницы нет. <a href="/">Вернуться к вакансиям</a></p>
+  </section>
+`);
 
 /**
  * Страница 404.
