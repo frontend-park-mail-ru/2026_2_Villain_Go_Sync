@@ -1,0 +1,28 @@
+<section class="vacancies">
+  <div>
+    <h1 class="vacancies__title">Вакансии</h1>
+    <p class="vacancies__subtitle">Найдите работу, которая подходит именно вам.</p>
+  </div>
+
+  <form class="vacancies__search" novalidate>
+    <div class="field vacancies__search-field">
+      <label class="field__label" for="vacancies-query">Поиск вакансий</label>
+      <input
+        class="field__input"
+        id="vacancies-query"
+        name="query"
+        type="search"
+        placeholder="Должность, профессия или компания"
+      />
+    </div>
+    <button class="button vacancies__search-button" type="submit">Найти</button>
+  </form>
+
+  <div class="chips vacancies__filters">
+    {{#each filters}}
+      <button class="chip" type="button">{{this}}</button>
+    {{/each}}
+  </div>
+
+  <div class="vacancies__results" aria-live="polite"></div>
+</section>

@@ -1,0 +1,26 @@
+<div class="header">
+  <a class="header__logo" href="/">
+    <img class="header__logo-icon" src="/images/logo.svg" alt="" width="50" height="48" />
+    {{appName}}
+  </a>
+  <nav class="header__nav">
+    {{#each links}}
+      <a class="header__link" href="{{href}}">{{title}}</a>
+    {{/each}}
+  </nav>
+  <div class="header__actions">
+    {{#if isAuthorized}}
+      <div class="header__profile">
+        <button class="button header__profile-button" type="button" aria-haspopup="true" aria-expanded="false">
+          Профиль
+        </button>
+        <div class="header__menu" hidden>
+          <button class="button button_ghost header__logout" type="button">Выйти</button>
+        </div>
+      </div>
+    {{else}}
+      <a class="button button_ghost header__login" href="/login">Войти</a>
+      <a class="button header__register" href="/register">Зарегистрироваться</a>
+    {{/if}}
+  </div>
+</div>
