@@ -29,14 +29,23 @@
 
       <div class="field">
         <label class="field__label" for="login-password">Пароль</label>
-        <input
-          class="field__input"
-          id="login-password"
-          name="password"
-          type="password"
-          placeholder="Введите пароль"
-          autocomplete="current-password"
-        />
+        <div class="field__control">
+          <input
+            class="field__input"
+            id="login-password"
+            name="password"
+            type="password"
+            placeholder="Введите пароль"
+            autocomplete="current-password"
+          />
+          <button
+            class="field__toggle"
+            type="button"
+            aria-label="Показать пароль"
+            aria-controls="login-password"
+            aria-pressed="false"
+          ></button>
+        </div>
         <p class="field__message field__message_collapsible"></p>
       </div>
 

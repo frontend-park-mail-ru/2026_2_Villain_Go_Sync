@@ -40,14 +40,23 @@
 
       <div class="field">
         <label class="field__label" for="register-password">Пароль</label>
-        <input
-          class="field__input"
-          id="register-password"
-          name="password"
-          type="password"
-          placeholder="Введите пароль"
-          autocomplete="new-password"
-        />
+        <div class="field__control">
+          <input
+            class="field__input"
+            id="register-password"
+            name="password"
+            type="password"
+            placeholder="Введите пароль"
+            autocomplete="new-password"
+          />
+          <button
+            class="field__toggle"
+            type="button"
+            aria-label="Показать пароль"
+            aria-controls="register-password"
+            aria-pressed="false"
+          ></button>
+        </div>
         <p class="field__message">Минимум 8 символов, заглавная и строчная буква и цифра.</p>
       </div>
 

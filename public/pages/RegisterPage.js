@@ -1,5 +1,5 @@
 import { register } from '../api.js';
-import { setFieldError, setFormError, setLoading } from '../components/form.js';
+import { initPasswordToggles, setFieldError, setFormError, setLoading } from '../components/form.js';
 import { loadTemplate } from '../template.js';
 import { getEmailError, getPasswordError } from '../validation.js';
 
@@ -35,6 +35,7 @@ export default class RegisterPage {
       this.#submit(form, container.querySelector('.toast'));
     });
     form.addEventListener('input', (event) => setFieldError(event.target, ''));
+    initPasswordToggles(form);
   }
 
   /**
