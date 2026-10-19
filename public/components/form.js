@@ -19,13 +19,20 @@ export function setFieldError(control, message) {
 }
 
 /**
- * Показывает или прячет уведомление об ошибке отправки формы.
- * @param {HTMLElement} toast Элемент уведомления.
- * @param {string} message Текст ошибки; пустая строка прячет уведомление.
+ * Подключает кнопки показа пароля `.field__toggle` внутри контейнера.
+ * @param {HTMLElement} container Элемент, в котором ищутся кнопки.
  */
-export function setFormError(toast, message) {
-  toast.textContent = message;
-  toast.hidden = !message;
+export function initPasswordToggles(container) {
+  container.querySelectorAll('.field__toggle').forEach((button) => {
+    const input = button.closest('.field__control').querySelector('.field__input');
+
+    button.addEventListener('click', () => {
+      const isVisible = input.type === 'password';
+
+      input.type = isVisible ? 'text' : 'password';
+      button.setAttribute('aria-pressed', String(isVisible));
+    });
+  });
 }
 
 /**

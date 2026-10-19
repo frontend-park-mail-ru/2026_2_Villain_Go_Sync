@@ -11,7 +11,6 @@
   <div class="auth__card">
     <h1 class="auth__title">Войти в HireNoon</h1>
     <p class="auth__subtitle">Войдите, чтобы продолжить.</p>
-    <p class="toast" role="alert" hidden></p>
 
     <form class="auth__form" novalidate>
       <div class="field">
@@ -24,20 +23,29 @@
           placeholder="name@example.com"
           autocomplete="email"
         />
-        <p class="field__message field__message_collapsible"></p>
+        <p class="field__message"></p>
       </div>
 
       <div class="field">
         <label class="field__label" for="login-password">Пароль</label>
-        <input
-          class="field__input"
-          id="login-password"
-          name="password"
-          type="password"
-          placeholder="Введите пароль"
-          autocomplete="current-password"
-        />
-        <p class="field__message field__message_collapsible"></p>
+        <div class="field__control">
+          <input
+            class="field__input"
+            id="login-password"
+            name="password"
+            type="password"
+            placeholder="Введите пароль"
+            autocomplete="current-password"
+          />
+          <button
+            class="field__toggle"
+            type="button"
+            aria-label="Показать пароль"
+            aria-controls="login-password"
+            aria-pressed="false"
+          ></button>
+        </div>
+        <p class="field__message"></p>
       </div>
 
       <button class="button" type="submit">Войти</button>

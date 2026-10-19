@@ -71,16 +71,62 @@
   border: 2px solid var(--color-accent);
 }
 
+.field__control {
+  position: relative;
+}
+
+.field__control .field__input {
+  padding-right: 56px;
+}
+
+.field__input::-ms-reveal {
+  display: none;
+}
+
+.field__toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-small);
+  color: var(--color-text-muted);
+  background: transparent;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.field__toggle:hover {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+}
+
+.field__toggle:focus-visible {
+  outline: 2px solid var(--color-accent);
+}
+
+.field__toggle::before {
+  content: '';
+  display: block;
+  width: 20px;
+  height: 20px;
+  margin: auto;
+  background: currentColor;
+  mask: url('../images/eye.svg') center / contain no-repeat;
+}
+
+.field__toggle[aria-pressed='true']::before {
+  mask-image: url('../images/eye-off.svg');
+}
+
 .field__message {
   min-height: 20px;
   margin: 0;
   font-size: 14px;
   line-height: 20px;
   color: var(--color-text-muted);
-}
-
-.field__message_collapsible:empty {
-  display: none;
 }
 
 .field_invalid .field__input {
