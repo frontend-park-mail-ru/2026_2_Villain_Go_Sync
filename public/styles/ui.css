@@ -129,10 +129,6 @@
   color: var(--color-text-muted);
 }
 
-.field__message_collapsible:empty {
-  display: none;
-}
-
 .field_invalid .field__input {
   border: 2px solid var(--color-danger);
 }

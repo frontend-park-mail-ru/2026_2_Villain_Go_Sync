@@ -1,11 +1,10 @@
 import { login } from '../api.js';
-import { initPasswordToggles, setFieldError, setFormError, setLoading } from '../components/form.js';
+import { initPasswordToggles, setFieldError, setLoading } from '../components/form.js';
+import { showToast } from '../components/toast.js';
 import { loadTemplate } from '../template.js';
 import { getEmailError } from '../validation.js';
 
 const template = await loadTemplate(new URL('./LoginPage.hbs', import.meta.url));
-
-const INVALID_CREDENTIALS_MESSAGE = 'Неверный email или пароль';
 
 /**
  * Страница авторизации.
@@ -34,7 +33,7 @@ export default class LoginPage {
 
     form.addEventListener('submit', (event) => {
       event.preventDefault();
-      this.#submit(form, container.querySelector('.toast'));
+      this.#submit(form);
     });
     form.addEventListener('input', (event) => setFieldError(event.target, ''));
     initPasswordToggles(form);
@@ -50,9 +49,8 @@ export default class LoginPage {
   /**
    * Проверяет поля и отправляет форму входа.
    * @param {HTMLFormElement} form Форма входа.
-   * @param {HTMLElement} toast Уведомление об ошибке отправки.
    */
-  async #submit(form, toast) {
+  async #submit(form) {
     if (this.#isSubmitting) {
       return;
     }
@@ -61,11 +59,9 @@ export default class LoginPage {
     const emailError = getEmailError(email.value.trim());
     const passwordError = password.value ? '' : 'Введите пароль';
 
-    setFormError(toast, '');
-    setFieldError(email, emailError);
-    setFieldError(password, passwordError);
-
     if (emailError || passwordError) {
+      setFieldError(email, emailError);
+      setFieldError(password, passwordError);
       return;
     }
 
@@ -77,8 +73,7 @@ export default class LoginPage {
     try {
       await login({ email: email.value.trim(), password: password.value });
     } catch (error) {
-      // 422 при входе значит, что пароль не подходит под правила бэкенда, то есть заведомо неверный.
-      setFormError(toast, error.status === 422 ? INVALID_CREDENTIALS_MESSAGE : error.message);
+      showToast(error.message, 'error');
       return;
     } finally {
       this.#isSubmitting = false;

@@ -140,14 +140,15 @@ export async function register({ email, password, role }) {
  * @param {object} data Данные формы.
  * @param {string} data.email Почта.
  * @param {string} data.password Пароль.
- * @throws {ApiError} 401 — неверная почта или пароль, 422 — почта или пароль не прошли проверку.
+ * @throws {ApiError} 401 — неверная почта или пароль, 422 — пароль не подходит под правила бэкенда,
+ * то есть тоже заведомо неверный; в обоих случаях текст ошибки одинаковый.
  */
 export async function login({ email, password }) {
   try {
     await request('POST', '/login', { body: { email, password } });
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) {
-      error.message = 'Неверный email или пароль';
+    if (error instanceof ApiError && (error.status === 401 || error.status === 422)) {
+      error.message = 'Неверная электронная почта или пароль';
     }
 
     throw error;

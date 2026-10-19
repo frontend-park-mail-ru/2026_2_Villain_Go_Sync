@@ -36,16 +36,6 @@ export function initPasswordToggles(container) {
 }
 
 /**
- * Показывает или прячет уведомление об ошибке отправки формы.
- * @param {HTMLElement} toast Элемент уведомления.
- * @param {string} message Текст ошибки; пустая строка прячет уведомление.
- */
-export function setFormError(toast, message) {
-  toast.textContent = message;
-  toast.hidden = !message;
-}
-
-/**
  * Переводит кнопку отправки в состояние загрузки и обратно.
  * @param {HTMLButtonElement} button Кнопка отправки.
  * @param {boolean} isLoading Идёт ли отправка.

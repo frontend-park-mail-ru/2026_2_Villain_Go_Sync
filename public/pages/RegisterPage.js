@@ -1,5 +1,6 @@
 import { register } from '../api.js';
-import { initPasswordToggles, setFieldError, setFormError, setLoading } from '../components/form.js';
+import { initPasswordToggles, setFieldError, setLoading } from '../components/form.js';
+import { showToast } from '../components/toast.js';
 import { loadTemplate } from '../template.js';
 import { getEmailError, getPasswordError } from '../validation.js';
 
@@ -32,7 +33,7 @@ export default class RegisterPage {
 
     form.addEventListener('submit', (event) => {
       event.preventDefault();
-      this.#submit(form, container.querySelector('.toast'));
+      this.#submit(form);
     });
     form.addEventListener('input', (event) => setFieldError(event.target, ''));
     initPasswordToggles(form);
@@ -48,9 +49,8 @@ export default class RegisterPage {
   /**
    * Проверяет поля и отправляет форму регистрации.
    * @param {HTMLFormElement} form Форма регистрации.
-   * @param {HTMLElement} toast Уведомление об ошибке отправки.
    */
-  async #submit(form, toast) {
+  async #submit(form) {
     if (this.#isSubmitting) {
       return;
     }
@@ -60,12 +60,10 @@ export default class RegisterPage {
     const emailError = getEmailError(email.value.trim());
     const passwordError = getPasswordError(password.value);
 
-    setFormError(toast, '');
-    setFieldError(role[0], roleError);
-    setFieldError(email, emailError);
-    setFieldError(password, passwordError);
-
     if (roleError || emailError || passwordError) {
+      setFieldError(role[0], roleError);
+      setFieldError(email, emailError);
+      setFieldError(password, passwordError);
       return;
     }
 
@@ -77,7 +75,11 @@ export default class RegisterPage {
     try {
       await register({ email: email.value.trim(), password: password.value, role: role.value });
     } catch (error) {
-      setFormError(toast, error.message);
+      if (error.status === 409) {
+        setFieldError(email, error.message);
+      } else {
+        showToast(error.message, 'error');
+      }
       return;
     } finally {
       this.#isSubmitting = false;
