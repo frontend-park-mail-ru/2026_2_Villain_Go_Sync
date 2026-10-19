@@ -167,16 +167,29 @@ export async function logout() {
 }
 
 /**
- * Проверяет по cookie, вошёл ли пользователь, и заодно продлевает сессию.
- * Отдельной ручки для проверки на бэкенде нет, поэтому используется обновление токенов.
+ * Выполняет запрос и сообщает, удался ли он; ответ и ошибка не важны.
+ * @param {string} method HTTP-метод.
+ * @param {string} path Путь относительно `API_URL`.
+ * @returns {Promise<boolean>} `true`, если сервер ответил успехом.
+ */
+async function succeeds(method, path) {
+  try {
+    await request(method, path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Проверяет по cookie, вошёл ли пользователь.
+ * Отдельной ручки проверки сессии на бэкенде пока нет. Поэтому сначала проверяется access-токен
+ * запросом к ручке, которая его требует, и только если он не подошёл — сессия продлевается по refresh-токену.
+ * Так вход не сбрасывается, когда access-токен ещё действует, а refresh-токен уже нет.
+ * Когда на бэкенде появится ручка проверки сессии, заменить оба запроса на неё.
  */
 export async function restoreSession() {
-  try {
-    await request('POST', '/refresh');
-    setAuthorized(true);
-  } catch {
-    setAuthorized(false);
-  }
+  setAuthorized((await succeeds('GET', '/vacancies')) || (await succeeds('POST', '/refresh')));
 }
 
 /**
