@@ -42,9 +42,9 @@ export default (env, { mode }) => {
         { test: /\.ts$/, exclude: /node_modules/, loader: 'babel-loader' },
         { test: /\.hbs$/, loader: 'handlebars-loader' },
         {
-          test: /\.css$/,
+          test: /\.scss$/,
           // Картинки и шрифты лежат в public/ и подключаются по абсолютным путям, их сборка не трогает.
-          use: [MiniCssExtractPlugin.loader, { loader: 'css-loader', options: { url: false } }],
+          use: [MiniCssExtractPlugin.loader, { loader: 'css-loader', options: { url: false } }, 'sass-loader'],
         },
       ],
     },

@@ -1,0 +1,112 @@
+@use '../styles/mixins' as *;
+
+#header {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 24px var(--page-padding) 0;
+
+  [data-layout='auth'] & {
+    padding-top: var(--page-padding);
+  }
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  padding: 23px 24px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+
+  @include mobile {
+    padding: 16px;
+  }
+
+  [data-layout='auth'] & {
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  &__logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 29px;
+    white-space: nowrap;
+
+    &:hover {
+      text-decoration: none;
+    }
+  }
+
+  &__logo-icon {
+    width: 50px;
+    height: 48px;
+  }
+
+  &__nav {
+    display: flex;
+    gap: 24px;
+  }
+
+  &__link {
+    font-weight: 500;
+    color: var(--color-text-muted);
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  [data-layout='auth'] &__nav,
+  [data-layout='auth'] &__actions {
+    display: none;
+  }
+
+  &__login,
+  &__profile-button {
+    width: 160px;
+
+    @include mobile {
+      width: auto;
+    }
+  }
+
+  &__profile {
+    position: relative;
+  }
+
+  &__menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 242px;
+    padding: 8px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  &__register {
+    width: 240px;
+
+    @include mobile {
+      width: auto;
+    }
+  }
+}

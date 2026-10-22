@@ -1,8 +1,9 @@
-@import url('./fonts.css');
-@import url('./ui.css');
-@import url('../components/Header.css');
-@import url('../pages/AuthPage.css');
-@import url('../pages/VacanciesPage.css');
+@use 'mixins' as *;
+@use 'fonts';
+@use 'ui';
+@use '../components/Header';
+@use '../pages/AuthPage';
+@use '../pages/VacanciesPage';
 
 :root {
   --content-width: 1440px;
@@ -25,6 +26,10 @@
 
   --radius: 12px;
   --radius-small: 8px;
+
+  @include mobile {
+    --page-padding: 16px;
+  }
 }
 
 *,
@@ -45,10 +50,10 @@ body {
 a {
   color: var(--color-primary);
   text-decoration: none;
-}
 
-a:hover {
-  text-decoration: underline;
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .page {
@@ -59,22 +64,16 @@ a:hover {
 
 .page-stub {
   padding-top: 16px;
-}
 
-.page-stub__title {
-  margin: 0 0 4px;
-  font-size: 32px;
-  font-weight: 600;
-  line-height: 40px;
-}
+  &__title {
+    margin: 0 0 4px;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+  }
 
-.page-stub__text {
-  margin: 0;
-  color: var(--color-text-muted);
-}
-
-@media (max-width: 768px) {
-  :root {
-    --page-padding: 16px;
+  &__text {
+    margin: 0;
+    color: var(--color-text-muted);
   }
 }
