@@ -213,13 +213,17 @@ async function succeeds(method: string, path: string): Promise<boolean> {
 
 /**
  * Проверяет по cookie, вошёл ли пользователь.
- * Отдельной ручки проверки сессии на бэкенде пока нет. Поэтому сначала проверяется access-токен
- * запросом к ручке, которая его требует, и только если он не подошёл — сессия продлевается по refresh-токену.
- * Так вход не сбрасывается, когда access-токен ещё действует, а refresh-токен уже нет.
- * Когда на бэкенде появится ручка проверки сессии, заменить оба запроса на неё.
+ * Сначала проверяется access-токен запросом `GET /me`, и только если бэкенд ответил 401 —
+ * сессия продлевается по refresh-токену. Так вход не сбрасывается, когда access-токен ещё действует,
+ * а refresh-токен уже нет.
  */
 export async function restoreSession(): Promise<void> {
-  setAuthorized((await succeeds('GET', '/vacancies')) || (await succeeds('POST', '/refresh')));
+  try {
+    await request('GET', '/me');
+    setAuthorized(true);
+  } catch (error) {
+    setAuthorized(error instanceof ApiError && error.status === 401 && (await succeeds('POST', '/refresh')));
+  }
 }
 
 /**
