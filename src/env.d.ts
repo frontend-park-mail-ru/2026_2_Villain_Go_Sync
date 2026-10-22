@@ -3,7 +3,7 @@ declare module '*.hbs' {
   export default template;
 }
 
-declare module '*.css';
+declare module '*.scss';
 
 declare const process: {
   env: {

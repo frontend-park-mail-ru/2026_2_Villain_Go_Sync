@@ -1,4 +1,4 @@
-import './styles/main.css';
+import './styles/main.scss';
 
 import { restoreSession } from './api';
 import Header from './components/Header';
