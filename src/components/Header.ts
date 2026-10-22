@@ -1,11 +1,9 @@
-import { logout } from '../api.js';
-import { APP_NAME } from '../config.js';
-import { isAuthorized, onSessionChange } from '../session.js';
-import { loadTemplate } from '../template.js';
-import { confirmAction } from './Modal.js';
-import { showToast } from './toast.js';
-
-const template = await loadTemplate(new URL('./Header.hbs', import.meta.url));
+import { logout } from '../api';
+import { APP_NAME } from '../config';
+import { isAuthorized, onSessionChange } from '../session';
+import template from './Header.hbs';
+import { confirmAction } from './Modal';
+import { showToast } from './toast';
 
 const LINKS = [{ title: 'Вакансии', href: '/' }];
 
@@ -13,24 +11,25 @@ const LINKS = [{ title: 'Вакансии', href: '/' }];
  * Шапка сайта: логотип, навигация и кнопки входа или меню профиля.
  */
 export default class Header {
-  /** @type {HTMLElement} */
-  #container;
+  #container!: HTMLElement;
 
   /**
    * Рисует шапку в контейнер и перерисовывает её при входе и выходе пользователя.
-   * @param {HTMLElement} container Контейнер шапки.
+   * @param container Контейнер шапки.
    */
-  render(container) {
+  render(container: HTMLElement): void {
     this.#container = container;
 
     document.addEventListener('click', (event) => {
-      if (event.target.closest('.header__logout')) {
+      const target = event.target as Element;
+
+      if (target.closest('.header__logout')) {
         this.#setMenuOpen(false);
         this.#confirmLogout();
         return;
       }
 
-      const profileButton = event.target.closest('.header__profile-button');
+      const profileButton = target.closest('.header__profile-button');
 
       // Любой другой клик — по пункту меню или мимо него — закрывает меню.
       this.#setMenuOpen(profileButton?.getAttribute('aria-expanded') === 'false');
@@ -49,27 +48,27 @@ export default class Header {
   /**
    * Рисует шапку для гостя или для вошедшего пользователя.
    */
-  #update() {
+  #update(): void {
     this.#container.innerHTML = template({ appName: APP_NAME, links: LINKS, isAuthorized: isAuthorized() });
   }
 
   /**
    * Открывает или закрывает меню профиля.
-   * @param {boolean} isOpen Нужно ли показать меню.
+   * @param isOpen Нужно ли показать меню.
    */
-  #setMenuOpen(isOpen) {
-    const menu = this.#container.querySelector('.header__menu');
+  #setMenuOpen(isOpen: boolean): void {
+    const menu = this.#container.querySelector<HTMLElement>('.header__menu');
 
     if (menu) {
       menu.hidden = !isOpen;
-      this.#container.querySelector('.header__profile-button').setAttribute('aria-expanded', String(isOpen));
+      this.#container.querySelector('.header__profile-button')!.setAttribute('aria-expanded', String(isOpen));
     }
   }
 
   /**
    * Спрашивает подтверждение и выходит из аккаунта.
    */
-  async #confirmLogout() {
+  async #confirmLogout(): Promise<void> {
     const isConfirmed = await confirmAction({
       title: 'Выйти из аккаунта?',
       text: 'Вы уверены, что хотите выйти?',

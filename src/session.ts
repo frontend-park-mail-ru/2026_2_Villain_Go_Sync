@@ -1,22 +1,21 @@
-/** @type {Set<() => void>} */
-const listeners = new Set();
+const listeners = new Set<() => void>();
 
 // Сессия живёт в HttpOnly-cookie, из JavaScript её не видно — здесь хранится только факт входа.
 let authorized = false;
 
 /**
  * Узнаёт, вошёл ли пользователь.
- * @returns {boolean} `true`, если бэкенд подтвердил сессию.
+ * @returns `true`, если бэкенд подтвердил сессию.
  */
-export function isAuthorized() {
+export function isAuthorized(): boolean {
   return authorized;
 }
 
 /**
  * Запоминает, вошёл ли пользователь, и сообщает об изменении подписчикам.
- * @param {boolean} value Вошёл ли пользователь.
+ * @param value Вошёл ли пользователь.
  */
-export function setAuthorized(value) {
+export function setAuthorized(value: boolean): void {
   if (authorized === value) {
     return;
   }
@@ -30,8 +29,8 @@ export function setAuthorized(value) {
 
 /**
  * Подписывает на вход и выход пользователя.
- * @param {() => void} listener Вызывается, когда пользователь вошёл или вышел.
+ * @param listener Вызывается, когда пользователь вошёл или вышел.
  */
-export function onSessionChange(listener) {
+export function onSessionChange(listener: () => void): void {
   listeners.add(listener);
 }

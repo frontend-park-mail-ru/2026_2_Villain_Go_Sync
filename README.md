@@ -19,8 +19,10 @@ Frontend-репозиторий команды "Злодей Go Synс". Прое
 
 ```bash
 npm install
-npm run dev   # сервер на http://localhost:8000, перезапускается при изменениях в server/
-npm run lint  # проверка линтером (npm run lint:fix — исправить автоматически)
+npm run dev        # dev-сервер на http://localhost:8000, пересобирает при изменениях
+npm run build      # сборка для прода в папку dist/
+npm run typecheck  # проверка типов TypeScript
+npm run lint       # проверка линтером (npm run lint:fix — исправить автоматически)
 ```
 
 Настройки сервера задаются переменными окружения или файлом `.env` в корне проекта (образец — `.env.example`).

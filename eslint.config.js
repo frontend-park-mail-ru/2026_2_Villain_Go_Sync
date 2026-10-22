@@ -1,11 +1,15 @@
 import js from '@eslint/js';
+import { defineConfig } from 'eslint/config';
 import jsdoc from 'eslint-plugin-jsdoc';
 import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
-export default [
-  { ignores: ['node_modules/', 'public/vendor/'] },
+export default defineConfig([
+  { ignores: ['node_modules/', 'dist/'] },
   js.configs.recommended,
-  jsdoc.configs['flat/recommended-error'],
+  tseslint.configs.recommended,
+  { files: ['**/*.js'], extends: [jsdoc.configs['flat/recommended-error']] },
+  { files: ['**/*.ts'], extends: [jsdoc.configs['flat/recommended-typescript-error']] },
   {
     rules: {
       'eqeqeq': 'error',
@@ -18,11 +22,11 @@ export default [
     },
   },
   {
-    files: ['public/**/*.js'],
-    languageOptions: { globals: { ...globals.browser, Handlebars: 'readonly' } },
+    files: ['src/**/*.ts'],
+    languageOptions: { globals: globals.browser },
   },
   {
-    files: ['server/**/*.js', 'eslint.config.js'],
+    files: ['*.config.js'],
     languageOptions: { globals: globals.node },
   },
-];
+]);

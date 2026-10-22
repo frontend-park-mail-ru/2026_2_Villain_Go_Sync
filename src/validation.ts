@@ -8,10 +8,10 @@ const MAX_PASSWORD_LENGTH = 72;
 
 /**
  * Проверяет почту.
- * @param {string} email Почта.
- * @returns {string} Текст ошибки или пустая строка, если почта корректна.
+ * @param email Почта.
+ * @returns Текст ошибки или пустая строка, если почта корректна.
  */
-export function getEmailError(email) {
+export function getEmailError(email: string): string {
   if (email.length > MAX_EMAIL_LENGTH || !EMAIL_PATTERN.test(email)) {
     return 'Введите корректный email';
   }
@@ -21,10 +21,10 @@ export function getEmailError(email) {
 
 /**
  * Проверяет пароль для регистрации: длина, регистр букв, цифра и допустимые символы.
- * @param {string} password Пароль.
- * @returns {string} Текст ошибки или пустая строка, если пароль подходит.
+ * @param password Пароль.
+ * @returns Текст ошибки или пустая строка, если пароль подходит.
  */
-export function getPasswordError(password) {
+export function getPasswordError(password: string): string {
   const isValid =
     password.length >= MIN_PASSWORD_LENGTH &&
     password.length <= MAX_PASSWORD_LENGTH &&

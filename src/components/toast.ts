@@ -2,10 +2,10 @@ const HIDE_DELAY_MS = 5000;
 
 /**
  * Показывает всплывающее уведомление в углу экрана; предыдущее при этом убирается.
- * @param {string} message Текст уведомления.
- * @param {'success' | 'error'} [type] Вид уведомления.
+ * @param message Текст уведомления.
+ * @param type Вид уведомления.
  */
-export function showToast(message, type = 'success') {
+export function showToast(message: string, type: 'success' | 'error' = 'success'): void {
   document.querySelector('.toast_floating')?.remove();
 
   const toast = document.createElement('div');

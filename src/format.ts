@@ -8,11 +8,11 @@ const daysFormat = new Intl.RelativeTimeFormat('ru', { numeric: 'auto' });
 
 /**
  * Форматирует вилку зарплаты.
- * @param {number} from Зарплата от; 0, если не указана.
- * @param {number} to Зарплата до; 0, если не указана.
- * @returns {string} Например, `220 000 – 300 000 ₽`, `от 220 000 ₽` или `Зарплата не указана`.
+ * @param from Зарплата от; 0, если не указана.
+ * @param to Зарплата до; 0, если не указана.
+ * @returns Например, `220 000 – 300 000 ₽`, `от 220 000 ₽` или `Зарплата не указана`.
  */
-export function formatSalary(from, to) {
+export function formatSalary(from: number, to: number): string {
   if (from > 0 && to > 0 && from !== to) {
     return `${numberFormat.format(from)} – ${numberFormat.format(to)} ₽`;
   }
@@ -34,17 +34,17 @@ export function formatSalary(from, to) {
 
 /**
  * Описывает, как давно опубликована вакансия.
- * @param {string} isoDate Дата публикации в формате ISO 8601.
- * @returns {string} Например, `Опубликовано 2 часа назад`; пустая строка, если дата некорректна.
+ * @param isoDate Дата публикации в формате ISO 8601.
+ * @returns Например, `Опубликовано 2 часа назад`; пустая строка, если дата некорректна.
  */
-export function formatPublished(isoDate) {
+export function formatPublished(isoDate: string): string {
   const date = new Date(isoDate);
 
   if (Number.isNaN(date.getTime())) {
     return '';
   }
 
-  const hours = Math.floor((Date.now() - date) / HOUR_MS);
+  const hours = Math.floor((Date.now() - date.getTime()) / HOUR_MS);
   const days = Math.floor(hours / HOURS_IN_DAY);
 
   if (hours < 1) {

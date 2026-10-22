@@ -114,11 +114,11 @@
   height: 20px;
   margin: auto;
   background: currentColor;
-  mask: url('../images/eye.svg') center / contain no-repeat;
+  mask: url('/images/eye.svg') center / contain no-repeat;
 }
 
 .field__toggle[aria-pressed='true']::before {
-  mask-image: url('../images/eye-off.svg');
+  mask-image: url('/images/eye-off.svg');
 }
 
 .field__message {
