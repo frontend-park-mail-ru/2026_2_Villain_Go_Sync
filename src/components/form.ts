@@ -2,12 +2,12 @@ const LOADING_LABEL = 'Loading…';
 
 /**
  * Показывает ошибку под полем или возвращает исходную подсказку.
- * @param {HTMLElement} control Поле ввода или любой элемент внутри блока `.field`.
- * @param {string} message Текст ошибки; пустая строка убирает ошибку.
+ * @param control Поле ввода или любой элемент внутри блока `.field`.
+ * @param message Текст ошибки; пустая строка убирает ошибку.
  */
-export function setFieldError(control, message) {
-  const field = control.closest('.field');
-  const messageElement = field.querySelector('.field__message');
+export function setFieldError(control: Element, message: string): void {
+  const field = control.closest('.field')!;
+  const messageElement = field.querySelector<HTMLElement>('.field__message')!;
 
   messageElement.dataset.hint ??= messageElement.textContent;
   messageElement.textContent = message || messageElement.dataset.hint;
@@ -20,11 +20,11 @@ export function setFieldError(control, message) {
 
 /**
  * Подключает кнопки показа пароля `.field__toggle` внутри контейнера.
- * @param {HTMLElement} container Элемент, в котором ищутся кнопки.
+ * @param container Элемент, в котором ищутся кнопки.
  */
-export function initPasswordToggles(container) {
+export function initPasswordToggles(container: HTMLElement): void {
   container.querySelectorAll('.field__toggle').forEach((button) => {
-    const input = button.closest('.field__control').querySelector('.field__input');
+    const input = button.closest('.field__control')!.querySelector<HTMLInputElement>('.field__input')!;
 
     button.addEventListener('click', () => {
       const isVisible = input.type === 'password';
@@ -37,10 +37,10 @@ export function initPasswordToggles(container) {
 
 /**
  * Переводит кнопку отправки в состояние загрузки и обратно.
- * @param {HTMLButtonElement} button Кнопка отправки.
- * @param {boolean} isLoading Идёт ли отправка.
+ * @param button Кнопка отправки.
+ * @param isLoading Идёт ли отправка.
  */
-export function setLoading(button, isLoading) {
+export function setLoading(button: HTMLButtonElement, isLoading: boolean): void {
   button.dataset.label ??= button.textContent;
   button.textContent = isLoading ? LOADING_LABEL : button.dataset.label;
   button.classList.toggle('button_loading', isLoading);
