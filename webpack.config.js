@@ -6,6 +6,7 @@ import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import webpack from 'webpack';
+import WorkboxPlugin from 'workbox-webpack-plugin';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -54,6 +55,7 @@ export default (env, { mode }) => {
       new CopyPlugin({ patterns: [{ from: 'public' }] }),
       new webpack.DefinePlugin({ 'process.env.API_URL': JSON.stringify(API_URL) }),
       new ForkTsCheckerWebpackPlugin(),
+      ...(isProduction ? [new WorkboxPlugin.InjectManifest({ swSrc: './src/sw.ts', swDest: 'sw.js' })] : []),
     ],
     devServer: {
       port: PORT,

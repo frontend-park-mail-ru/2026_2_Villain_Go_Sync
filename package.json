@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "webpack serve --mode development",
     "build": "webpack --mode production",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.sw.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
@@ -41,6 +41,11 @@
     "typescript-eslint": "^8.71.2",
     "webpack": "^5.112.0",
     "webpack-cli": "^7.2.3",
-    "webpack-dev-server": "^6.1.0"
+    "webpack-dev-server": "^6.1.0",
+    "workbox-core": "^7.4.1",
+    "workbox-precaching": "^7.4.1",
+    "workbox-routing": "^7.4.1",
+    "workbox-strategies": "^7.4.1",
+    "workbox-webpack-plugin": "^7.4.1"
   }
 }

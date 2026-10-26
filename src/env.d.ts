@@ -8,5 +8,6 @@ declare module '*.scss';
 declare const process: {
   env: {
     API_URL: string;
+    NODE_ENV: string;
   };
 };
