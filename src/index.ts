@@ -18,6 +18,10 @@ function redirectAuthorized(): string | null {
   return isAuthorized() ? '/' : null;
 }
 
+if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+  navigator.serviceWorker.register('/sw.js');
+}
+
 // Шапка и перенаправления зависят от сессии, поэтому сначала узнаём у бэкенда, вошёл ли пользователь.
 await restoreSession();
 
