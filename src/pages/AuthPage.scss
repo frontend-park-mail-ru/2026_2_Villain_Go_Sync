@@ -1,0 +1,132 @@
+@use '../styles/mixins' as *;
+
+.auth {
+  display: grid;
+  // Минимумы колонок не дают карточке сжиматься: сначала уступает место пустое пространство вокруг.
+  grid-template-columns: minmax(240px, 560px) minmax(544px, 720px);
+  gap: 64px;
+  min-height: calc(100vh - 168px);
+  margin-top: 24px;
+
+  @include tablet {
+    grid-template-columns: minmax(0, 480px);
+    gap: 32px;
+    justify-content: center;
+    min-height: 0;
+  }
+
+  &__hero {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-self: center;
+    justify-self: center;
+    width: 240px;
+
+    @include tablet {
+      justify-self: stretch;
+      width: auto;
+    }
+  }
+
+  &__hero-accent {
+    height: 64px;
+
+    @include tablet {
+      height: auto;
+    }
+  }
+
+  &__hero-image {
+    display: block;
+    width: 64px;
+    height: 32px;
+  }
+
+  &__hero-title {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+    color: var(--color-primary);
+  }
+
+  &__hero-slogan {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 28px;
+    color: var(--color-accent);
+  }
+
+  &__hero-text {
+    margin: 0;
+    color: var(--color-text-muted);
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-self: start;
+    max-width: 480px;
+
+    // При высоте окна 1024px отступ как в макете — 176px; на экранах ниже карточка поднимается, чтобы поместиться.
+    margin-top: clamp(0px, calc(100vh - 848px), 176px);
+    margin-left: 64px;
+    padding: 48px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+
+    @include tablet {
+      margin-top: 0;
+      margin-left: 0;
+    }
+
+    @include mobile {
+      padding: 24px;
+    }
+
+    &_compact {
+      gap: 16px;
+    }
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+  }
+
+  &__subtitle {
+    margin: 0;
+    color: var(--color-text-muted);
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    // В макете подсказка под полем идёт одной строкой и выходит за ширину поля.
+    .field__message {
+      white-space: nowrap;
+
+      @include mobile {
+        white-space: normal;
+      }
+    }
+  }
+
+  &__footer {
+    margin: 0;
+    text-align: center;
+    color: var(--color-text-muted);
+
+    a {
+      font-weight: 500;
+    }
+  }
+}
