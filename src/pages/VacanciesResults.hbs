@@ -48,7 +48,7 @@
         {{/if}}
         <div class="vacancy-card__footer">
           <p class="vacancy-card__salary{{#unless hasSalary}} vacancy-card__salary_empty{{/unless}}">{{salary}}</p>
-          <button class="button button_secondary vacancy-card__button" type="button">Смотреть вакансию</button>
+          <a class="button button_secondary vacancy-card__button" href="/vacancies/{{id}}">Смотреть вакансию</a>
         </div>
       </article>
     {{/each}}

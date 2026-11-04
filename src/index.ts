@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
 import RegisterPage from './pages/RegisterPage';
 import VacanciesPage from './pages/VacanciesPage';
+import VacancyPage from './pages/VacancyPage';
 import Router from './router';
 import { isAuthorized } from './session';
 
@@ -29,6 +30,7 @@ new Header().render(document.getElementById('header')!);
 
 new Router(document.getElementById('page')!, { appName: APP_NAME })
   .register('/', { title: 'Вакансии', page: VacanciesPage })
+  .register('/vacancies/:id', { title: 'Вакансия', page: VacancyPage })
   .register('/login', { title: 'Вход', page: LoginPage, layout: 'auth', redirect: redirectAuthorized })
   .register('/register', { title: 'Регистрация', page: RegisterPage, layout: 'auth', redirect: redirectAuthorized })
   .setNotFound({ title: 'Страница не найдена', page: NotFoundPage })

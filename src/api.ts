@@ -1,5 +1,5 @@
 import { API_URL } from './config';
-import { setAuthorized } from './session';
+import { setCurrentUser, type SessionUser } from './session';
 
 const STATUS_MESSAGES: Record<number, string> = {
   0: 'Не удалось связаться с сервером',
@@ -24,12 +24,24 @@ export interface Vacancy {
   title: string;
   /** Описание. */
   description: string;
-  /** Зарплата от. */
-  salary_from: number;
-  /** Зарплата до. */
-  salary_to: number;
+  /** Зарплата от; `null`, если не указана. */
+  salary_from: number | null;
+  /** Зарплата до; `null`, если не указана. */
+  salary_to: number | null;
   /** Дата публикации в формате ISO 8601. */
   created_at: string;
+}
+
+/**
+ * Публичный профиль компании.
+ */
+export interface Employer {
+  /** Название компании. */
+  company_name: string;
+  /** Описание компании. */
+  description: string;
+  /** Сайт компании. */
+  website: string;
 }
 
 /**
@@ -162,7 +174,7 @@ export async function register({ email, password, role }: Credentials & { role: 
     throw error;
   }
 
-  setAuthorized(true);
+  await loadCurrentUser();
 }
 
 /**
@@ -184,7 +196,7 @@ export async function login({ email, password }: Credentials): Promise<void> {
     throw error;
   }
 
-  setAuthorized(true);
+  await loadCurrentUser();
 }
 
 /**
@@ -193,7 +205,36 @@ export async function login({ email, password }: Credentials): Promise<void> {
  */
 export async function logout(): Promise<void> {
   await request('POST', '/logout');
-  setAuthorized(false);
+  setCurrentUser(null);
+}
+
+/**
+ * Запрашивает у бэкенда, кто вошёл, и запоминает пользователя.
+ * @throws {ApiError} Сессии нет или сервер ответил ошибкой.
+ */
+async function fetchCurrentUser(): Promise<void> {
+  const data = await request('GET', '/me');
+  const id = getField(data, 'id');
+  const role = getField(data, 'role');
+
+  const user: SessionUser = {
+    id: typeof id === 'number' ? id : null,
+    role: role === 'seeker' || role === 'employer' ? role : null,
+  };
+
+  setCurrentUser(user);
+}
+
+/**
+ * Запоминает пользователя сразу после входа или регистрации. Если узнать данные не удалось,
+ * пользователь всё равно считается вошедшим: cookie сессии бэкенд уже поставил.
+ */
+async function loadCurrentUser(): Promise<void> {
+  try {
+    await fetchCurrentUser();
+  } catch {
+    setCurrentUser({ id: null, role: null });
+  }
 }
 
 /**
@@ -219,10 +260,13 @@ async function succeeds(method: string, path: string): Promise<boolean> {
  */
 export async function restoreSession(): Promise<void> {
   try {
-    await request('GET', '/me');
-    setAuthorized(true);
+    await fetchCurrentUser();
   } catch (error) {
-    setAuthorized(error instanceof ApiError && error.status === 401 && (await succeeds('POST', '/refresh')));
+    if (error instanceof ApiError && error.status === 401 && (await succeeds('POST', '/refresh'))) {
+      await loadCurrentUser();
+    } else {
+      setCurrentUser(null);
+    }
   }
 }
 
@@ -241,4 +285,43 @@ export async function getVacancies({ signal }: { signal?: AbortSignal } = {}): P
   }
 
   return vacancies;
+}
+
+/**
+ * Загружает одну вакансию.
+ * @param id Идентификатор вакансии.
+ * @param options Настройки запроса.
+ * @param options.signal Сигнал для отмены запроса.
+ * @returns Вакансия.
+ * @throws {ApiError} 404 — вакансии нет; сервер недоступен или ответил ошибкой.
+ */
+export async function getVacancy(id: number, { signal }: { signal?: AbortSignal } = {}): Promise<Vacancy> {
+  const vacancy = await request('GET', `/vacancies/${id}`, { signal });
+
+  if (typeof vacancy !== 'object' || vacancy === null) {
+    throw new ApiError(500, vacancy);
+  }
+
+  return vacancy as Vacancy;
+}
+
+/**
+ * Удаляет вакансию; доступно только её работодателю.
+ * @param id Идентификатор вакансии.
+ * @throws {ApiError} Нет прав, вакансии нет или сервер ответил ошибкой.
+ */
+export async function deleteVacancy(id: number): Promise<void> {
+  await request('DELETE', `/vacancies/${id}`);
+}
+
+/**
+ * Загружает публичный профиль компании.
+ * @param id Идентификатор работодателя.
+ * @param options Настройки запроса.
+ * @param options.signal Сигнал для отмены запроса.
+ * @returns Профиль компании.
+ * @throws {ApiError} 404 — профиль не заполнен; сервер недоступен или ответил ошибкой.
+ */
+export async function getEmployer(id: number, { signal }: { signal?: AbortSignal } = {}): Promise<Employer> {
+  return (await request('GET', `/employers/${id}`, { signal })) as Employer;
 }
