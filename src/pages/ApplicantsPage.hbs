@@ -1,0 +1,23 @@
+<section class="applicants">
+  <h1 class="applicants__title">Соискатели</h1>
+
+  <form class="applicants__search" role="search" novalidate hidden>
+    <div class="field applicants__search-field">
+      <label class="field__label" for="applicants-query">Поиск</label>
+      <input
+        class="field__input"
+        id="applicants-query"
+        name="query"
+        type="search"
+        placeholder="Имя, резюме или вакансия"
+      />
+    </div>
+    <button
+      class="button button_secondary button_icon applicants__search-button"
+      type="submit"
+      aria-label="Найти"
+    ></button>
+  </form>
+
+  <div class="applicants__content" aria-live="polite"></div>
+</section>

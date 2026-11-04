@@ -3,6 +3,7 @@ import './styles/main.scss';
 import { restoreSession } from './api';
 import Header from './components/Header';
 import { APP_NAME } from './config';
+import ApplicantsPage from './pages/ApplicantsPage';
 import LoginPage from './pages/LoginPage';
 import MyVacanciesPage from './pages/MyVacanciesPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -48,6 +49,7 @@ new Router(document.getElementById('page')!, { appName: APP_NAME })
   .register('/vacancies/new', { title: 'Создание вакансии', page: VacancyFormPage, redirect: redirectGuest })
   .register('/vacancies/:id', { title: 'Вакансия', page: VacancyPage })
   .register('/vacancies/:id/edit', { title: 'Редактирование вакансии', page: VacancyFormPage, redirect: redirectGuest })
+  .register('/applicants', { title: 'Соискатели', page: ApplicantsPage, redirect: redirectGuest })
   .register('/my/vacancies', { title: 'Мои вакансии', page: MyVacanciesPage, redirect: redirectGuest })
   .register('/resumes', { title: 'Мои резюме', page: ResumesPage, redirect: redirectGuest })
   .register('/resumes/new', { title: 'Создание резюме', page: ResumeFormPage, redirect: redirectGuest })

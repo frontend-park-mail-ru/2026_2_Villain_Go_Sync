@@ -564,3 +564,41 @@ export async function applyToVacancy(
     body: { resume_id: resumeId, cover_letter: coverLetter || null },
   });
 }
+
+/**
+ * Отклик на вакансию в том виде, в котором его видит работодатель.
+ */
+export interface Applicant {
+  /** Имя соискателя. */
+  first_name: string;
+  /** Фамилия соискателя. */
+  last_name: string;
+  /** Статус отклика: `pending`, `created`, `viewed`, `interview`, `accepted` или `rejected`. */
+  status: string;
+  /** Дата отклика в формате ISO 8601. */
+  applied_at: string;
+  /** Название резюме, с которым откликнулись. */
+  resume_title: string;
+}
+
+/**
+ * Загружает отклики на вакансию; доступно только её работодателю.
+ * @param vacancyId Идентификатор вакансии.
+ * @param options Настройки запроса.
+ * @param options.signal Сигнал для отмены запроса.
+ * @returns Отклики; пустой массив, если их нет.
+ * @throws {ApiError} 403 — вакансия чужая; сервер недоступен или ответил ошибкой.
+ */
+export async function getVacancyApplicants(
+  vacancyId: number,
+  { signal }: { signal?: AbortSignal } = {},
+): Promise<Applicant[]> {
+  // Если откликов нет, бэкенд присылает null вместо пустого массива.
+  const applicants = (await request('GET', `/vacancies/${vacancyId}/applicants`, { signal })) ?? [];
+
+  if (!Array.isArray(applicants)) {
+    throw new ApiError(500, applicants);
+  }
+
+  return applicants as Applicant[];
+}

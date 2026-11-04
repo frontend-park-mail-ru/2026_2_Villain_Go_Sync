@@ -7,7 +7,11 @@ import { showToast } from './toast';
 
 const LINKS = [{ title: 'Вакансии', href: '/' }];
 const SEEKER_LINKS = [...LINKS, { title: 'Мои резюме', href: '/resumes' }];
-const EMPLOYER_LINKS = [...LINKS, { title: 'Мои вакансии', href: '/my/vacancies' }];
+const EMPLOYER_LINKS = [
+  ...LINKS,
+  { title: 'Мои вакансии', href: '/my/vacancies' },
+  { title: 'Соискатели', href: '/applicants' },
+];
 
 /**
  * Шапка сайта: логотип, навигация и кнопки входа или меню профиля.
