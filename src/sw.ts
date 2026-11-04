@@ -14,7 +14,9 @@ precacheAndRoute(self.__WB_MANIFEST);
 
 registerRoute(new NavigationRoute(createHandlerBoundToURL('/index.html')));
 
+// Кэшируется только общий список вакансий. Ответы, зависящие от сессии (например, /api/me), всегда идут в сеть:
+// устаревшая копия показала бы пользователя вошедшим после выхода.
 registerRoute(
-  ({ url, request }) => request.method === 'GET' && url.pathname.startsWith('/api/'),
+  ({ url, request }) => request.method === 'GET' && url.pathname === '/api/vacancies',
   new NetworkFirst({ cacheName: 'api', networkTimeoutSeconds: 3 }),
 );
