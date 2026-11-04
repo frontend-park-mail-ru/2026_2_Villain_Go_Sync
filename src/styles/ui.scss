@@ -354,6 +354,50 @@ label.chip {
   }
 }
 
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  &__item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-small);
+    font: inherit;
+    font-weight: 500;
+    color: var(--color-text);
+    background: var(--color-surface);
+  }
+
+  button#{&}__item {
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--color-accent);
+      background: var(--color-accent-soft);
+    }
+
+    &:disabled {
+      border-color: var(--color-border);
+      color: var(--color-text-disabled);
+      background: var(--color-surface);
+      cursor: default;
+    }
+  }
+
+  button#{&}__item_active,
+  button#{&}__item_active:hover {
+    border-color: var(--color-accent);
+    color: var(--color-text-on-color);
+    background: var(--color-accent);
+  }
+}
+
 .skeleton {
   border-radius: var(--radius-small);
   background: var(--color-skeleton);

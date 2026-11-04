@@ -53,6 +53,8 @@
       </article>
     {{/each}}
   </div>
+  {{! Разметку пагинации собирает компонент из номеров страниц, поэтому вставка без экранирования безопасна. }}
+  {{{pagination}}}
 {{else if hasQuery}}
   <div class="vacancies__empty">
     <h2 class="vacancies__empty-title">По вашему запросу ничего не найдено</h2>
