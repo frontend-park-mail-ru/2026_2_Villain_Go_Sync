@@ -72,7 +72,7 @@ export interface Resume extends ResumeFields {
 }
 
 /**
- * Публичный профиль компании.
+ * Профиль компании.
  */
 export interface Employer {
   /** Название компании. */
@@ -81,6 +81,20 @@ export interface Employer {
   description: string;
   /** Сайт компании. */
   website: string;
+}
+
+/**
+ * Профиль соискателя.
+ */
+export interface Seeker {
+  /** Имя. */
+  first_name: string;
+  /** Фамилия. */
+  last_name: string;
+  /** Телефон. */
+  phone: string;
+  /** Рассказ о себе. */
+  description: string;
 }
 
 /**
@@ -258,10 +272,24 @@ async function fetchCurrentUser(): Promise<void> {
 
   const user: SessionUser = {
     id: typeof id === 'number' ? id : null,
-    role: role === 'seeker' || role === 'employer' ? role : null,
+    role: role === 'seeker' || role === 'employer' ? role : await guessRole(),
   };
 
   setCurrentUser(user);
+}
+
+/**
+ * Узнаёт роль, пока `/me` её не отдаёт: список вакансий работодателя бэкенд отдаёт только работодателю,
+ * остальным отвечает 403. Запрос только читает данные.
+ * @returns Роль или `null`, если узнать не удалось.
+ */
+async function guessRole(): Promise<UserRole | null> {
+  try {
+    await request('GET', '/employer/vacancies');
+    return 'employer';
+  } catch (error) {
+    return error instanceof ApiError && error.status === 403 ? 'seeker' : null;
+  }
 }
 
 /**
@@ -488,4 +516,34 @@ export async function updateResume(id: number, fields: ResumeFields): Promise<Re
  */
 export async function deleteResume(id: number): Promise<void> {
   await request('DELETE', `/resumes/${id}`);
+}
+
+/**
+ * Загружает профиль соискателя.
+ * @param id Идентификатор соискателя.
+ * @param options Настройки запроса.
+ * @param options.signal Сигнал для отмены запроса.
+ * @returns Профиль.
+ * @throws {ApiError} 404 — профиль ещё не заполнен; сервер недоступен или ответил ошибкой.
+ */
+export async function getSeeker(id: number, { signal }: { signal?: AbortSignal } = {}): Promise<Seeker> {
+  return (await request('GET', `/seekers/${id}`, { signal })) as Seeker;
+}
+
+/**
+ * Сохраняет профиль вошедшего соискателя; если его ещё нет, бэкенд его создаёт.
+ * @param profile Поля профиля.
+ * @throws {ApiError} 403 — пользователь не соискатель, 422 — нет имени; сервер ответил ошибкой.
+ */
+export async function saveSeekerProfile(profile: Seeker): Promise<void> {
+  await request('PUT', '/profile/seeker', { body: profile });
+}
+
+/**
+ * Сохраняет профиль компании вошедшего работодателя; если его ещё нет, бэкенд его создаёт.
+ * @param profile Поля профиля.
+ * @throws {ApiError} 403 — пользователь не работодатель, 422 — нет названия; сервер ответил ошибкой.
+ */
+export async function saveEmployerProfile(profile: Employer): Promise<void> {
+  await request('PUT', '/profile/employer', { body: profile });
 }

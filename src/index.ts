@@ -6,6 +6,8 @@ import { APP_NAME } from './config';
 import LoginPage from './pages/LoginPage';
 import MyVacanciesPage from './pages/MyVacanciesPage';
 import NotFoundPage from './pages/NotFoundPage';
+import ProfileFormPage from './pages/ProfileFormPage';
+import ProfilePage from './pages/ProfilePage';
 import RegisterPage from './pages/RegisterPage';
 import ResumeFormPage from './pages/ResumeFormPage';
 import ResumePage from './pages/ResumePage';
@@ -51,6 +53,8 @@ new Router(document.getElementById('page')!, { appName: APP_NAME })
   .register('/resumes/new', { title: 'Создание резюме', page: ResumeFormPage, redirect: redirectGuest })
   .register('/resumes/:id', { title: 'Резюме', page: ResumePage })
   .register('/resumes/:id/edit', { title: 'Редактирование резюме', page: ResumeFormPage, redirect: redirectGuest })
+  .register('/profile', { title: 'Профиль', page: ProfilePage, redirect: redirectGuest })
+  .register('/profile/edit', { title: 'Редактирование профиля', page: ProfileFormPage, redirect: redirectGuest })
   .register('/login', { title: 'Вход', page: LoginPage, layout: 'auth', redirect: redirectAuthorized })
   .register('/register', { title: 'Регистрация', page: RegisterPage, layout: 'auth', redirect: redirectAuthorized })
   .setNotFound({ title: 'Страница не найдена', page: NotFoundPage })
