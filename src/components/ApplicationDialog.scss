@@ -1,0 +1,141 @@
+.modal_wide {
+  width: 560px;
+}
+
+// Окно отклика: выбор резюме и сопроводительное письмо.
+.application {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 8px;
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  &__legend {
+    margin-bottom: 8px;
+    padding: 0;
+  }
+
+  &__label {
+    margin: 0;
+  }
+
+  // Шесть вариантов помещаются целиком, остальные прокручиваются.
+  &__options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 232px;
+    overflow-y: auto;
+  }
+
+  &__option {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 12px;
+    min-height: 32px;
+    // Вместе с рамкой вариант занимает 32px, как в макете.
+    padding: 3px 15px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    font-weight: 500;
+    line-height: 24px;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--color-surface-hover);
+    }
+
+    &:has(:checked) {
+      border-color: var(--color-accent);
+      color: var(--color-text-on-color);
+      background: var(--color-accent);
+    }
+
+    &:has(:focus-visible) {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
+  }
+
+  &__radio {
+    display: grid;
+    flex: none;
+    place-content: center;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    border: 1.5px solid var(--color-text-muted);
+    border-radius: 50%;
+    appearance: none;
+    cursor: pointer;
+
+    &:checked {
+      border-color: var(--color-text-on-color);
+    }
+
+    &:checked::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-text-on-color);
+    }
+  }
+
+  &__option-title,
+  &__single {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__single {
+    margin: 0;
+    padding: 4px 12px 4px 16px;
+    border-radius: var(--radius);
+    font-weight: 500;
+    line-height: 24px;
+    color: var(--color-text-on-color);
+    background: var(--color-accent);
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--color-text-muted);
+  }
+
+  &__group_invalid &__hint {
+    color: var(--color-danger);
+  }
+
+  &__submit {
+    width: 192px;
+  }
+
+  &__empty {
+    margin-top: 8px;
+  }
+
+  &__empty-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 28px;
+  }
+
+  &__create {
+    width: 216px;
+  }
+}

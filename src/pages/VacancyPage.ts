@@ -1,4 +1,6 @@
-import { ApiError, deleteVacancy, getEmployer, getVacancy, type Vacancy } from '../api';
+import { ApiError, deleteVacancy, getEmployer, getSeekerResumes, getVacancy, type Vacancy } from '../api';
+import { openApplicationDialog } from '../components/ApplicationDialog';
+import { setLoading } from '../components/form';
 import { confirmAction } from '../components/Modal';
 import { showToast } from '../components/toast';
 import { formatSalary } from '../format';
@@ -17,6 +19,7 @@ export default class VacancyPage implements Page {
   #abortController = new AbortController();
   #container!: HTMLElement;
   #isDeleting = false;
+  #isApplying = false;
 
   /**
    * @param props Параметры страницы.
@@ -45,6 +48,8 @@ export default class VacancyPage implements Page {
           this.#load();
         } else if (action === 'delete') {
           this.#confirmDelete();
+        } else if (action === 'apply') {
+          this.#apply(event.target as Element);
         }
       },
       { signal: this.#abortController.signal },
@@ -110,10 +115,47 @@ export default class VacancyPage implements Page {
       vacancy,
       company,
       isOwner,
-      canApply: !isAuthorized(),
+      // Гостя кнопка отклика ведёт на вход, работодателю отклик не нужен.
+      isGuest: !isAuthorized(),
+      canApply: isAuthorized() && !isOwner && user?.role !== 'employer',
       salary: formatSalary(vacancy.salary_from, vacancy.salary_to, vacancy.currency),
       hasSalary: (vacancy.salary_from ?? 0) > 0 || (vacancy.salary_to ?? 0) > 0,
     });
+  }
+
+  /**
+   * Загружает резюме соискателя и открывает окно отклика.
+   * @param target Элемент, по которому кликнули.
+   */
+  async #apply(target: Element): Promise<void> {
+    const button = target.closest<HTMLButtonElement>('[data-action="apply"]')!;
+    const userId = getCurrentUser()?.id ?? null;
+
+    if (this.#isApplying) {
+      return;
+    }
+
+    if (userId === null) {
+      showToast('Не удалось узнать, кто вошёл в аккаунт.', 'error');
+      return;
+    }
+
+    this.#isApplying = true;
+    setLoading(button, true);
+
+    try {
+      const resumes = await getSeekerResumes(userId, { signal: this.#abortController.signal });
+
+      setLoading(button, false);
+      await openApplicationDialog(this.#id, resumes);
+    } catch (error) {
+      if (!this.#abortController.signal.aborted) {
+        showToast((error as Error).message, 'error');
+      }
+    } finally {
+      this.#isApplying = false;
+      setLoading(button, false);
+    }
   }
 
   /**

@@ -547,3 +547,20 @@ export async function saveSeekerProfile(profile: Seeker): Promise<void> {
 export async function saveEmployerProfile(profile: Employer): Promise<void> {
   await request('PUT', '/profile/employer', { body: profile });
 }
+
+/**
+ * Откликается на вакансию от имени вошедшего соискателя.
+ * @param vacancyId Идентификатор вакансии.
+ * @param application Отклик.
+ * @param application.resumeId Идентификатор резюме, с которым соискатель откликается.
+ * @param application.coverLetter Сопроводительное письмо; пустая строка — без письма.
+ * @throws {ApiError} 409 — с этим резюме уже откликались, 403 — пользователь не соискатель или резюме чужое.
+ */
+export async function applyToVacancy(
+  vacancyId: number,
+  { resumeId, coverLetter }: { resumeId: number; coverLetter: string },
+): Promise<void> {
+  await request('POST', `/vacancies/${vacancyId}/applications`, {
+    body: { resume_id: resumeId, cover_letter: coverLetter || null },
+  });
+}
