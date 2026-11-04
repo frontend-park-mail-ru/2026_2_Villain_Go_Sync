@@ -17,7 +17,7 @@ import VacanciesPage from './pages/VacanciesPage';
 import VacancyFormPage from './pages/VacancyFormPage';
 import VacancyPage from './pages/VacancyPage';
 import Router from './router';
-import { isAuthorized } from './session';
+import { isAuthorized, onSessionChange } from './session';
 
 /**
  * Не пускает вошедшего пользователя на страницы входа и регистрации.
@@ -44,7 +44,9 @@ await restoreSession();
 
 new Header().render(document.getElementById('header')!);
 
-new Router(document.getElementById('page')!, { appName: APP_NAME })
+const router = new Router(document.getElementById('page')!, { appName: APP_NAME });
+
+router
   .register('/', { title: 'Вакансии', page: VacanciesPage })
   .register('/vacancies/new', { title: 'Создание вакансии', page: VacancyFormPage, redirect: redirectGuest })
   .register('/vacancies/:id', { title: 'Вакансия', page: VacancyPage })
@@ -61,3 +63,6 @@ new Router(document.getElementById('page')!, { appName: APP_NAME })
   .register('/register', { title: 'Регистрация', page: RegisterPage, layout: 'auth', redirect: redirectAuthorized })
   .setNotFound({ title: 'Страница не найдена', page: NotFoundPage })
   .start();
+
+// После входа или выхода страница перерисовывается: пропадают кнопки владельца, а гостя уводит на вход.
+onSessionChange(() => router.refresh());
