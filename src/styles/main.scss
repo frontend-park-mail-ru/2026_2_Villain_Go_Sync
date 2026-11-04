@@ -5,8 +5,10 @@
 @use '../pages/AuthPage';
 @use '../pages/VacanciesPage';
 @use '../pages/ResumesPage';
-@use '../pages/ResumeFormPage';
+@use '../pages/VacancyFormPage';
 @use 'detail';
+@use 'owner-list';
+@use 'edit-form';
 
 :root {
   --content-width: 1440px;

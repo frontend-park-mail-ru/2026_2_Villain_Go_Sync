@@ -56,6 +56,51 @@
     padding: 24px;
   }
 
+  // Карточка в «Моих вакансиях»: с описанием и кнопкой удаления.
+  &_owner {
+    padding-top: 24px;
+  }
+
+  &__identity {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  &_owner &__company {
+    display: block;
+    min-height: 0;
+    margin: 0;
+    line-height: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__description {
+    display: -webkit-box;
+    margin: 0;
+    padding-top: 4px;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  &_owner &__footer {
+    align-items: stretch;
+    gap: 37px;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
   &__company {
     display: flex;
     align-items: center;

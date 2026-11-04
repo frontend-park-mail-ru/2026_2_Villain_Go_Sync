@@ -1,0 +1,81 @@
+{{#if isLoading}}
+  <div class="owner-list__search-loading" aria-hidden="true">
+    <div class="skeleton owner-list__search-skeleton"></div>
+    <div class="skeleton owner-list__search-button-skeleton"></div>
+  </div>
+  <div class="card-grid" aria-hidden="true">
+    {{#each skeletons}}
+      <div class="vacancy-card vacancy-card_skeleton">
+        <div class="skeleton vacancy-card__skeleton-title"></div>
+        <div class="skeleton vacancy-card__skeleton-company"></div>
+        <div class="skeleton vacancy-card__skeleton-date"></div>
+        <div class="vacancy-card__tags">
+          <div class="skeleton vacancy-card__skeleton-tag"></div>
+          <div class="skeleton vacancy-card__skeleton-tag"></div>
+          <div class="skeleton vacancy-card__skeleton-tag"></div>
+        </div>
+        <div class="vacancy-card__footer">
+          <div class="skeleton vacancy-card__skeleton-salary"></div>
+          <div class="skeleton vacancy-card__skeleton-button"></div>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+{{else if error}}
+  <div class="empty-state owner-list__empty">
+    <h2 class="empty-state__title">Не удалось загрузить вакансии</h2>
+    <p class="empty-state__text">{{error}}</p>
+    <button class="button button_secondary empty-state__button" type="button" data-action="retry">
+      Повторить
+    </button>
+  </div>
+{{else if vacancies}}
+  <div class="owner-list__list">
+    <div class="card-grid">
+      {{#each vacancies}}
+        <article class="vacancy-card vacancy-card_owner">
+          <div class="vacancy-card__identity">
+            {{#if ../company}}
+              <p class="vacancy-card__company">{{../company}}</p>
+            {{/if}}
+            <h2 class="vacancy-card__title">{{title}}</h2>
+            {{#if description}}
+              <p class="vacancy-card__description">{{description}}</p>
+            {{/if}}
+          </div>
+          <div class="vacancy-card__footer">
+            <p class="vacancy-card__salary{{#unless hasSalary}} vacancy-card__salary_empty{{/unless}}">{{salary}}</p>
+            <div class="vacancy-card__actions">
+              <a class="button button_secondary vacancy-card__button" href="/vacancies/{{id}}">Смотреть вакансию</a>
+              <button
+                class="icon-button icon-button_delete"
+                type="button"
+                data-action="delete"
+                data-id="{{id}}"
+                aria-label="Удалить вакансию «{{title}}»"
+              ></button>
+            </div>
+          </div>
+        </article>
+      {{/each}}
+    </div>
+    {{! Разметку пагинации собирает компонент из номеров страниц, поэтому вставка без экранирования безопасна. }}
+    {{{pagination}}}
+  </div>
+{{else if hasQuery}}
+  <div class="empty-state">
+    <h2 class="empty-state__title">По вашему запросу ничего не найдено</h2>
+    <p class="empty-state__text">Попробуйте изменить запрос.</p>
+    <button class="button button_secondary empty-state__button" type="button" data-action="reset">
+      Сбросить поиск
+    </button>
+  </div>
+{{else}}
+  <div class="empty-state owner-list__empty">
+    <div class="owner-list__empty-copy">
+      <h2 class="empty-state__title">У вас пока нет вакансий</h2>
+      <p class="empty-state__text">Создайте первую вакансию, чтобы начать искать сотрудников.</p>
+    </div>
+    <a class="button button_secondary owner-list__empty-button" href="/vacancies/new">Создать вакансию</a>
+  </div>
+{{/if}}

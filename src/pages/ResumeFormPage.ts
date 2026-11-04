@@ -160,7 +160,7 @@ export default class ResumeFormPage implements Page {
       submitLabel: this.#id === null ? 'Создать резюме' : 'Сохранить изменения',
     });
 
-    this.#form = this.#container.querySelector<HTMLFormElement>('.resume-form');
+    this.#form = this.#container.querySelector<HTMLFormElement>('.edit-form');
     this.#initialValues = JSON.stringify(this.#readFields());
   }
 

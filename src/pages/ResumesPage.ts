@@ -30,9 +30,9 @@ export default class ResumesPage implements Page {
   render(container: HTMLElement): void {
     container.innerHTML = template();
 
-    this.#search = container.querySelector<HTMLFormElement>('.resumes__search')!;
-    this.#input = this.#search.querySelector<HTMLInputElement>('.resumes__search-input')!;
-    this.#content = container.querySelector<HTMLElement>('.resumes__content')!;
+    this.#search = container.querySelector<HTMLFormElement>('.owner-list__search')!;
+    this.#input = this.#search.querySelector<HTMLInputElement>('.owner-list__search-input')!;
+    this.#content = container.querySelector<HTMLElement>('.owner-list__content')!;
 
     this.#search.addEventListener('submit', (event) => {
       event.preventDefault();

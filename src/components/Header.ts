@@ -7,6 +7,7 @@ import { showToast } from './toast';
 
 const LINKS = [{ title: 'Вакансии', href: '/' }];
 const SEEKER_LINKS = [...LINKS, { title: 'Мои резюме', href: '/resumes' }];
+const EMPLOYER_LINKS = [...LINKS, { title: 'Мои вакансии', href: '/my/vacancies' }];
 
 /**
  * Шапка сайта: логотип, навигация и кнопки входа или меню профиля.
@@ -51,7 +52,8 @@ export default class Header {
    */
   #update(): void {
     // Ссылки зависят от роли; пока бэкенд её не сообщает, вошедший видит те же ссылки, что и гость.
-    const links = getCurrentUser()?.role === 'seeker' ? SEEKER_LINKS : LINKS;
+    const role = getCurrentUser()?.role;
+    const links = role === 'seeker' ? SEEKER_LINKS : role === 'employer' ? EMPLOYER_LINKS : LINKS;
 
     this.#container.innerHTML = template({ appName: APP_NAME, links, isAuthorized: isAuthorized() });
   }

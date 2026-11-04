@@ -1,0 +1,28 @@
+<section class="owner-list">
+  <div class="owner-list__heading">
+    <h1 class="owner-list__title">Мои вакансии</h1>
+    <a
+      class="button button_secondary button_icon owner-list__create"
+      href="/vacancies/new"
+      aria-label="Создать вакансию"
+      title="Создать вакансию"
+    ></a>
+  </div>
+
+  <form class="owner-list__search" role="search" novalidate hidden>
+    <input
+      class="field__input owner-list__search-input"
+      name="query"
+      type="search"
+      placeholder="Название вакансии"
+      aria-label="Поиск по названию вакансии"
+    />
+    <button
+      class="button button_secondary button_icon owner-list__search-button"
+      type="submit"
+      aria-label="Найти"
+    ></button>
+  </form>
+
+  <div class="owner-list__content" aria-live="polite"></div>
+</section>

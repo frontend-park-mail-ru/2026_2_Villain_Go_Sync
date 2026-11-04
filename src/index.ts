@@ -4,12 +4,14 @@ import { restoreSession } from './api';
 import Header from './components/Header';
 import { APP_NAME } from './config';
 import LoginPage from './pages/LoginPage';
+import MyVacanciesPage from './pages/MyVacanciesPage';
 import NotFoundPage from './pages/NotFoundPage';
 import RegisterPage from './pages/RegisterPage';
 import ResumeFormPage from './pages/ResumeFormPage';
 import ResumePage from './pages/ResumePage';
 import ResumesPage from './pages/ResumesPage';
 import VacanciesPage from './pages/VacanciesPage';
+import VacancyFormPage from './pages/VacancyFormPage';
 import VacancyPage from './pages/VacancyPage';
 import Router from './router';
 import { isAuthorized } from './session';
@@ -41,7 +43,10 @@ new Header().render(document.getElementById('header')!);
 
 new Router(document.getElementById('page')!, { appName: APP_NAME })
   .register('/', { title: 'Вакансии', page: VacanciesPage })
+  .register('/vacancies/new', { title: 'Создание вакансии', page: VacancyFormPage, redirect: redirectGuest })
   .register('/vacancies/:id', { title: 'Вакансия', page: VacancyPage })
+  .register('/vacancies/:id/edit', { title: 'Редактирование вакансии', page: VacancyFormPage, redirect: redirectGuest })
+  .register('/my/vacancies', { title: 'Мои вакансии', page: MyVacanciesPage, redirect: redirectGuest })
   .register('/resumes', { title: 'Мои резюме', page: ResumesPage, redirect: redirectGuest })
   .register('/resumes/new', { title: 'Создание резюме', page: ResumeFormPage, redirect: redirectGuest })
   .register('/resumes/:id', { title: 'Резюме', page: ResumePage })

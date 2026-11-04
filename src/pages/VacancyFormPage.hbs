@@ -1,0 +1,106 @@
+{{#if isLoading}}
+  <section class="form-page">
+    <h1 class="form-page__title">{{heading}}</h1>
+    <div class="edit-form" aria-hidden="true">
+      {{#each skeletonFields}}
+        <div class="detail__skeleton-group">
+          <div class="skeleton detail__skeleton-line detail__skeleton-line_label"></div>
+          <div class="skeleton edit-form__skeleton-field"></div>
+        </div>
+      {{/each}}
+    </div>
+  </section>
+{{else if error}}
+  <section class="form-page">
+    <div class="empty-state">
+      <h1 class="empty-state__title">{{error.title}}</h1>
+      <p class="empty-state__text">{{error.text}}</p>
+      {{#if error.canRetry}}
+        <button class="button button_secondary empty-state__button" type="button" data-action="retry">
+          Повторить
+        </button>
+      {{else}}
+        <a class="button button_secondary empty-state__button" href="/my/vacancies">К моим вакансиям</a>
+      {{/if}}
+    </div>
+  </section>
+{{else}}
+  <section class="form-page">
+    <h1 class="form-page__title">{{heading}}</h1>
+
+    <form class="edit-form vacancy-form" novalidate>
+      <div class="field">
+        <label class="field__label" for="vacancy-title">Название</label>
+        <input
+          class="field__input"
+          id="vacancy-title"
+          name="title"
+          type="text"
+          placeholder="Введите название вакансии"
+          value="{{vacancy.title}}"
+          aria-describedby="vacancy-title-message"
+        />
+        <p class="field__message" id="vacancy-title-message"></p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="vacancy-description">Описание</label>
+        <textarea
+          class="field__input field__textarea"
+          id="vacancy-description"
+          name="description"
+          placeholder="Опишите задачи и требования"
+        >{{vacancy.description}}</textarea>
+      </div>
+
+      <div class="vacancy-form__salary">
+        <div class="field">
+          <label class="field__label" for="vacancy-salary-from">Зарплата от</label>
+          <input
+            class="field__input"
+            id="vacancy-salary-from"
+            name="salaryFrom"
+            type="text"
+            inputmode="numeric"
+            placeholder="Введите сумму"
+            value="{{salaryFrom}}"
+            aria-describedby="vacancy-salary-from-message"
+          />
+          <p class="field__message" id="vacancy-salary-from-message"></p>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="vacancy-salary-to">Зарплата до</label>
+          <input
+            class="field__input"
+            id="vacancy-salary-to"
+            name="salaryTo"
+            type="text"
+            inputmode="numeric"
+            placeholder="Введите сумму"
+            value="{{salaryTo}}"
+            aria-describedby="vacancy-salary-to-message"
+          />
+          <p class="field__message" id="vacancy-salary-to-message"></p>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="vacancy-currency">Валюта</label>
+          <select class="field__input field__select" id="vacancy-currency" name="currency">
+            {{#each currencies}}
+              <option value="{{code}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+            {{/each}}
+          </select>
+        </div>
+      </div>
+
+      <div class="edit-form__actions">
+        <button
+          class="button button_secondary edit-form__submit{{#if isEdit}} edit-form__submit_compact{{/if}}"
+          type="submit"
+        >{{submitLabel}}</button>
+        <button class="button button_ghost edit-form__cancel" type="button" data-action="cancel">Отмена</button>
+      </div>
+    </form>
+  </section>
+{{/if}}
