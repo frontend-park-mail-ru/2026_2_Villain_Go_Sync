@@ -5,6 +5,7 @@ const STATUS_MESSAGES: Record<number, string> = {
   0: 'Не удалось связаться с сервером',
   400: 'Некорректный запрос',
   401: 'Нужно войти в аккаунт',
+  403: 'Недостаточно прав',
   404: 'Не найдено',
   409: 'Такие данные уже существуют',
   422: 'Проверьте правильность заполнения полей',
@@ -30,6 +31,34 @@ export interface Vacancy {
   salary_to: number | null;
   /** Дата публикации в формате ISO 8601. */
   created_at: string;
+}
+
+/**
+ * Текстовые поля резюме, которые заполняет соискатель.
+ */
+export interface ResumeFields {
+  /** Название, например желаемая должность. */
+  title: string;
+  /** Описание навыков и интересов. */
+  description: string;
+  /** Опыт работы. */
+  experience: string;
+  /** Образование. */
+  education: string;
+}
+
+/**
+ * Резюме в том виде, в котором его отдаёт бэкенд.
+ */
+export interface Resume extends ResumeFields {
+  /** Идентификатор резюме. */
+  id: number;
+  /** Идентификатор соискателя. */
+  seeker_id: number;
+  /** Дата создания в формате ISO 8601. */
+  created_at: string;
+  /** Дата последнего изменения в формате ISO 8601. */
+  updated_at: string;
 }
 
 /**
@@ -324,4 +353,83 @@ export async function deleteVacancy(id: number): Promise<void> {
  */
 export async function getEmployer(id: number, { signal }: { signal?: AbortSignal } = {}): Promise<Employer> {
   return (await request('GET', `/employers/${id}`, { signal })) as Employer;
+}
+
+/**
+ * Проверяет, что бэкенд вернул резюме, а не что-то другое.
+ * @param data Содержимое поля `data` из ответа.
+ * @returns Резюме.
+ * @throws {ApiError} Ответ не похож на резюме.
+ */
+function toResume(data: unknown): Resume {
+  if (typeof data !== 'object' || data === null) {
+    throw new ApiError(500, data);
+  }
+
+  return data as Resume;
+}
+
+/**
+ * Загружает одно резюме.
+ * @param id Идентификатор резюме.
+ * @param options Настройки запроса.
+ * @param options.signal Сигнал для отмены запроса.
+ * @returns Резюме.
+ * @throws {ApiError} 404 — резюме нет; сервер недоступен или ответил ошибкой.
+ */
+export async function getResume(id: number, { signal }: { signal?: AbortSignal } = {}): Promise<Resume> {
+  return toResume(await request('GET', `/resumes/${id}`, { signal }));
+}
+
+/**
+ * Загружает все резюме соискателя.
+ * @param seekerId Идентификатор соискателя.
+ * @param options Настройки запроса.
+ * @param options.signal Сигнал для отмены запроса.
+ * @returns Резюме; пустой массив, если их нет.
+ * @throws {ApiError} Сервер недоступен или ответил ошибкой.
+ */
+export async function getSeekerResumes(seekerId: number, { signal }: { signal?: AbortSignal } = {}): Promise<Resume[]> {
+  const resumes = await request('GET', `/resumes?seeker_id=${seekerId}`, { signal });
+
+  // Если резюме нет, бэкенд присылает null вместо пустого массива.
+  if (resumes === null) {
+    return [];
+  }
+
+  if (!Array.isArray(resumes)) {
+    throw new ApiError(500, resumes);
+  }
+
+  return resumes as Resume[];
+}
+
+/**
+ * Создаёт резюме; доступно только соискателю.
+ * @param fields Поля резюме.
+ * @returns Созданное резюме.
+ * @throws {ApiError} 403 — пользователь не соискатель, 422 — нет названия; сервер ответил ошибкой.
+ */
+export async function createResume(fields: ResumeFields): Promise<Resume> {
+  return toResume(await request('POST', '/resumes', { body: fields }));
+}
+
+/**
+ * Сохраняет изменения в резюме; доступно только его владельцу.
+ * @param id Идентификатор резюме.
+ * @param fields Новые значения полей.
+ * @returns Изменённое резюме.
+ * @throws {ApiError} 404 — резюме нет или оно чужое, 422 — нет названия; сервер ответил ошибкой.
+ */
+export async function updateResume(id: number, fields: ResumeFields): Promise<Resume> {
+  return toResume(await request('PUT', `/resumes/${id}`, { body: fields }));
+}
+
+/**
+ * Удаляет резюме; доступно только его владельцу.
+ * @param id Идентификатор резюме.
+ * @throws {ApiError} Нет прав, резюме нет или сервер ответил ошибкой.
+ */
+export async function deleteResume(id: number): Promise<void> {
+  await request('DELETE', `/resumes/${id}`);
 }

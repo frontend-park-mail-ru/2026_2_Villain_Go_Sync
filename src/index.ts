@@ -6,6 +6,9 @@ import { APP_NAME } from './config';
 import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
 import RegisterPage from './pages/RegisterPage';
+import ResumeFormPage from './pages/ResumeFormPage';
+import ResumePage from './pages/ResumePage';
+import ResumesPage from './pages/ResumesPage';
 import VacanciesPage from './pages/VacanciesPage';
 import VacancyPage from './pages/VacancyPage';
 import Router from './router';
@@ -17,6 +20,14 @@ import { isAuthorized } from './session';
  */
 function redirectAuthorized(): string | null {
   return isAuthorized() ? '/' : null;
+}
+
+/**
+ * Отправляет гостя на страницу входа со страниц, которые доступны только после входа.
+ * @returns Путь страницы входа или `null`, если пользователь вошёл.
+ */
+function redirectGuest(): string | null {
+  return isAuthorized() ? null : '/login';
 }
 
 if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
@@ -31,6 +42,10 @@ new Header().render(document.getElementById('header')!);
 new Router(document.getElementById('page')!, { appName: APP_NAME })
   .register('/', { title: 'Вакансии', page: VacanciesPage })
   .register('/vacancies/:id', { title: 'Вакансия', page: VacancyPage })
+  .register('/resumes', { title: 'Мои резюме', page: ResumesPage, redirect: redirectGuest })
+  .register('/resumes/new', { title: 'Создание резюме', page: ResumeFormPage, redirect: redirectGuest })
+  .register('/resumes/:id', { title: 'Резюме', page: ResumePage })
+  .register('/resumes/:id/edit', { title: 'Редактирование резюме', page: ResumeFormPage, redirect: redirectGuest })
   .register('/login', { title: 'Вход', page: LoginPage, layout: 'auth', redirect: redirectAuthorized })
   .register('/register', { title: 'Регистрация', page: RegisterPage, layout: 'auth', redirect: redirectAuthorized })
   .setNotFound({ title: 'Страница не найдена', page: NotFoundPage })
