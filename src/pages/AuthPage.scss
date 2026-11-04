@@ -30,17 +30,16 @@
   }
 
   &__hero-accent {
+    display: flex;
+    justify-content: center;
+    width: 144px;
     height: 64px;
-
-    @include tablet {
-      height: auto;
-    }
   }
 
   &__hero-image {
     display: block;
-    width: 64px;
-    height: 32px;
+    width: 121px;
+    height: 64px;
   }
 
   &__hero-title {
@@ -109,19 +108,11 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-
-    // В макете подсказка под полем идёт одной строкой и выходит за ширину поля.
-    .field__message {
-      white-space: nowrap;
-
-      @include mobile {
-        white-space: normal;
-      }
-    }
   }
 
   &__footer {
     margin: 0;
+    line-height: 24px;
     text-align: center;
     color: var(--color-text-muted);
 

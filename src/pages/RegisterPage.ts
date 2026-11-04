@@ -1,6 +1,6 @@
-import { ApiError, register, type UserRole } from '../api';
-import { initPasswordToggles, setFieldError, setLoading } from '../components/form';
-import { showToast } from '../components/toast';
+import { register, type UserRole } from '../api';
+import { initPasswordToggles, setFieldError, setFieldInvalid, setLoading } from '../components/form';
+import { hideToast, showToast } from '../components/toast';
 import type { Page, PageProps } from '../router';
 import type Router from '../router';
 import { getEmailError, getPasswordError } from '../validation';
@@ -67,15 +67,22 @@ export default class RegisterPage implements Page {
       return;
     }
 
+    hideToast();
+
     const { email, password, role } = form.elements as RegisterFormElements;
     const roleError = role.value ? '' : 'Выберите, кто вы';
     const emailError = getEmailError(email.value.trim());
     const passwordError = getPasswordError(password.value);
 
+    // Ошибка пароля показывается под полем вместо подсказки, остальные — во всплывающем уведомлении.
+    setFieldInvalid(email, Boolean(emailError));
+    setFieldError(password, passwordError);
+
+    if (roleError || emailError) {
+      showToast(roleError || emailError, 'error');
+    }
+
     if (roleError || emailError || passwordError) {
-      setFieldError(role[0] as Element, roleError);
-      setFieldError(email, emailError);
-      setFieldError(password, passwordError);
       return;
     }
 
@@ -87,11 +94,7 @@ export default class RegisterPage implements Page {
     try {
       await register({ email: email.value.trim(), password: password.value, role: role.value as UserRole });
     } catch (error) {
-      if (error instanceof ApiError && error.status === 409) {
-        setFieldError(email, error.message);
-      } else {
-        showToast((error as Error).message, 'error');
-      }
+      showToast((error as Error).message, 'error');
       return;
     } finally {
       this.#isSubmitting = false;

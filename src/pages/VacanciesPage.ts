@@ -4,7 +4,7 @@ import type { Page } from '../router';
 import template from './VacanciesPage.hbs';
 import resultsTemplate from './VacanciesResults.hbs';
 
-const FILTERS = ['Go', 'C++', 'Python', 'DevOps', 'PostgreSQL', 'Backend'];
+const FILTERS = ['Продажи', 'Офис', 'Маркетинг', 'Финансы', 'Кадры', 'ИТ'];
 const SKELETON_COUNT = 4;
 
 /**
@@ -113,10 +113,10 @@ export default class VacanciesPage implements Page {
     const query = this.#query.toLowerCase();
     const vacancies = allVacancies
       .filter(({ title, description }) => `${title} ${description}`.toLowerCase().includes(query))
-      .map(({ title, description, salary_from: from, salary_to: to, created_at: createdAt }) => ({
+      .map(({ title, salary_from: from, salary_to: to, created_at: createdAt }) => ({
         title,
-        description,
         salary: formatSalary(from, to),
+        hasSalary: from > 0 || to > 0,
         published: formatPublished(createdAt),
       }));
 

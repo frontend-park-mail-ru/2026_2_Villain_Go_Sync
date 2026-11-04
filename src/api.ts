@@ -156,7 +156,7 @@ export async function register({ email, password, role }: Credentials & { role: 
     await request('POST', '/register', { body: { email, password, role } });
   } catch (error) {
     if (error instanceof ApiError && error.status === 409) {
-      error.message = 'Аккаунт с таким email уже существует';
+      error.message = 'Аккаунт с такой электронной почтой уже существует';
     }
 
     throw error;

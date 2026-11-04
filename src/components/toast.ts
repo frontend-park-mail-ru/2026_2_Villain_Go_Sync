@@ -1,19 +1,25 @@
 const HIDE_DELAY_MS = 5000;
 
 /**
+ * Убирает всплывающее уведомление, если оно показано.
+ */
+export function hideToast(): void {
+  document.querySelector('.toast_floating')?.remove();
+}
+
+/**
  * Показывает всплывающее уведомление в углу экрана; предыдущее при этом убирается.
  * @param message Текст уведомления.
  * @param type Вид уведомления.
  */
 export function showToast(message: string, type: 'success' | 'error' = 'success'): void {
-  document.querySelector('.toast_floating')?.remove();
+  hideToast();
 
   const toast = document.createElement('div');
   const text = document.createElement('span');
   const close = document.createElement('button');
 
-  toast.className = 'toast toast_floating';
-  toast.classList.toggle('toast_success', type === 'success');
+  toast.className = `toast toast_floating toast_${type}`;
   toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
 
   text.className = 'toast__message';
@@ -31,6 +37,7 @@ export function showToast(message: string, type: 'success' | 'error' = 'success'
     toast.remove();
   });
 
-  toast.append(text, close);
+  // У уведомления об ошибке в макете нет кнопки закрытия: оно исчезает само.
+  toast.append(...(type === 'success' ? [text, close] : [text]));
   document.body.append(toast);
 }
