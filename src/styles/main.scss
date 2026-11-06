@@ -8,6 +8,7 @@
 @use '../pages/ResumesPage';
 @use '../pages/VacancyFormPage';
 @use '../pages/ProfilePage';
+@use '../pages/ApplicantsPage';
 @use 'detail';
 @use 'owner-list';
 @use 'edit-form';
@@ -30,6 +31,8 @@
   --color-accent-hover: #1b605f;
   --color-accent-soft: #e6f4f2;
   --color-danger: #b4232c;
+  --color-danger-soft: #efd7d1;
+  --color-warning: #a9460b;
   --color-success: #137a52;
   --color-skeleton: #e3d8d5;
 

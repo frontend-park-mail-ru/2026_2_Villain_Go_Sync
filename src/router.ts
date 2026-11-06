@@ -157,6 +157,14 @@ export default class Router {
   }
 
   /**
+   * Перерисовывает текущую страницу, например после входа или выхода:
+   * заново проверяется доступ, и гостя уведёт со страниц для вошедших.
+   */
+  refresh(): void {
+    this.#render();
+  }
+
+  /**
    * Обрабатывает клики по внутренним ссылкам через роутер.
    * @param event Событие клика.
    */
@@ -199,9 +207,14 @@ export default class Router {
       const match = pattern.exec(path);
 
       if (match) {
-        const params = Object.fromEntries(keys.map((key, index) => [key, decodeURIComponent(match[index + 1])]));
+        try {
+          const params = Object.fromEntries(keys.map((key, index) => [key, decodeURIComponent(match[index + 1])]));
 
-        return { route, params };
+          return { route, params };
+        } catch {
+          // Битая кодировка в адресе, например `/vacancies/%E0%A4%A`, — такой страницы нет.
+          break;
+        }
       }
     }
 
@@ -220,6 +233,12 @@ export default class Router {
       window.history.replaceState(null, '', redirectUrl);
       this.#render();
       return;
+    }
+
+    // Окна подтверждения относятся к уходящей странице: если оставить их открытыми после «Назад»,
+    // кнопка в окне выполнит действие над страницей, которой уже нет.
+    for (const dialog of document.querySelectorAll('dialog[open]')) {
+      (dialog as HTMLDialogElement).close();
     }
 
     this.#currentPage?.destroy?.();

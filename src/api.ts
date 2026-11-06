@@ -168,17 +168,51 @@ function getField(body: unknown, key: string): unknown {
   return typeof body === 'object' && body !== null ? (body as Record<string, unknown>)[key] : undefined;
 }
 
+// На эти запросы 401 означает неверные данные или отсутствие сессии, продлевать здесь нечего.
+const NO_REFRESH_PATHS = ['/login', '/register', '/refresh', '/logout'];
+
+let refreshing: Promise<boolean> | null = null;
+
+/**
+ * Продлевает сессию по refresh-токену. Если несколько запросов получили 401 одновременно,
+ * они ждут одного и того же продления.
+ * @returns `true`, если бэкенд выдал новый access-токен.
+ */
+function refreshSession(): Promise<boolean> {
+  refreshing ??= request('POST', '/refresh', { canRefresh: false })
+    .then(
+      () => true,
+      () => false,
+    )
+    .finally(() => {
+      refreshing = null;
+    });
+
+  return refreshing;
+}
+
 /**
  * Отправляет запрос к API вместе с cookie сессии и разбирает ответ.
+ * Access-токен живёт недолго, поэтому на 401 сессия один раз продлевается и запрос повторяется;
+ * если продлить не удалось, пользователь считается вышедшим.
  * @param method HTTP-метод.
  * @param path Путь относительно `API_URL`, например `/login`.
  * @param options Настройки запроса.
  * @param options.body Тело запроса, отправляется как JSON.
  * @param options.signal Сигнал для отмены запроса.
+ * @param options.canRefresh Можно ли продлить сессию и повторить запрос при 401.
  * @returns Содержимое поля `data` из ответа или `null`, если его нет.
  * @throws {ApiError} Сервер недоступен или ответил ошибкой; в `body` — текст из поля `error`.
  */
-async function request(method: string, path: string, { body, signal }: { body?: unknown; signal?: AbortSignal } = {}): Promise<unknown> {
+async function request(
+  method: string,
+  path: string,
+  {
+    body,
+    signal,
+    canRefresh = !NO_REFRESH_PATHS.includes(path),
+  }: { body?: unknown; signal?: AbortSignal; canRefresh?: boolean } = {},
+): Promise<unknown> {
   const init: RequestInit = { method, credentials: 'include', signal };
 
   if (body !== undefined) {
@@ -198,6 +232,15 @@ async function request(method: string, path: string, { body, signal }: { body?: 
     }
 
     throw new ApiError(0);
+  }
+
+  if (response.status === 401 && canRefresh) {
+    if (await refreshSession()) {
+      return request(method, path, { body, signal, canRefresh: false });
+    }
+
+    // Продлить не получилось — сессия закончилась, страницы для вошедших больше недоступны.
+    setCurrentUser(null);
   }
 
   // Бэкенд оборачивает ответы: { "data": ... } при успехе и { "error": "..." } при ошибке.
@@ -305,35 +348,16 @@ async function loadCurrentUser(): Promise<void> {
 }
 
 /**
- * Выполняет запрос и сообщает, удался ли он; ответ и ошибка не важны.
- * @param method HTTP-метод.
- * @param path Путь относительно `API_URL`.
- * @returns `true`, если сервер ответил успехом.
- */
-async function succeeds(method: string, path: string): Promise<boolean> {
-  try {
-    await request(method, path);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
  * Проверяет по cookie, вошёл ли пользователь.
- * Сначала проверяется access-токен запросом `GET /me`, и только если бэкенд ответил 401 —
- * сессия продлевается по refresh-токену. Так вход не сбрасывается, когда access-токен ещё действует,
+ * Сначала проверяется access-токен запросом `GET /me`; если бэкенд ответил 401, `request` сам продлевает
+ * сессию по refresh-токену и повторяет запрос. Так вход не сбрасывается, когда access-токен ещё действует,
  * а refresh-токен уже нет.
  */
 export async function restoreSession(): Promise<void> {
   try {
     await fetchCurrentUser();
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 401 && (await succeeds('POST', '/refresh'))) {
-      await loadCurrentUser();
-    } else {
-      setCurrentUser(null);
-    }
+  } catch {
+    setCurrentUser(null);
   }
 }
 
@@ -563,4 +587,42 @@ export async function applyToVacancy(
   await request('POST', `/vacancies/${vacancyId}/applications`, {
     body: { resume_id: resumeId, cover_letter: coverLetter || null },
   });
+}
+
+/**
+ * Отклик на вакансию в том виде, в котором его видит работодатель.
+ */
+export interface Applicant {
+  /** Имя соискателя. */
+  first_name: string;
+  /** Фамилия соискателя. */
+  last_name: string;
+  /** Статус отклика: `pending`, `created`, `viewed`, `interview`, `accepted` или `rejected`. */
+  status: string;
+  /** Дата отклика в формате ISO 8601. */
+  applied_at: string;
+  /** Название резюме, с которым откликнулись. */
+  resume_title: string;
+}
+
+/**
+ * Загружает отклики на вакансию; доступно только её работодателю.
+ * @param vacancyId Идентификатор вакансии.
+ * @param options Настройки запроса.
+ * @param options.signal Сигнал для отмены запроса.
+ * @returns Отклики; пустой массив, если их нет.
+ * @throws {ApiError} 403 — вакансия чужая; сервер недоступен или ответил ошибкой.
+ */
+export async function getVacancyApplicants(
+  vacancyId: number,
+  { signal }: { signal?: AbortSignal } = {},
+): Promise<Applicant[]> {
+  // Если откликов нет, бэкенд присылает null вместо пустого массива.
+  const applicants = (await request('GET', `/vacancies/${vacancyId}/applicants`, { signal })) ?? [];
+
+  if (!Array.isArray(applicants)) {
+    throw new ApiError(500, applicants);
+  }
+
+  return applicants as Applicant[];
 }
