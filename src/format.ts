@@ -10,7 +10,7 @@ const daysFormat = new Intl.RelativeTimeFormat('ru', { numeric: 'auto' });
  * Форматирует вилку зарплаты.
  * @param from Зарплата от; 0, если не указана.
  * @param to Зарплата до; 0, если не указана.
- * @returns Например, `220 000 – 300 000 ₽`, `от 220 000 ₽` или `Зарплата не указана`.
+ * @returns Например, `220 000 – 300 000 ₽`, `От 220 000 ₽` или `Зарплата не указана`.
  */
 export function formatSalary(from: number, to: number): string {
   if (from > 0 && to > 0 && from !== to) {
@@ -22,11 +22,11 @@ export function formatSalary(from: number, to: number): string {
   }
 
   if (from > 0) {
-    return `от ${numberFormat.format(from)} ₽`;
+    return `От ${numberFormat.format(from)} ₽`;
   }
 
   if (to > 0) {
-    return `до ${numberFormat.format(to)} ₽`;
+    return `До ${numberFormat.format(to)} ₽`;
   }
 
   return 'Зарплата не указана';

@@ -29,10 +29,10 @@ export default class Header {
         return;
       }
 
-      const profileButton = target.closest('.header__profile-button');
+      const avatar = target.closest('.header__avatar');
 
       // Любой другой клик — по пункту меню или мимо него — закрывает меню.
-      this.#setMenuOpen(profileButton?.getAttribute('aria-expanded') === 'false');
+      this.#setMenuOpen(avatar?.getAttribute('aria-expanded') === 'false');
     });
 
     document.addEventListener('keydown', (event) => {
@@ -61,7 +61,7 @@ export default class Header {
 
     if (menu) {
       menu.hidden = !isOpen;
-      this.#container.querySelector('.header__profile-button')!.setAttribute('aria-expanded', String(isOpen));
+      this.#container.querySelector('.header__avatar')!.setAttribute('aria-expanded', String(isOpen));
     }
   }
 

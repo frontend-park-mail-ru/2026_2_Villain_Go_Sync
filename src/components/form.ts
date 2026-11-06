@@ -1,4 +1,4 @@
-const LOADING_LABEL = 'Loading…';
+const LOADING_LABEL = 'Загрузка…';
 
 /**
  * Показывает ошибку под полем или возвращает исходную подсказку.
@@ -6,8 +6,13 @@ const LOADING_LABEL = 'Loading…';
  * @param message Текст ошибки; пустая строка убирает ошибку.
  */
 export function setFieldError(control: Element, message: string): void {
-  const field = control.closest('.field')!;
-  const messageElement = field.querySelector<HTMLElement>('.field__message')!;
+  const field = control.closest('.field');
+  const messageElement = field?.querySelector<HTMLElement>('.field__message');
+
+  if (!field || !messageElement) {
+    return;
+  }
+
 
   messageElement.dataset.hint ??= messageElement.textContent;
   messageElement.textContent = message || messageElement.dataset.hint;
@@ -15,6 +20,19 @@ export function setFieldError(control: Element, message: string): void {
 
   if (control instanceof HTMLInputElement) {
     control.setAttribute('aria-invalid', String(Boolean(message)));
+  }
+}
+
+/**
+ * Подсвечивает поле как ошибочное без текста под ним: текст ошибки показывается во всплывающем уведомлении.
+ * @param control Поле ввода или любой элемент внутри блока `.field`.
+ * @param isInvalid Есть ли ошибка.
+ */
+export function setFieldInvalid(control: Element, isInvalid: boolean): void {
+  control.closest('.field')?.classList.toggle('field_invalid', isInvalid);
+
+  if (control instanceof HTMLInputElement) {
+    control.setAttribute('aria-invalid', String(isInvalid));
   }
 }
 

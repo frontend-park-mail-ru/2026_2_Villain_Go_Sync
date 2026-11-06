@@ -1,6 +1,6 @@
 import { login } from '../api';
-import { initPasswordToggles, setFieldError, setLoading } from '../components/form';
-import { showToast } from '../components/toast';
+import { initPasswordToggles, setFieldError, setFieldInvalid, setLoading } from '../components/form';
+import { hideToast, showToast } from '../components/toast';
 import type { Page, PageProps } from '../router';
 import type Router from '../router';
 import { getEmailError } from '../validation';
@@ -65,13 +65,17 @@ export default class LoginPage implements Page {
       return;
     }
 
+    hideToast();
+
     const { email, password } = form.elements as LoginFormElements;
     const emailError = getEmailError(email.value.trim());
     const passwordError = password.value ? '' : 'Введите пароль';
 
+    setFieldInvalid(email, Boolean(emailError));
+    setFieldInvalid(password, Boolean(passwordError));
+
     if (emailError || passwordError) {
-      setFieldError(email, emailError);
-      setFieldError(password, passwordError);
+      showToast(emailError || passwordError, 'error');
       return;
     }
 

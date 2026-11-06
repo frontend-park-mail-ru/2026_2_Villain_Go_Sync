@@ -1,11 +1,13 @@
 import { getVacancies, type Vacancy } from '../api';
+import { renderPagination } from '../components/pagination';
 import { formatPublished, formatSalary } from '../format';
 import type { Page } from '../router';
 import template from './VacanciesPage.hbs';
 import resultsTemplate from './VacanciesResults.hbs';
 
-const FILTERS = ['Go', 'C++', 'Python', 'DevOps', 'PostgreSQL', 'Backend'];
-const SKELETON_COUNT = 4;
+const FILTERS = ['Продажи', 'Офис', 'Маркетинг', 'Финансы', 'Кадры', 'ИТ'];
+const SKELETON_COUNT = 6;
+const PAGE_SIZE = 12;
 
 /**
  * Главная страница — лента вакансий.
@@ -14,6 +16,7 @@ export default class VacanciesPage implements Page {
   #abortController = new AbortController();
   #vacancies: Vacancy[] | null = null;
   #query = '';
+  #page = 1;
   #input!: HTMLInputElement;
   #filters!: HTMLElement;
   #results!: HTMLElement;
@@ -45,6 +48,14 @@ export default class VacanciesPage implements Page {
 
     this.#results.addEventListener('click', (event) => {
       const action = (event.target as Element).closest<HTMLElement>('[data-action]')?.dataset.action;
+      const page = (event.target as Element).closest<HTMLElement>('[data-page]')?.dataset.page;
+
+      if (page) {
+        this.#page = Number(page);
+        this.#renderList(this.#vacancies ?? []);
+        window.scrollTo(0, 0);
+        return;
+      }
 
       if (action === 'reset') {
         this.#search('');
@@ -94,6 +105,7 @@ export default class VacanciesPage implements Page {
    */
   #search(query: string): void {
     this.#query = query.trim();
+    this.#page = 1;
     this.#input.value = this.#query;
 
     for (const chip of this.#filters.querySelectorAll('.chip')) {
@@ -106,20 +118,28 @@ export default class VacanciesPage implements Page {
   }
 
   /**
-   * Рисует вакансии, подходящие под текущий запрос, или пустое состояние.
+   * Рисует текущую страницу вакансий, подходящих под запрос, или пустое состояние.
    * @param allVacancies Все загруженные вакансии.
    */
   #renderList(allVacancies: Vacancy[]): void {
     const query = this.#query.toLowerCase();
-    const vacancies = allVacancies
-      .filter(({ title, description }) => `${title} ${description}`.toLowerCase().includes(query))
-      .map(({ title, description, salary_from: from, salary_to: to, created_at: createdAt }) => ({
+    const found = allVacancies.filter(({ title, description }) =>
+      `${title} ${description}`.toLowerCase().includes(query),
+    );
+    const pageCount = Math.ceil(found.length / PAGE_SIZE);
+    const vacancies = found
+      .slice((this.#page - 1) * PAGE_SIZE, this.#page * PAGE_SIZE)
+      .map(({ title, salary_from: from, salary_to: to, created_at: createdAt }) => ({
         title,
-        description,
         salary: formatSalary(from, to),
+        hasSalary: from > 0 || to > 0,
         published: formatPublished(createdAt),
       }));
 
-    this.#results.innerHTML = resultsTemplate({ vacancies, hasQuery: Boolean(query) });
+    this.#results.innerHTML = resultsTemplate({
+      vacancies,
+      hasQuery: Boolean(query),
+      pagination: renderPagination(this.#page, pageCount),
+    });
   }
 }

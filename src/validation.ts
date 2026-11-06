@@ -13,7 +13,7 @@ const MAX_PASSWORD_LENGTH = 72;
  */
 export function getEmailError(email: string): string {
   if (email.length > MAX_EMAIL_LENGTH || !EMAIL_PATTERN.test(email)) {
-    return 'Введите корректный email';
+    return 'Введите корректный адрес электронной почты';
   }
 
   return '';

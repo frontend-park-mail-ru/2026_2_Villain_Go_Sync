@@ -11,9 +11,13 @@
   <div class="header__actions">
     {{#if isAuthorized}}
       <div class="header__profile">
-        <button class="button header__profile-button" type="button" aria-haspopup="true" aria-expanded="false">
-          Профиль
-        </button>
+        <button
+          class="header__avatar"
+          type="button"
+          aria-label="Меню профиля"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >?</button>
         <div class="header__menu" hidden>
           <button class="button button_ghost header__logout" type="button">Выйти</button>
         </div>

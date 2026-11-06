@@ -1,10 +1,15 @@
 {{#if isLoading}}
   <div class="vacancies__list">
     {{#each skeletons}}
-      <div class="vacancy-card" aria-hidden="true">
+      <div class="vacancy-card vacancy-card_skeleton" aria-hidden="true">
         <div class="skeleton vacancy-card__skeleton-title"></div>
-        <div class="skeleton vacancy-card__skeleton-text"></div>
+        <div class="skeleton vacancy-card__skeleton-company"></div>
         <div class="skeleton vacancy-card__skeleton-date"></div>
+        <div class="vacancy-card__tags">
+          <div class="skeleton vacancy-card__skeleton-tag"></div>
+          <div class="skeleton vacancy-card__skeleton-tag"></div>
+          <div class="skeleton vacancy-card__skeleton-tag"></div>
+        </div>
         <div class="vacancy-card__footer">
           <div class="skeleton vacancy-card__skeleton-salary"></div>
           <div class="skeleton vacancy-card__skeleton-button"></div>
@@ -24,18 +29,32 @@
   <div class="vacancies__list">
     {{#each vacancies}}
       <article class="vacancy-card">
-        <div>
-          <h2 class="vacancy-card__title">{{title}}</h2>
-          <p class="vacancy-card__description">{{description}}</p>
-        </div>
+        {{#if company}}
+          <div class="vacancy-card__company">
+            {{#if logo}}
+              <img class="vacancy-card__logo" src="{{logo}}" alt="" width="48" height="48" />
+            {{/if}}
+            <span class="vacancy-card__company-name">{{company}}</span>
+          </div>
+        {{/if}}
+        <h2 class="vacancy-card__title">{{title}}</h2>
         <p class="vacancy-card__date">{{published}}</p>
+        {{#if tags.length}}
+          <div class="vacancy-card__tags">
+            {{#each tags}}
+              <span class="chip">{{this}}</span>
+            {{/each}}
+          </div>
+        {{/if}}
         <div class="vacancy-card__footer">
-          <span class="vacancy-card__salary">{{salary}}</span>
-          <button class="button vacancy-card__button" type="button">Смотреть вакансию</button>
+          <p class="vacancy-card__salary{{#unless hasSalary}} vacancy-card__salary_empty{{/unless}}">{{salary}}</p>
+          <button class="button button_secondary vacancy-card__button" type="button">Смотреть вакансию</button>
         </div>
       </article>
     {{/each}}
   </div>
+  {{! Разметку пагинации собирает компонент из номеров страниц, поэтому вставка без экранирования безопасна. }}
+  {{{pagination}}}
 {{else if hasQuery}}
   <div class="vacancies__empty">
     <h2 class="vacancies__empty-title">По вашему запросу ничего не найдено</h2>
