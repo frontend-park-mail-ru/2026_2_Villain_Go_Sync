@@ -1,17 +1,17 @@
 {{#if isLoading}}
-  <section class="resume-form-page">
-    <h1 class="resume-form-page__title">{{heading}}</h1>
-    <div class="resume-form" aria-hidden="true">
+  <section class="form-page">
+    <h1 class="form-page__title">{{heading}}</h1>
+    <div class="edit-form" aria-hidden="true">
       {{#each skeletonFields}}
         <div class="detail__skeleton-group">
           <div class="skeleton detail__skeleton-line detail__skeleton-line_label"></div>
-          <div class="skeleton resume-form__skeleton-field"></div>
+          <div class="skeleton edit-form__skeleton-field"></div>
         </div>
       {{/each}}
     </div>
   </section>
 {{else if error}}
-  <section class="resume-form-page">
+  <section class="form-page">
     <div class="empty-state">
       <h1 class="empty-state__title">{{error.title}}</h1>
       <p class="empty-state__text">{{error.text}}</p>
@@ -25,10 +25,10 @@
     </div>
   </section>
 {{else}}
-  <section class="resume-form-page">
-    <h1 class="resume-form-page__title">{{heading}}</h1>
+  <section class="form-page">
+    <h1 class="form-page__title">{{heading}}</h1>
 
-    <form class="resume-form" novalidate>
+    <form class="edit-form" novalidate>
       <div class="field">
         <label class="field__label" for="resume-title">Название</label>
         <input
@@ -53,7 +53,7 @@
         >{{resume.description}}</textarea>
       </div>
 
-      <div class="resume-form__row">
+      <div class="edit-form__row">
         <div class="field">
           <label class="field__label" for="resume-experience">Опыт</label>
           <textarea
@@ -75,9 +75,9 @@
         </div>
       </div>
 
-      <div class="resume-form__actions">
-        <button class="button button_secondary resume-form__submit" type="submit">{{submitLabel}}</button>
-        <button class="button button_ghost resume-form__cancel" type="button" data-action="cancel">Отмена</button>
+      <div class="edit-form__actions">
+        <button class="button button_secondary edit-form__submit" type="submit">{{submitLabel}}</button>
+        <button class="button button_ghost edit-form__cancel" type="button" data-action="cancel">Отмена</button>
       </div>
     </form>
   </section>

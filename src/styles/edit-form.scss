@@ -1,6 +1,7 @@
-@use '../styles/mixins' as *;
+@use 'mixins' as *;
 
-.resume-form-page {
+// Страница с формой создания или редактирования: заголовок и карточка с полями.
+.form-page {
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -17,7 +18,7 @@
   }
 }
 
-.resume-form {
+.edit-form {
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -51,6 +52,10 @@
 
   &__submit {
     width: 240px;
+
+    &_compact {
+      width: 176px;
+    }
   }
 
   &__cancel {

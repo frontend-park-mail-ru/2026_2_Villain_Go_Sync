@@ -107,6 +107,13 @@
     resize: vertical;
   }
 
+  &__select {
+    padding-right: 48px;
+    background: var(--color-surface) url('/images/chevron-down.svg') right 16px center / 16px no-repeat;
+    appearance: none;
+    cursor: pointer;
+  }
+
   &__control {
     position: relative;
   }

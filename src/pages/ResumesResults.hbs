@@ -1,5 +1,5 @@
 {{#if isLoading}}
-  <div class="skeleton resumes__search-skeleton" aria-hidden="true"></div>
+  <div class="skeleton owner-list__search-skeleton" aria-hidden="true"></div>
   <div class="card-grid" aria-hidden="true">
     {{#each skeletons}}
       <div class="resume-card resume-card_skeleton">
@@ -12,7 +12,7 @@
     {{/each}}
   </div>
 {{else if error}}
-  <div class="empty-state resumes__empty">
+  <div class="empty-state owner-list__empty">
     <h2 class="empty-state__title">Не удалось загрузить резюме</h2>
     <p class="empty-state__text">{{error}}</p>
     <button class="button button_secondary empty-state__button" type="button" data-action="retry">
@@ -20,7 +20,7 @@
     </button>
   </div>
 {{else if resumes}}
-  <div class="resumes__list">
+  <div class="owner-list__list">
     <div class="card-grid">
       {{#each resumes}}
         <article class="resume-card">
@@ -55,11 +55,11 @@
     </button>
   </div>
 {{else}}
-  <div class="empty-state resumes__empty">
-    <div class="resumes__empty-copy">
+  <div class="empty-state owner-list__empty">
+    <div class="owner-list__empty-copy">
       <h2 class="empty-state__title">У вас пока нет резюме</h2>
       <p class="empty-state__text">Создайте резюме, чтобы откликаться на вакансии.</p>
     </div>
-    <a class="button button_secondary resumes__empty-button" href="/resumes/new">Создать резюме</a>
+    <a class="button button_secondary owner-list__empty-button" href="/resumes/new">Создать резюме</a>
   </div>
 {{/if}}

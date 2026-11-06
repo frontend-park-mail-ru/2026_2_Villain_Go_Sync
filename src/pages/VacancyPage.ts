@@ -111,7 +111,7 @@ export default class VacancyPage implements Page {
       company,
       isOwner,
       canApply: !isAuthorized(),
-      salary: formatSalary(vacancy.salary_from, vacancy.salary_to),
+      salary: formatSalary(vacancy.salary_from, vacancy.salary_to, vacancy.currency),
       hasSalary: (vacancy.salary_from ?? 0) > 0 || (vacancy.salary_to ?? 0) > 0,
     });
   }
@@ -126,7 +126,7 @@ export default class VacancyPage implements Page {
   }
 
   /**
-   * Спрашивает подтверждение, удаляет вакансию и возвращает к списку.
+   * Спрашивает подтверждение, удаляет вакансию и возвращает к списку вакансий работодателя.
    */
   async #confirmDelete(): Promise<void> {
     if (this.#isDeleting) {
@@ -156,6 +156,6 @@ export default class VacancyPage implements Page {
     }
 
     showToast('Вакансия удалена');
-    this.#router.navigate('/');
+    this.#router.navigate('/my/vacancies');
   }
 }

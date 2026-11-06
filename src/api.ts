@@ -13,14 +13,12 @@ const STATUS_MESSAGES: Record<number, string> = {
 
 export type UserRole = 'seeker' | 'employer';
 
+export type Currency = 'RUB' | 'USD' | 'EUR';
+
 /**
- * Вакансия в том виде, в котором её отдаёт бэкенд.
+ * Поля вакансии, которые заполняет работодатель.
  */
-export interface Vacancy {
-  /** Идентификатор вакансии. */
-  id: number;
-  /** Идентификатор работодателя. */
-  employer_id: number;
+export interface VacancyFields {
   /** Название. */
   title: string;
   /** Описание. */
@@ -29,6 +27,18 @@ export interface Vacancy {
   salary_from: number | null;
   /** Зарплата до; `null`, если не указана. */
   salary_to: number | null;
+  /** Валюта зарплаты. */
+  currency: Currency;
+}
+
+/**
+ * Вакансия в том виде, в котором её отдаёт бэкенд.
+ */
+export interface Vacancy extends VacancyFields {
+  /** Идентификатор вакансии. */
+  id: number;
+  /** Идентификатор работодателя. */
+  employer_id: number;
   /** Дата публикации в формате ISO 8601. */
   created_at: string;
 }
@@ -325,13 +335,59 @@ export async function getVacancies({ signal }: { signal?: AbortSignal } = {}): P
  * @throws {ApiError} 404 — вакансии нет; сервер недоступен или ответил ошибкой.
  */
 export async function getVacancy(id: number, { signal }: { signal?: AbortSignal } = {}): Promise<Vacancy> {
-  const vacancy = await request('GET', `/vacancies/${id}`, { signal });
+  return toVacancy(await request('GET', `/vacancies/${id}`, { signal }));
+}
 
-  if (typeof vacancy !== 'object' || vacancy === null) {
-    throw new ApiError(500, vacancy);
+/**
+ * Проверяет, что бэкенд вернул вакансию, а не что-то другое.
+ * @param data Содержимое поля `data` из ответа.
+ * @returns Вакансия.
+ * @throws {ApiError} Ответ не похож на вакансию.
+ */
+function toVacancy(data: unknown): Vacancy {
+  if (typeof data !== 'object' || data === null) {
+    throw new ApiError(500, data);
   }
 
-  return vacancy as Vacancy;
+  return data as Vacancy;
+}
+
+/**
+ * Загружает вакансии вошедшего работодателя.
+ * @param options Настройки запроса.
+ * @param options.signal Сигнал для отмены запроса.
+ * @returns Вакансии; пустой массив, если их нет.
+ * @throws {ApiError} 403 — пользователь не работодатель; сервер недоступен или ответил ошибкой.
+ */
+export async function getEmployerVacancies({ signal }: { signal?: AbortSignal } = {}): Promise<Vacancy[]> {
+  const vacancies = (await request('GET', '/employer/vacancies', { signal })) ?? [];
+
+  if (!Array.isArray(vacancies)) {
+    throw new ApiError(500, vacancies);
+  }
+
+  return vacancies as Vacancy[];
+}
+
+/**
+ * Создаёт вакансию; доступно работодателю с заполненным профилем компании.
+ * @param fields Поля вакансии.
+ * @returns Созданная вакансия.
+ * @throws {ApiError} 403 — пользователь не работодатель или не заполнил профиль, 400 — поля не прошли проверку.
+ */
+export async function createVacancy(fields: VacancyFields): Promise<Vacancy> {
+  return toVacancy(await request('POST', '/vacancies', { body: fields }));
+}
+
+/**
+ * Сохраняет изменения в вакансии; доступно только её работодателю.
+ * @param id Идентификатор вакансии.
+ * @param fields Новые значения полей.
+ * @returns Изменённая вакансия.
+ * @throws {ApiError} 403 — вакансия чужая, 404 — вакансии нет, 400 — поля не прошли проверку.
+ */
+export async function updateVacancy(id: number, fields: VacancyFields): Promise<Vacancy> {
+  return toVacancy(await request('PATCH', `/vacancies/${id}`, { body: fields }));
 }
 
 /**

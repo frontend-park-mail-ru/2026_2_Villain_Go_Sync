@@ -3,6 +3,8 @@ const HOURS_IN_DAY = 24;
 const MAX_RELATIVE_DAYS = 30;
 
 const numberFormat = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 });
+
+const CURRENCY_SIGNS: Record<string, string> = { RUB: '₽', USD: '$', EUR: '€' };
 const hoursFormat = new Intl.RelativeTimeFormat('ru', { numeric: 'always' });
 const daysFormat = new Intl.RelativeTimeFormat('ru', { numeric: 'auto' });
 
@@ -10,26 +12,29 @@ const daysFormat = new Intl.RelativeTimeFormat('ru', { numeric: 'auto' });
  * Форматирует вилку зарплаты.
  * @param from Зарплата от; `null` или 0, если не указана.
  * @param to Зарплата до; `null` или 0, если не указана.
+ * @param currency Код валюты: RUB, USD или EUR; без него — рубли.
  * @returns Например, `220 000 – 300 000 ₽`, `От 220 000 ₽` или `Зарплата не указана`.
  */
-export function formatSalary(from: number | null, to: number | null): string {
+export function formatSalary(from: number | null, to: number | null, currency = 'RUB'): string {
   from ??= 0;
   to ??= 0;
 
+  const sign = CURRENCY_SIGNS[currency] ?? currency;
+
   if (from > 0 && to > 0 && from !== to) {
-    return `${numberFormat.format(from)} – ${numberFormat.format(to)} ₽`;
+    return `${numberFormat.format(from)} – ${numberFormat.format(to)} ${sign}`;
   }
 
   if (from > 0 && to > 0) {
-    return `${numberFormat.format(from)} ₽`;
+    return `${numberFormat.format(from)} ${sign}`;
   }
 
   if (from > 0) {
-    return `От ${numberFormat.format(from)} ₽`;
+    return `От ${numberFormat.format(from)} ${sign}`;
   }
 
   if (to > 0) {
-    return `До ${numberFormat.format(to)} ₽`;
+    return `До ${numberFormat.format(to)} ${sign}`;
   }
 
   return 'Зарплата не указана';
