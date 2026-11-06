@@ -14,6 +14,8 @@ export interface Page {
 export interface PageProps {
   /** Роутер для переходов из кода. */
   router: Router;
+  /** Значения параметров из пути, например `{ id: '42' }` для `/vacancies/:id`. */
+  params: Record<string, string>;
 }
 
 /**
@@ -34,6 +36,40 @@ export interface Route {
 }
 
 /**
+ * Зарегистрированный маршрут вместе с шаблоном пути.
+ */
+interface CompiledRoute {
+  /** Регулярное выражение для пути. */
+  pattern: RegExp;
+  /** Имена параметров в порядке их появления в пути. */
+  keys: string[];
+  /** Сам маршрут. */
+  route: Route;
+}
+
+/**
+ * Превращает путь с параметрами вида `/vacancies/:id` в регулярное выражение.
+ * @param path Путь без завершающего слэша.
+ * @returns Регулярное выражение и имена параметров.
+ */
+function compilePath(path: string): Pick<CompiledRoute, 'pattern' | 'keys'> {
+  const keys: string[] = [];
+  const source = path
+    .split('/')
+    .map((segment) => {
+      if (segment.startsWith(':')) {
+        keys.push(segment.slice(1));
+        return '([^/]+)';
+      }
+
+      return segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    })
+    .join('/');
+
+  return { pattern: new RegExp(`^${source}$`), keys };
+}
+
+/**
  * Убирает завершающий слэш из пути.
  * @param path Путь, например `/login/`.
  * @returns Путь без завершающего слэша, например `/login`.
@@ -46,7 +82,7 @@ function normalizePath(path: string): string {
  * Роутер SPA на History API.
  */
 export default class Router {
-  #routes = new Map<string, Route>();
+  #routes: CompiledRoute[] = [];
   #notFound: Route | null = null;
   #currentPage: Page | null = null;
   #container: HTMLElement;
@@ -64,12 +100,12 @@ export default class Router {
 
   /**
    * Регистрирует маршрут.
-   * @param path Путь, например `/login`.
+   * @param path Путь, например `/login` или `/vacancies/:id`.
    * @param route Страница и заголовок.
    * @returns Этот же роутер.
    */
   register(path: string, route: Route): this {
-    this.#routes.set(normalizePath(path), route);
+    this.#routes.push({ ...compilePath(normalizePath(path)), route });
     return this;
   }
 
@@ -154,11 +190,30 @@ export default class Router {
   }
 
   /**
+   * Находит маршрут для пути и достаёт из него параметры.
+   * @param path Путь без завершающего слэша.
+   * @returns Маршрут и параметры; страница «не найдено», если путь не подошёл ни к одному маршруту.
+   */
+  #match(path: string): { route: Route; params: Record<string, string> } {
+    for (const { pattern, keys, route } of this.#routes) {
+      const match = pattern.exec(path);
+
+      if (match) {
+        const params = Object.fromEntries(keys.map((key, index) => [key, decodeURIComponent(match[index + 1])]));
+
+        return { route, params };
+      }
+    }
+
+    return { route: this.#notFound!, params: {} };
+  }
+
+  /**
    * Рисует страницу для текущего адреса.
    */
   #render(): void {
     const path = normalizePath(window.location.pathname);
-    const route = this.#routes.get(path) ?? this.#notFound!;
+    const { route, params } = this.#match(path);
     const redirectUrl = route.redirect?.();
 
     if (redirectUrl) {
@@ -168,7 +223,7 @@ export default class Router {
     }
 
     this.#currentPage?.destroy?.();
-    this.#currentPage = new route.page({ router: this });
+    this.#currentPage = new route.page({ router: this, params });
 
     document.title = `${route.title} — ${this.#appName}`;
     document.body.dataset.layout = route.layout ?? 'default';
