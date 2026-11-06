@@ -39,5 +39,6 @@ export function showToast(message: string, type: 'success' | 'error' = 'success'
 
   // У уведомления об ошибке в макете нет кнопки закрытия: оно исчезает само.
   toast.append(...(type === 'success' ? [text, close] : [text]));
-  document.body.append(toast);
+  // Открытое модальное окно лежит поверх всей страницы, поэтому уведомление кладём внутрь него, иначе его закроет затемнение.
+  (document.querySelector('dialog[open]') ?? document.body).append(toast);
 }

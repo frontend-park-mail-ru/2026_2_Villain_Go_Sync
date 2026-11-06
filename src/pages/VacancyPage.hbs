@@ -44,8 +44,12 @@
     {{else}}
       <div class="detail__heading">
         <h1 class="detail__title">Вакансия</h1>
-        {{#if canApply}}
+        {{#if isGuest}}
           <a class="button button_secondary detail__heading-button" href="/login">Откликнуться</a>
+        {{else if canApply}}
+          <button class="button button_secondary detail__heading-button" type="button" data-action="apply">
+            Откликнуться
+          </button>
         {{/if}}
       </div>
     {{/if}}
