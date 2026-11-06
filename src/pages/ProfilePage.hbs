@@ -1,0 +1,88 @@
+<section class="profile">
+  <h1 class="profile__title">{{heading}}</h1>
+
+  {{#if isLoading}}
+    <div class="profile__content" aria-hidden="true">
+      <div class="skeleton profile__avatar profile__avatar_skeleton"></div>
+      <div class="profile__card">
+        <div class="profile__fields">
+          {{#each skeletonFields}}
+            <div class="detail__skeleton-group">
+              <div class="skeleton detail__skeleton-line"></div>
+              <div class="skeleton detail__skeleton-line"></div>
+              <div class="skeleton detail__skeleton-line"></div>
+            </div>
+          {{/each}}
+        </div>
+        <div class="profile__section">
+          <div class="detail__skeleton-group">
+            <div class="skeleton detail__skeleton-line"></div>
+            <div class="skeleton detail__skeleton-line"></div>
+            <div class="skeleton detail__skeleton-line"></div>
+          </div>
+          <div class="detail__skeleton-group">
+            <div class="skeleton detail__skeleton-line detail__skeleton-line_wide"></div>
+            <div class="skeleton detail__skeleton-line detail__skeleton-line_wide"></div>
+            <div class="skeleton detail__skeleton-line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {{else if error}}
+    <div class="empty-state">
+      <h2 class="empty-state__title">Не удалось загрузить профиль</h2>
+      <p class="empty-state__text">{{error}}</p>
+      {{#if canRetry}}
+        <button class="button button_secondary empty-state__button" type="button" data-action="retry">
+          Повторить
+        </button>
+      {{/if}}
+    </div>
+  {{else}}
+    <div class="profile__content">
+      <div class="profile__avatar{{#if isCompany}} profile__avatar_company{{/if}}" aria-hidden="true">{{initials}}</div>
+
+      {{#if isEmpty}}
+        <div class="profile__card profile__card_empty">
+          <div class="profile__empty-copy">
+            <h2 class="profile__empty-title">{{empty.title}}</h2>
+            <p class="profile__empty-text">{{empty.text}}</p>
+          </div>
+          <a class="button button_secondary profile__edit profile__edit_fill" href="/profile/edit">Заполнить профиль</a>
+        </div>
+      {{else}}
+        <div class="profile__card">
+          <div class="profile__fields">
+            <div class="profile__main">
+              <div class="profile__field">
+                <p class="profile__label">{{name.label}}</p>
+                <p class="profile__name">{{name.value}}</p>
+              </div>
+              <a class="button button_secondary profile__edit" href="/profile/edit">Редактировать профиль</a>
+            </div>
+
+            {{#if contact.value}}
+              <div class="profile__field">
+                <p class="profile__label">{{contact.label}}</p>
+                {{#if contact.href}}
+                  <a class="profile__value profile__link" href="{{contact.href}}" target="_blank" rel="noopener noreferrer">
+                    {{contact.value}}
+                  </a>
+                {{else}}
+                  <p class="profile__value">{{contact.value}}</p>
+                {{/if}}
+              </div>
+            {{/if}}
+          </div>
+
+          {{#if about.text}}
+            <section class="profile__section">
+              <h2 class="profile__section-title">{{about.title}}</h2>
+              <p class="profile__text">{{about.text}}</p>
+            </section>
+          {{/if}}
+        </div>
+      {{/if}}
+    </div>
+  {{/if}}
+</section>
