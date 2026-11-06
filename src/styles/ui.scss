@@ -1,3 +1,5 @@
+@use 'mixins' as *;
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -96,6 +98,13 @@
     &::-ms-reveal {
       display: none;
     }
+  }
+
+  &__textarea {
+    height: 144px;
+    padding: 12px 16px;
+    line-height: 22px;
+    resize: vertical;
   }
 
   &__control {
@@ -440,4 +449,54 @@ label.chip {
 .skeleton {
   border-radius: var(--radius-small);
   background: var(--color-skeleton);
+}
+
+// Сетка карточек: три колонки, на планшете две, на телефоне одна.
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+
+  @include tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// Пустой список, ничего не найдено или ошибка загрузки.
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 64px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  text-align: center;
+  background: var(--color-surface);
+
+  @include mobile {
+    padding: 24px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 28px;
+  }
+
+  &__text {
+    margin: 0;
+    color: var(--color-text-muted);
+  }
+
+  &__button {
+    width: 320px;
+    max-width: 100%;
+  }
 }

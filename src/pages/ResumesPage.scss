@@ -1,0 +1,153 @@
+.resumes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 16px;
+
+  &__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+  }
+
+  &__create {
+    flex: none;
+    --icon: url('/images/plus.svg');
+  }
+
+  &__search {
+    display: flex;
+    gap: 8px;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  &__search-input {
+    width: 320px;
+    min-width: 0;
+  }
+
+  &__search-button {
+    flex: none;
+    --icon: url('/images/search.svg');
+  }
+
+  &__search-skeleton {
+    width: 320px;
+    max-width: 100%;
+    height: 48px;
+    border-radius: var(--radius);
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  // Без строки поиска пустое состояние отстоит от заголовка на 24px, как в макете.
+  &__empty {
+    gap: 24px;
+    margin-top: 16px;
+  }
+
+  &__empty-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__empty-button {
+    width: 240px;
+    max-width: 100%;
+  }
+}
+
+.resume-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 318px;
+  padding: 24px 24px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+
+  &_skeleton {
+    padding-bottom: 24px;
+  }
+
+  &__summary {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  &__title,
+  &__description {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  &__title {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 28px;
+  }
+
+  &__description {
+    color: var(--color-text-muted);
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  &__button {
+    width: 192px;
+    padding: 12px 16px;
+  }
+
+  &__skeleton-title {
+    width: 280px;
+    max-width: 100%;
+    height: 24px;
+  }
+
+  &__skeleton-text {
+    width: 100%;
+    height: 64px;
+  }
+
+  &__skeleton-button {
+    align-self: flex-end;
+    width: 192px;
+    height: 48px;
+  }
+}

@@ -1,0 +1,84 @@
+{{#if isLoading}}
+  <section class="resume-form-page">
+    <h1 class="resume-form-page__title">{{heading}}</h1>
+    <div class="resume-form" aria-hidden="true">
+      {{#each skeletonFields}}
+        <div class="detail__skeleton-group">
+          <div class="skeleton detail__skeleton-line detail__skeleton-line_label"></div>
+          <div class="skeleton resume-form__skeleton-field"></div>
+        </div>
+      {{/each}}
+    </div>
+  </section>
+{{else if error}}
+  <section class="resume-form-page">
+    <div class="empty-state">
+      <h1 class="empty-state__title">{{error.title}}</h1>
+      <p class="empty-state__text">{{error.text}}</p>
+      {{#if error.canRetry}}
+        <button class="button button_secondary empty-state__button" type="button" data-action="retry">
+          Повторить
+        </button>
+      {{else}}
+        <a class="button button_secondary empty-state__button" href="/resumes">К моим резюме</a>
+      {{/if}}
+    </div>
+  </section>
+{{else}}
+  <section class="resume-form-page">
+    <h1 class="resume-form-page__title">{{heading}}</h1>
+
+    <form class="resume-form" novalidate>
+      <div class="field">
+        <label class="field__label" for="resume-title">Название</label>
+        <input
+          class="field__input"
+          id="resume-title"
+          name="title"
+          type="text"
+          placeholder="Введите название резюме"
+          value="{{resume.title}}"
+          aria-describedby="resume-title-message"
+        />
+        <p class="field__message" id="resume-title-message"></p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="resume-description">Описание</label>
+        <textarea
+          class="field__input field__textarea"
+          id="resume-description"
+          name="description"
+          placeholder="Опишите ваши навыки и интересы"
+        >{{resume.description}}</textarea>
+      </div>
+
+      <div class="resume-form__row">
+        <div class="field">
+          <label class="field__label" for="resume-experience">Опыт</label>
+          <textarea
+            class="field__input field__textarea"
+            id="resume-experience"
+            name="experience"
+            placeholder="Опишите ваш опыт"
+          >{{resume.experience}}</textarea>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="resume-education">Образование</label>
+          <textarea
+            class="field__input field__textarea"
+            id="resume-education"
+            name="education"
+            placeholder="Расскажите об образовании"
+          >{{resume.education}}</textarea>
+        </div>
+      </div>
+
+      <div class="resume-form__actions">
+        <button class="button button_secondary resume-form__submit" type="submit">{{submitLabel}}</button>
+        <button class="button button_ghost resume-form__cancel" type="button" data-action="cancel">Отмена</button>
+      </div>
+    </form>
+  </section>
+{{/if}}

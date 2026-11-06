@@ -1,11 +1,12 @@
 import { logout } from '../api';
 import { APP_NAME } from '../config';
-import { isAuthorized, onSessionChange } from '../session';
+import { getCurrentUser, isAuthorized, onSessionChange } from '../session';
 import template from './Header.hbs';
 import { confirmAction } from './Modal';
 import { showToast } from './toast';
 
 const LINKS = [{ title: 'Вакансии', href: '/' }];
+const SEEKER_LINKS = [...LINKS, { title: 'Мои резюме', href: '/resumes' }];
 
 /**
  * Шапка сайта: логотип, навигация и кнопки входа или меню профиля.
@@ -49,7 +50,10 @@ export default class Header {
    * Рисует шапку для гостя или для вошедшего пользователя.
    */
   #update(): void {
-    this.#container.innerHTML = template({ appName: APP_NAME, links: LINKS, isAuthorized: isAuthorized() });
+    // Ссылки зависят от роли; пока бэкенд её не сообщает, вошедший видит те же ссылки, что и гость.
+    const links = getCurrentUser()?.role === 'seeker' ? SEEKER_LINKS : LINKS;
+
+    this.#container.innerHTML = template({ appName: APP_NAME, links, isAuthorized: isAuthorized() });
   }
 
   /**

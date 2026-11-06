@@ -1,5 +1,5 @@
 {{#if isLoading}}
-  <div class="vacancies__list">
+  <div class="card-grid">
     {{#each skeletons}}
       <div class="vacancy-card vacancy-card_skeleton" aria-hidden="true">
         <div class="skeleton vacancy-card__skeleton-title"></div>
@@ -18,15 +18,15 @@
     {{/each}}
   </div>
 {{else if error}}
-  <div class="vacancies__empty">
-    <h2 class="vacancies__empty-title">Не удалось загрузить вакансии</h2>
-    <p class="vacancies__empty-text">{{error}}</p>
-    <button class="button button_secondary vacancies__empty-button" type="button" data-action="retry">
+  <div class="empty-state">
+    <h2 class="empty-state__title">Не удалось загрузить вакансии</h2>
+    <p class="empty-state__text">{{error}}</p>
+    <button class="button button_secondary empty-state__button" type="button" data-action="retry">
       Повторить
     </button>
   </div>
 {{else if vacancies}}
-  <div class="vacancies__list">
+  <div class="card-grid">
     {{#each vacancies}}
       <article class="vacancy-card">
         {{#if company}}
@@ -56,16 +56,16 @@
   {{! Разметку пагинации собирает компонент из номеров страниц, поэтому вставка без экранирования безопасна. }}
   {{{pagination}}}
 {{else if hasQuery}}
-  <div class="vacancies__empty">
-    <h2 class="vacancies__empty-title">По вашему запросу ничего не найдено</h2>
-    <p class="vacancies__empty-text">Попробуйте изменить запрос или сбросить выбранные фильтры.</p>
-    <button class="button button_secondary vacancies__empty-button" type="button" data-action="reset">
+  <div class="empty-state">
+    <h2 class="empty-state__title">По вашему запросу ничего не найдено</h2>
+    <p class="empty-state__text">Попробуйте изменить запрос или сбросить выбранные фильтры.</p>
+    <button class="button button_secondary empty-state__button" type="button" data-action="reset">
       Сбросить поиск и фильтры
     </button>
   </div>
 {{else}}
-  <div class="vacancies__empty">
-    <h2 class="vacancies__empty-title">Вакансий пока нет</h2>
-    <p class="vacancies__empty-text">Загляните позже — здесь появятся новые предложения.</p>
+  <div class="empty-state">
+    <h2 class="empty-state__title">Вакансий пока нет</h2>
+    <p class="empty-state__text">Загляните позже — здесь появятся новые предложения.</p>
   </div>
 {{/if}}

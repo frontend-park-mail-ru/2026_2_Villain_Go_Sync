@@ -4,7 +4,9 @@
 @use '../components/Header';
 @use '../pages/AuthPage';
 @use '../pages/VacanciesPage';
-@use '../pages/VacancyPage';
+@use '../pages/ResumesPage';
+@use '../pages/ResumeFormPage';
+@use 'detail';
 
 :root {
   --content-width: 1440px;

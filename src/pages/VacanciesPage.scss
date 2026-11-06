@@ -39,54 +39,6 @@
     flex-direction: column;
     gap: 32px;
   }
-
-  &__list {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 24px;
-
-    @include tablet {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    @include mobile {
-      grid-template-columns: minmax(0, 1fr);
-    }
-  }
-
-  &__empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    width: 100%;
-    padding: 64px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    text-align: center;
-    background: var(--color-surface);
-
-    @include mobile {
-      padding: 24px;
-    }
-  }
-
-  &__empty-title {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 600;
-    line-height: 28px;
-  }
-
-  &__empty-text {
-    margin: 0;
-    color: var(--color-text-muted);
-  }
-
-  &__empty-button {
-    width: 320px;
-    max-width: 100%;
-  }
 }
 
 .vacancy-card {
