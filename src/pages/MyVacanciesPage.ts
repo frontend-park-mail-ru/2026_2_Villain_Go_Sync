@@ -1,10 +1,9 @@
-import { deleteVacancy, getEmployer, getEmployerVacancies, type Vacancy } from '../api';
+import { deleteVacancy, getEmployerVacancies, type Vacancy } from '../api';
 import { confirmAction } from '../components/Modal';
 import { renderPagination } from '../components/pagination';
 import { showToast } from '../components/toast';
 import { formatSalary } from '../format';
 import type { Page } from '../router';
-import { getCurrentUser } from '../session';
 import template from './MyVacanciesPage.hbs';
 import resultsTemplate from './MyVacanciesResults.hbs';
 
@@ -17,7 +16,6 @@ const PAGE_SIZE = 12;
 export default class MyVacanciesPage implements Page {
   #abortController = new AbortController();
   #vacancies: Vacancy[] | null = null;
-  #company = '';
   #query = '';
   #page = 1;
   #isDeleting = false;
@@ -74,20 +72,13 @@ export default class MyVacanciesPage implements Page {
    */
   async #load(): Promise<void> {
     const { signal } = this.#abortController;
-    const userId = getCurrentUser()?.id ?? null;
 
     this.#vacancies = null;
     this.#search.hidden = true;
     this.#content.innerHTML = resultsTemplate({ isLoading: true, skeletons: Array.from({ length: SKELETON_COUNT }) });
 
-    // Название компании нужно только для подписи на карточках, поэтому без него список всё равно показывается.
-    const company = userId === null ? Promise.resolve('') : getEmployer(userId, { signal }).then(
-      (employer) => employer.company_name,
-      () => '',
-    );
-
     try {
-      [this.#vacancies, this.#company] = await Promise.all([getEmployerVacancies({ signal }), company]);
+      this.#vacancies = await getEmployerVacancies({ signal });
     } catch (error) {
       if (!signal.aborted) {
         this.#content.innerHTML = resultsTemplate({ error: (error as Error).message });
@@ -126,10 +117,10 @@ export default class MyVacanciesPage implements Page {
     this.#search.hidden = allVacancies.length === 0;
 
     this.#content.innerHTML = resultsTemplate({
-      company: this.#company,
       vacancies: found
         .slice((this.#page - 1) * PAGE_SIZE, this.#page * PAGE_SIZE)
-        .map(({ id, title, description, salary_from: from, salary_to: to, currency }) => ({
+        .map(({ id, title, description, salary_from: from, salary_to: to, currency, company_name: company }) => ({
+          company,
           id,
           title,
           description,

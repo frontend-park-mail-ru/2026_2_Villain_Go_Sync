@@ -39,6 +39,8 @@ export interface Vacancy extends VacancyFields {
   id: number;
   /** Идентификатор работодателя. */
   employer_id: number;
+  /** Название компании. */
+  company_name: string;
   /** Дата публикации в формате ISO 8601. */
   created_at: string;
 }
@@ -602,6 +604,18 @@ export async function applyToVacancy(
  * Отклик на вакансию в том виде, в котором его видит работодатель.
  */
 export interface Applicant {
+  /** Идентификатор отклика. */
+  application_id: number;
+  /** Идентификатор вакансии. */
+  vacancy_id: number;
+  /** Название вакансии на момент отклика. */
+  vacancy_title: string;
+  /** Идентификатор соискателя. */
+  seeker_id: number;
+  /** Идентификатор приложенного резюме. */
+  resume_id: number;
+  /** Сопроводительное письмо. */
+  cover_letter: string | null;
   /** Имя соискателя. */
   first_name: string;
   /** Фамилия соискателя. */
@@ -616,18 +630,16 @@ export interface Applicant {
 
 /**
  * Загружает отклики на вакансию; доступно только её работодателю.
- * @param vacancyId Идентификатор вакансии.
  * @param options Настройки запроса.
  * @param options.signal Сигнал для отмены запроса.
  * @returns Отклики; пустой массив, если их нет.
  * @throws {ApiError} 403 — вакансия чужая; сервер недоступен или ответил ошибкой.
  */
-export async function getVacancyApplicants(
-  vacancyId: number,
+export async function getEmployerApplicants(
   { signal }: { signal?: AbortSignal } = {},
 ): Promise<Applicant[]> {
   // Если откликов нет, бэкенд присылает null вместо пустого массива.
-  const applicants = (await request('GET', `/vacancies/${vacancyId}/applicants`, { signal })) ?? [];
+  const applicants = (await request('GET', '/employer/applications', { signal })) ?? [];
 
   if (!Array.isArray(applicants)) {
     throw new ApiError(500, applicants);

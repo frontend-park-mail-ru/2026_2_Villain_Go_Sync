@@ -1,4 +1,4 @@
-import { getEmployerVacancies, getVacancyApplicants, type Applicant } from '../api';
+import { getEmployerApplicants, type Applicant } from '../api';
 import { renderPagination } from '../components/pagination';
 import type { Page } from '../router';
 import template from './ApplicantsPage.hbs';
@@ -20,19 +20,11 @@ const STATUSES: Record<string, { type: string; label: string }> = {
 };
 
 /**
- * Отклик вместе с названием вакансии, на которую откликнулись.
- */
-interface VacancyApplicant extends Applicant {
-  /** Название вакансии. */
-  vacancy_title: string;
-}
-
-/**
  * Страница «Соискатели»: отклики на все вакансии вошедшего работодателя.
  */
 export default class ApplicantsPage implements Page {
   #abortController = new AbortController();
-  #applicants: VacancyApplicant[] | null = null;
+  #applicants: Applicant[] | null = null;
   #query = '';
   #page = 1;
   #search!: HTMLFormElement;
@@ -82,7 +74,7 @@ export default class ApplicantsPage implements Page {
   }
 
   /**
-   * Загружает вакансии работодателя и отклики на каждую из них.
+   * Загружает общий список откликов работодателя.
    */
   async #load(): Promise<void> {
     const { signal } = this.#abortController;
@@ -92,16 +84,7 @@ export default class ApplicantsPage implements Page {
     this.#content.innerHTML = resultsTemplate({ isLoading: true, skeletons: Array.from({ length: SKELETON_COUNT }) });
 
     try {
-      // Общего списка откликов у бэкенда нет, поэтому собираем его по вакансиям.
-      const vacancies = await getEmployerVacancies({ signal });
-      const lists = await Promise.all(
-        vacancies.map(async ({ id, title }) =>
-          (await getVacancyApplicants(id, { signal })).map((applicant) => ({ ...applicant, vacancy_title: title })),
-        ),
-      );
-
-      this.#applicants = lists
-        .flat()
+      this.#applicants = (await getEmployerApplicants({ signal }))
         .sort((a, b) => new Date(b.applied_at).getTime() - new Date(a.applied_at).getTime());
     } catch (error) {
       if (!signal.aborted) {
@@ -156,6 +139,8 @@ export default class ApplicantsPage implements Page {
           date: Number.isNaN(date.getTime()) ? '' : dateFormat.format(date),
           vacancy: applicant.vacancy_title,
           resume: applicant.resume_title,
+          resumeId: applicant.resume_id,
+          coverLetter: applicant.cover_letter,
         };
       }),
       hasQuery: Boolean(query),

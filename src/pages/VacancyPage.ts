@@ -1,4 +1,4 @@
-import { ApiError, deleteVacancy, getEmployer, getSeekerResumes, getVacancy, type Vacancy } from '../api';
+import { ApiError, deleteVacancy, getSeekerResumes, getVacancy, type Vacancy } from '../api';
 import { openApplicationDialog } from '../components/ApplicationDialog';
 import { setLoading } from '../components/form';
 import { confirmAction } from '../components/Modal';
@@ -98,12 +98,6 @@ export default class VacancyPage implements Page {
       return;
     }
 
-    // Название компании приходит отдельным запросом; если профиль не заполнен, страница обходится без него.
-    const company = await getEmployer(vacancy.employer_id, { signal }).then(
-      (employer) => employer.company_name,
-      () => '',
-    );
-
     if (signal.aborted) {
       return;
     }
@@ -113,7 +107,7 @@ export default class VacancyPage implements Page {
 
     this.#container.innerHTML = template({
       vacancy,
-      company,
+      company: vacancy.company_name,
       isOwner,
       // Гостя кнопка отклика ведёт на вход, работодателю отклик не нужен.
       isGuest: !isAuthorized(),

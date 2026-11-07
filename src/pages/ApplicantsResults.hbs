@@ -48,13 +48,13 @@
               <p class="applicant-card__detail">Резюме: {{resume}}</p>
             </div>
           </div>
-          {{! Бэкенд пока не сообщает, какое резюме приложено к отклику, поэтому открыть его нельзя. }}
-          <button
-            class="button button_secondary applicant-card__button"
-            type="button"
-            disabled
-            title="Скоро здесь можно будет открыть резюме"
-          >Смотреть резюме</button>
+          {{#if coverLetter}}
+            <details class="applicant-card__letter">
+              <summary>Сопроводительное письмо</summary>
+              <p>{{coverLetter}}</p>
+            </details>
+          {{/if}}
+          <a class="button button_secondary applicant-card__button" href="/resumes/{{resumeId}}">Смотреть резюме</a>
         </article>
       {{/each}}
     </div>
