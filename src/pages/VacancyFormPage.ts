@@ -1,3 +1,4 @@
+import { hasRequiredProfile } from '../profile-required';
 import { ApiError, createVacancy, getVacancy, updateVacancy, type Currency, type VacancyFields } from '../api';
 import { setFieldError, setLoading } from '../components/form';
 import { confirmAction } from '../components/Modal';
@@ -158,6 +159,20 @@ export default class VacancyFormPage implements Page {
    */
   async #load(): Promise<void> {
     if (this.#id === null) {
+      this.#form = null;
+      this.#container.innerHTML = template({ isLoading: true, heading: this.#heading });
+      try {
+        if (!(await hasRequiredProfile('employer', this.#abortController.signal))) {
+          this.#container.innerHTML = template({ profileRequired: true, profilePath: '/profile/edit?next=/vacancies/new' });
+          return;
+        }
+      } catch (error) {
+        if (!this.#abortController.signal.aborted) {
+          this.#container.innerHTML = template({ error: { title: 'Не удалось проверить профиль', text: (error as Error).message, canRetry: true } });
+        }
+        return;
+      }
+      if (this.#abortController.signal.aborted) { return; }
       this.#renderForm({ title: '', description: '', salary_from: null, salary_to: null, currency: 'RUB' });
       return;
     }

@@ -1,4 +1,12 @@
-{{#if isLoading}}
+{{#if profileRequired}}
+  <section class="form-page">
+    <div class="empty-state">
+      <h1 class="empty-state__title">Сначала заполните профиль</h1>
+      <p class="empty-state__text">Для создания резюме нужна информация о вас.</p>
+      <a class="button button_secondary" href="{{profilePath}}">Заполнить профиль</a>
+    </div>
+  </section>
+{{else if isLoading}}
   <section class="form-page">
     <h1 class="form-page__title">{{heading}}</h1>
     <div class="edit-form" aria-hidden="true">

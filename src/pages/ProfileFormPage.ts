@@ -1,3 +1,4 @@
+import { profileReturnPath } from '../profile-required';
 import {
   ApiError,
   getEmployer,
@@ -17,7 +18,6 @@ import { getPhoneError, normalizeWebsite } from '../validation';
 import template from './ProfileFormPage.hbs';
 
 const SKELETON_FIELDS = 3;
-const BACK_PATH = '/profile';
 
 /**
  * Поля формы профиля; набор зависит от роли, поэтому все они необязательные.
@@ -42,6 +42,7 @@ interface ProfileFormElements extends HTMLFormControlsCollection {
  */
 export default class ProfileFormPage implements Page {
   #router: Router;
+  #backPath = profileReturnPath(window.location.search);
   #abortController = new AbortController();
   #container!: HTMLElement;
   #form: HTMLFormElement | null = null;
@@ -179,7 +180,7 @@ export default class ProfileFormPage implements Page {
       }
     }
 
-    this.#router.navigate(BACK_PATH);
+    this.#router.navigate(this.#backPath);
   }
 
   /**
@@ -275,7 +276,7 @@ export default class ProfileFormPage implements Page {
     }
 
     if (!this.#isDestroyed) {
-      this.#router.navigate(BACK_PATH);
+      this.#router.navigate(this.#backPath);
     }
   }
 }
