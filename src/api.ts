@@ -170,6 +170,8 @@ function getField(body: unknown, key: string): unknown {
 
 // На эти запросы 401 означает неверные данные или отсутствие сессии, продлевать здесь нечего.
 const NO_REFRESH_PATHS = ['/login', '/register', '/refresh', '/logout'];
+const CSRF_EXEMPT_PATHS = ['/login', '/register', '/refresh'];
+const CSRF_ERRORS = new Set(['csrf token missing', 'csrf header missing', 'csrf token mismatch']);
 
 let refreshing: Promise<boolean> | null = null;
 
@@ -201,6 +203,7 @@ function refreshSession(): Promise<boolean> {
  * @param options.body Тело запроса, отправляется как JSON.
  * @param options.signal Сигнал для отмены запроса.
  * @param options.canRefresh Можно ли продлить сессию и повторить запрос при 401.
+ * @param options.canRetryCsrf Можно ли обновить CSRF-cookie после отказа проверки токена.
  * @returns Содержимое поля `data` из ответа или `null`, если его нет.
  * @throws {ApiError} Сервер недоступен или ответил ошибкой; в `body` — текст из поля `error`.
  */
@@ -211,14 +214,26 @@ async function request(
     body,
     signal,
     canRefresh = !NO_REFRESH_PATHS.includes(path),
-  }: { body?: unknown; signal?: AbortSignal; canRefresh?: boolean } = {},
+    canRetryCsrf = true,
+  }: { body?: unknown; signal?: AbortSignal; canRefresh?: boolean; canRetryCsrf?: boolean } = {},
 ): Promise<unknown> {
   const init: RequestInit = { method, credentials: 'include', signal };
+  const headers = new Headers();
+
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(method) && !CSRF_EXEMPT_PATHS.includes(path)) {
+    const token = document.cookie.split(';').map((cookie) => cookie.trim())
+      .find((cookie) => cookie.startsWith('csrf_token='))?.slice('csrf_token='.length);
+
+    if (token) {
+      headers.set('X-CSRF-Token', token);
+    }
+  }
 
   if (body !== undefined) {
-    init.headers = { 'Content-Type': 'application/json' };
+    headers.set('Content-Type', 'application/json');
     init.body = JSON.stringify(body);
   }
+  init.headers = headers;
 
   let response: Response;
   let data: unknown;
@@ -236,10 +251,18 @@ async function request(
 
   if (response.status === 401 && canRefresh) {
     if (await refreshSession()) {
-      return request(method, path, { body, signal, canRefresh: false });
+      return request(method, path, { body, signal, canRefresh: false, canRetryCsrf });
     }
 
     // Продлить не получилось — сессия закончилась, страницы для вошедших больше недоступны.
+    setCurrentUser(null);
+  }
+
+  // CSRF проверяется до обработчика: отклонённый запрос ещё не изменил данные.
+  if (response.status === 403 && canRetryCsrf && CSRF_ERRORS.has(String(getField(data, 'error')))) {
+    if (await refreshSession()) {
+      return request(method, path, { body, signal, canRefresh: false, canRetryCsrf: false });
+    }
     setCurrentUser(null);
   }
 
@@ -315,24 +338,10 @@ async function fetchCurrentUser(): Promise<void> {
 
   const user: SessionUser = {
     id: typeof id === 'number' ? id : null,
-    role: role === 'seeker' || role === 'employer' ? role : await guessRole(),
+    role: role === 'seeker' || role === 'employer' ? role : null,
   };
 
   setCurrentUser(user);
-}
-
-/**
- * Узнаёт роль, пока `/me` её не отдаёт: список вакансий работодателя бэкенд отдаёт только работодателю,
- * остальным отвечает 403. Запрос только читает данные.
- * @returns Роль или `null`, если узнать не удалось.
- */
-async function guessRole(): Promise<UserRole | null> {
-  try {
-    await request('GET', '/employer/vacancies');
-    return 'employer';
-  } catch (error) {
-    return error instanceof ApiError && error.status === 403 ? 'seeker' : null;
-  }
 }
 
 /**

@@ -6,7 +6,7 @@ import type { UserRole } from './api';
 export interface SessionUser {
   /** Идентификатор пользователя; `null`, если бэкенд его не сообщил. */
   id: number | null;
-  /** Роль; `null`, пока бэкенд её не отдаёт. */
+  /** Роль; `null`, если ответ сервера не содержит известную роль. */
   role: UserRole | null;
 }
 
@@ -36,11 +36,11 @@ export function getCurrentUser(): SessionUser | null {
  * @param user Пользователь или `null`, если сессии нет.
  */
 export function setCurrentUser(user: SessionUser | null): void {
-  const wasAuthorized = isAuthorized();
+  const previous = currentUser;
 
   currentUser = user;
 
-  if (wasAuthorized === isAuthorized()) {
+  if (previous?.id === user?.id && previous?.role === user?.role && (previous === null) === (user === null)) {
     return;
   }
 

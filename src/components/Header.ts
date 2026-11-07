@@ -55,7 +55,7 @@ export default class Header {
    * Рисует шапку для гостя или для вошедшего пользователя.
    */
   #update(): void {
-    // Ссылки зависят от роли; пока бэкенд её не сообщает, вошедший видит те же ссылки, что и гость.
+    // При неизвестной роли оставляем только общую навигацию.
     const role = getCurrentUser()?.role;
     const links = role === 'seeker' ? SEEKER_LINKS : role === 'employer' ? EMPLOYER_LINKS : LINKS;
 
