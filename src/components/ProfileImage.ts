@@ -1,5 +1,6 @@
 import { getEmployer, getSeeker, profileImageURL, saveProfileImage, type UserRole } from '../api';
 import template from './ProfileImage.hbs';
+import { notifyProfileImageChange, publicProfileImage } from './profile-images';
 
 /**
  * Подключает загрузку и удаление изображения в форме сохранённого профиля.
@@ -28,6 +29,7 @@ export function mountProfileImage(container: HTMLElement, user: { id: number; ro
     message.textContent = 'Сохранение…';
     try {
       await saveProfileImage(user.role, file);
+      notifyProfileImageChange({ ...user, url: file ? `${publicProfileImage(user.id, user.role)}?v=${Date.now()}` : '' });
       if (signal.aborted) { return; }
       const profile = user.role === 'employer' ? await getEmployer(user.id, { signal }) : await getSeeker(user.id, { signal });
       if (signal.aborted) { return; }

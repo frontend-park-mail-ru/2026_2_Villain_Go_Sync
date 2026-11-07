@@ -1,3 +1,4 @@
+import { mountCardImages } from '../components/profile-images';
 import { ApiError, deleteVacancy, getSeekerResumes, getVacancy, type Vacancy } from '../api';
 import { openApplicationDialog } from '../components/ApplicationDialog';
 import { setLoading } from '../components/form';
@@ -115,6 +116,7 @@ export default class VacancyPage implements Page {
       salary: formatSalary(vacancy.salary_from, vacancy.salary_to, vacancy.currency),
       hasSalary: (vacancy.salary_from ?? 0) > 0 || (vacancy.salary_to ?? 0) > 0,
     });
+    mountCardImages(this.#container);
   }
 
   /**

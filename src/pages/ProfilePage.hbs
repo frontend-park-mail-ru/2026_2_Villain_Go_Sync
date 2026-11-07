@@ -40,7 +40,7 @@
     </div>
   {{else}}
     <div class="profile__content">
-      <div class="profile__avatar{{#if isCompany}} profile__avatar_company{{/if}}" aria-hidden="true">{{#if imageUrl}}<img src="{{imageUrl}}" alt="" />{{else}}{{initials}}{{/if}}</div>
+      <div class="profile__avatar{{#if isCompany}} profile__avatar_company{{/if}}" aria-hidden="true">{{initials}}</div>
 
       {{#if isEmpty}}
         <div class="profile__card profile__card_empty">

@@ -1,3 +1,4 @@
+import { mountCardImages } from '../components/profile-images';
 import { deleteVacancy, getEmployerVacancies, type Vacancy } from '../api';
 import { confirmAction } from '../components/Modal';
 import { renderPagination } from '../components/pagination';
@@ -119,8 +120,9 @@ export default class MyVacanciesPage implements Page {
     this.#content.innerHTML = resultsTemplate({
       vacancies: found
         .slice((this.#page - 1) * PAGE_SIZE, this.#page * PAGE_SIZE)
-        .map(({ id, title, description, salary_from: from, salary_to: to, currency, company_name: company }) => ({
+        .map(({ id, title, description, salary_from: from, salary_to: to, currency, company_name: company, employer_id: employerId }) => ({
           company,
+        employerId,
           id,
           title,
           description,
@@ -130,6 +132,7 @@ export default class MyVacanciesPage implements Page {
       hasQuery: Boolean(query),
       pagination: renderPagination(this.#page, pageCount),
     });
+    mountCardImages(this.#content);
   }
 
   /**

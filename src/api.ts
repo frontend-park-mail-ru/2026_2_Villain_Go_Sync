@@ -291,9 +291,11 @@ async function request(
  */
 export function profileImageURL(path?: string | null): string {
   if (!path) { return ''; }
-  const base = new URL(API_URL, window.location.origin);
-  const url = new URL(path, base);
-  return url.origin === base.origin && /^https?:$/.test(url.protocol) ? url.href : '';
+  try {
+    const base = new URL(API_URL, window.location.origin);
+    const url = new URL(path, base);
+    return url.origin === base.origin && /^https?:$/.test(url.protocol) ? url.href : '';
+  } catch { return ''; }
 }
 
 /**

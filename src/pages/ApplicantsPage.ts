@@ -1,3 +1,4 @@
+import { mountCardImages } from '../components/profile-images';
 import { getEmployerApplicants, type Applicant } from '../api';
 import { renderPagination } from '../components/pagination';
 import type { Page } from '../router';
@@ -140,11 +141,13 @@ export default class ApplicantsPage implements Page {
           vacancy: applicant.vacancy_title,
           resume: applicant.resume_title,
           resumeId: applicant.resume_id,
+          seekerId: applicant.seeker_id,
           coverLetter: applicant.cover_letter,
         };
       }),
       hasQuery: Boolean(query),
       pagination: renderPagination(this.#page, pageCount),
     });
+    mountCardImages(this.#content);
   }
 }

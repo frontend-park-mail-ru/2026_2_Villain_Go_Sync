@@ -1,3 +1,4 @@
+import { mountImage } from '../components/profile-images';
 import { ApiError, profileImageURL, getEmployer, getSeeker, type Employer, type Seeker } from '../api';
 import type { Page } from '../router';
 import { getCurrentUser } from '../session';
@@ -95,7 +96,8 @@ export default class ProfilePage implements Page {
 
     const imageUrl = profileImageURL(isCompany ? (profile as Employer | null)?.logo_url : (profile as Seeker | null)?.avatar_url);
     this.#container.innerHTML = template({ heading, isCompany, imageUrl, ...this.#describe(profile, isCompany) });
-    this.#container.querySelector('img')?.addEventListener('error', (event) => { (event.target as HTMLImageElement).hidden = true; }, { signal });
+    const avatar = this.#container.querySelector<HTMLElement>('.profile__avatar');
+    if (avatar) { mountImage(avatar, imageUrl, String(this.#describe(profile, isCompany).initials || '?')); }
   }
 
   /**

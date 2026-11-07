@@ -1,4 +1,5 @@
-import { logout } from '../api';
+import { getEmployer, getSeeker, logout, profileImageURL } from '../api';
+import { mountImage, onProfileImageChange } from './profile-images';
 import { APP_NAME } from '../config';
 import { getCurrentUser, isAuthorized, onSessionChange } from '../session';
 import template from './Header.hbs';
@@ -18,6 +19,7 @@ const EMPLOYER_LINKS = [
  */
 export default class Header {
   #container!: HTMLElement;
+  #imageRequest: AbortController | null = null;
 
   /**
    * Рисует шапку в контейнер и перерисовывает её при входе и выходе пользователя.
@@ -48,6 +50,14 @@ export default class Header {
     });
 
     onSessionChange(() => this.#update());
+    onProfileImageChange(({ id, role, url }) => {
+      const user = getCurrentUser();
+      const avatar = this.#container.querySelector<HTMLElement>('.header__avatar');
+      if (user?.id === id && user.role === role && avatar) {
+        this.#imageRequest?.abort();
+        mountImage(avatar, url, avatar.dataset.initials || '?');
+      }
+    });
     this.#update();
   }
 
@@ -60,6 +70,30 @@ export default class Header {
     const links = role === 'seeker' ? SEEKER_LINKS : role === 'employer' ? EMPLOYER_LINKS : LINKS;
 
     this.#container.innerHTML = template({ appName: APP_NAME, links, isAuthorized: isAuthorized() });
+    this.#imageRequest?.abort();
+    this.#imageRequest = new AbortController();
+    void this.#loadImage(this.#imageRequest.signal);
+  }
+
+  /**
+   * Загружает изображение и инициалы, не задерживая навигацию.
+   * @param signal Сигнал смены пользователя.
+   */
+  async #loadImage(signal: AbortSignal): Promise<void> {
+    const user = getCurrentUser();
+    if (!user || user.id === null || user.role === null) { return; }
+    try {
+      const profile = user.role === 'employer' ? await getEmployer(user.id, { signal }) : await getSeeker(user.id, { signal });
+      if (signal.aborted) { return; }
+      const name = 'company_name' in profile ? profile.company_name : `${profile.first_name} ${profile.last_name}`;
+      const initials = name.trim().split(/\s+/).slice(0, 2).map((word) => word.charAt(0)).join('').toUpperCase();
+      const url = profileImageURL('company_name' in profile ? profile.logo_url : profile.avatar_url);
+      const avatar = this.#container.querySelector<HTMLElement>('.header__avatar');
+      if (avatar) {
+        avatar.dataset.initials = initials;
+        mountImage(avatar, url, initials);
+      }
+    } catch { /* Меню доступно и при незаполненном или недоступном профиле. */ }
   }
 
   /**
