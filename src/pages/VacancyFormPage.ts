@@ -1,4 +1,5 @@
-import { hasRequiredProfile } from '../profile-required';
+import { saveCreationDraft, restoreCreationDraft, clearCreationDraft } from '../components/creation-draft';
+import { hasRequiredProfile, showMissingProfile } from '../profile-required';
 import { ApiError, createVacancy, getVacancy, updateVacancy, type Currency, type VacancyFields } from '../api';
 import { setFieldError, setLoading } from '../components/form';
 import { confirmAction } from '../components/Modal';
@@ -100,6 +101,8 @@ export default class VacancyFormPage implements Page {
 
         if (action === 'retry') {
           this.#load();
+        } else if (action === 'complete-profile') {
+          this.#completeProfile();
         } else if (action === 'cancel') {
           this.#cancel();
         }
@@ -234,6 +237,7 @@ export default class VacancyFormPage implements Page {
 
     this.#form = this.#container.querySelector<HTMLFormElement>('.edit-form');
     this.#initialValues = this.#snapshot();
+    if (this.#id === null) { restoreCreationDraft('/vacancies/new', this.#form!); }
   }
 
   /**
@@ -282,7 +286,20 @@ export default class VacancyFormPage implements Page {
       }
     }
 
+    if (this.#id === null) { clearCreationDraft('/vacancies/new'); }
     this.#router.navigate(this.#backPath(this.#id));
+  }
+
+  /**
+   * Сохраняет черновик перед заполнением профиля, не теряя текст при ошибке хранилища.
+   */
+  #completeProfile(): void {
+    if (!this.#form || this.#isSubmitting) { return; }
+    if (!saveCreationDraft('/vacancies/new', this.#form)) {
+      showToast('Не удалось сохранить черновик. Скопируйте текст перед переходом к профилю.', 'error');
+      return;
+    }
+    this.#router.navigate('/profile/edit?next=/vacancies/new');
   }
 
   /**
@@ -357,6 +374,9 @@ export default class VacancyFormPage implements Page {
         await updateVacancy(id, fields);
       }
     } catch (error) {
+      if (this.#isDestroyed) { return; }
+      if (this.#id === null && await showMissingProfile(error, 'employer', this.#abortController.signal, this.#form)) { return; }
+      if (this.#isDestroyed) { return; }
       showToast(this.#getSubmitError(error), 'error');
       return;
     } finally {
@@ -365,6 +385,7 @@ export default class VacancyFormPage implements Page {
     }
 
     if (!this.#isDestroyed) {
+      if (this.#id === null) { clearCreationDraft('/vacancies/new'); }
       this.#router.navigate(this.#backPath(id));
     }
   }

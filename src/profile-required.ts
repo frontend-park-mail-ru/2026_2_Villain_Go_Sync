@@ -1,5 +1,26 @@
 import { ApiError, getEmployer, getSeeker } from './api';
 import { getCurrentUser } from './session';
+import noticeTemplate from './components/ProfileRequiredNotice.hbs';
+
+/**
+ * После отказа создания проверяет, действительно ли отсутствует профиль.
+ * @param error Ошибка создания документа.
+ * @param role Роль владельца формы.
+ * @param signal Сигнал ухода со страницы.
+ * @param form Форма с введёнными данными.
+ * @returns Показано ли предложение заполнить профиль.
+ */
+export async function showMissingProfile(error: unknown, role: 'seeker' | 'employer', signal: AbortSignal, form: HTMLFormElement): Promise<boolean> {
+  if (!(error instanceof ApiError) || error.status !== (role === 'seeker' ? 404 : 403)) { return false; }
+  try {
+    if (await hasRequiredProfile(role, signal) || signal.aborted) { return false; }
+    if (!form.querySelector('[data-profile-notice]')) {
+      form.insertAdjacentHTML('afterbegin', noticeTemplate());
+    }
+    form.querySelector<HTMLButtonElement>('[data-action="complete-profile"]')?.focus();
+    return true;
+  } catch { return false; }
+}
 
 /**
  * Проверяет наличие профиля нужной роли перед созданием документа.

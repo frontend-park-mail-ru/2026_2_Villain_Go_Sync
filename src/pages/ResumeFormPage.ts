@@ -1,4 +1,5 @@
-import { hasRequiredProfile } from '../profile-required';
+import { saveCreationDraft, restoreCreationDraft, clearCreationDraft } from '../components/creation-draft';
+import { hasRequiredProfile, showMissingProfile } from '../profile-required';
 import { ApiError, createResume, getResume, updateResume, type ResumeFields } from '../api';
 import { setFieldError, setLoading } from '../components/form';
 import { confirmAction } from '../components/Modal';
@@ -66,6 +67,8 @@ export default class ResumeFormPage implements Page {
 
         if (action === 'retry') {
           this.#load();
+        } else if (action === 'complete-profile') {
+          this.#completeProfile();
         } else if (action === 'cancel') {
           this.#cancel();
         }
@@ -177,6 +180,7 @@ export default class ResumeFormPage implements Page {
 
     this.#form = this.#container.querySelector<HTMLFormElement>('.edit-form');
     this.#initialValues = JSON.stringify(this.#readFields());
+    if (this.#id === null) { restoreCreationDraft('/resumes/new', this.#form!); }
   }
 
   /**
@@ -232,7 +236,20 @@ export default class ResumeFormPage implements Page {
       }
     }
 
+    if (this.#id === null) { clearCreationDraft('/resumes/new'); }
     this.#router.navigate(this.#backPath(this.#id));
+  }
+
+  /**
+   * Сохраняет черновик перед заполнением профиля, не теряя текст при ошибке хранилища.
+   */
+  #completeProfile(): void {
+    if (!this.#form || this.#isSubmitting) { return; }
+    if (!saveCreationDraft('/resumes/new', this.#form)) {
+      showToast('Не удалось сохранить черновик. Скопируйте текст перед переходом к профилю.', 'error');
+      return;
+    }
+    this.#router.navigate('/profile/edit?next=/resumes/new');
   }
 
   /**
@@ -267,7 +284,10 @@ export default class ResumeFormPage implements Page {
       } else {
         await updateResume(id, fields);
       }
-    } catch {
+    } catch (error) {
+      if (this.#isDestroyed) { return; }
+      if (this.#id === null && await showMissingProfile(error, 'seeker', this.#abortController.signal, this.#form)) { return; }
+      if (this.#isDestroyed) { return; }
       const action = this.#id === null ? 'создать' : 'сохранить';
 
       showToast(`Не удалось ${action} резюме. Попробуйте ещё раз.`, 'error');
@@ -278,6 +298,7 @@ export default class ResumeFormPage implements Page {
     }
 
     if (!this.#isDestroyed) {
+      if (this.#id === null) { clearCreationDraft('/resumes/new'); }
       this.#router.navigate(this.#backPath(id));
     }
   }
