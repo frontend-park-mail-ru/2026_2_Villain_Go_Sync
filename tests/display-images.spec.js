@@ -28,6 +28,8 @@ for (const broken of [false, true]) {
     } else {
       await expect(avatar.locator('img')).toBeVisible();
       await expect(logo.locator('img')).toBeVisible();
+      await expect(avatar.locator('img')).toHaveCSS('opacity', '1');
+      await expect(logo.locator('img')).toHaveCSS('opacity', '1');
     }
     await avatar.click();
     await expect(page.getByRole('link', { name: 'Профиль', exact: true })).toBeVisible();

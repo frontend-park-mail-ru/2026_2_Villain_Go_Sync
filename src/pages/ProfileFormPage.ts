@@ -238,7 +238,7 @@ export default class ProfileFormPage implements Page {
         });
     }
 
-    for (const field of this.#form!.querySelectorAll<HTMLInputElement>('input')) {
+    for (const field of this.#form!.querySelectorAll<HTMLInputElement>('input:not([type="file"])')) {
       setFieldError(field, errors.get(field) ?? '');
     }
 
@@ -274,7 +274,7 @@ export default class ProfileFormPage implements Page {
     try {
       await save();
     } catch {
-      showToast('Не удалось сохранить профиль. Попробуйте ещё раз.', 'error');
+      if (!this.#isDestroyed) { showToast('Не удалось сохранить профиль. Попробуйте ещё раз.', 'error'); }
       return;
     } finally {
       this.#isSubmitting = false;

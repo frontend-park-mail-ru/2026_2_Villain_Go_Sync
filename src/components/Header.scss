@@ -52,9 +52,17 @@
   &__nav {
     display: flex;
     gap: 24px;
+
+    @include mobile {
+      order: 3;
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+    }
   }
 
   &__link {
+    white-space: nowrap;
     font-weight: 500;
     line-height: 24px;
     color: var(--color-text-muted);
