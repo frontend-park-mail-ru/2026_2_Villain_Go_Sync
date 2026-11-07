@@ -1,0 +1,7 @@
+<div class="field profile-image">
+  <label class="field__label" for="profile-image">{{label}}</label>
+  <img class="profile__avatar" src="{{url}}" alt="{{label}}" {{#unless url}}hidden{{/unless}} />
+  <input id="profile-image" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="profile-image-message" />
+  <p class="field__message" id="profile-image-message" role="status">PNG, JPEG или WebP, до 10 МБ. Изображение сохраняется сразу.</p>
+  <button class="button button_outline" type="button" data-image-delete {{#unless url}}hidden{{/unless}}>Удалить изображение</button>
+</div>

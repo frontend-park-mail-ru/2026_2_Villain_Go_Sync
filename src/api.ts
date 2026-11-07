@@ -77,6 +77,8 @@ export interface Resume extends ResumeFields {
  * Профиль компании.
  */
 export interface Employer {
+  /** Путь логотипа относительно адреса API. */
+  logo_url?: string | null;
   /** Название компании. */
   company_name: string;
   /** Описание компании. */
@@ -89,6 +91,8 @@ export interface Employer {
  * Профиль соискателя.
  */
 export interface Seeker {
+  /** Путь фотографии относительно адреса API. */
+  avatar_url?: string | null;
   /** Имя. */
   first_name: string;
   /** Фамилия. */
@@ -232,8 +236,12 @@ async function request(
   }
 
   if (body !== undefined) {
-    headers.set('Content-Type', 'application/json');
-    init.body = JSON.stringify(body);
+    if (body instanceof FormData) {
+      init.body = body;
+    } else {
+      headers.set('Content-Type', 'application/json');
+      init.body = JSON.stringify(body);
+    }
   }
   init.headers = headers;
 
@@ -274,6 +282,34 @@ async function request(
   }
 
   return getField(data, 'data') ?? null;
+}
+
+/**
+ * Возвращает адрес изображения только с сервера API.
+ * @param path Путь из ответа профиля.
+ * @returns Абсолютный адрес или пустая строка.
+ */
+export function profileImageURL(path?: string | null): string {
+  if (!path) { return ''; }
+  const base = new URL(API_URL, window.location.origin);
+  const url = new URL(path, base);
+  return url.origin === base.origin && /^https?:$/.test(url.protocol) ? url.href : '';
+}
+
+/**
+ * Загружает или удаляет изображение собственного профиля.
+ * @param role Роль владельца.
+ * @param file Изображение; `null` для удаления.
+ */
+export async function saveProfileImage(role: UserRole, file: File | null): Promise<void> {
+  const field = role === 'employer' ? 'logo' : 'avatar';
+  if (file) {
+    const body = new FormData();
+    body.append(field, file);
+    await request('PUT', `/me/${field}`, { body });
+  } else {
+    await request('DELETE', `/me/${field}`);
+  }
 }
 
 /**

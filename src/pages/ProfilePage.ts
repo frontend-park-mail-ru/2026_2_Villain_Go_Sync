@@ -1,4 +1,4 @@
-import { ApiError, getEmployer, getSeeker, type Employer, type Seeker } from '../api';
+import { ApiError, profileImageURL, getEmployer, getSeeker, type Employer, type Seeker } from '../api';
 import type { Page } from '../router';
 import { getCurrentUser } from '../session';
 import { getWebsiteHref } from '../validation';
@@ -93,7 +93,9 @@ export default class ProfilePage implements Page {
       profile = null;
     }
 
-    this.#container.innerHTML = template({ heading, isCompany, ...this.#describe(profile, isCompany) });
+    const imageUrl = profileImageURL(isCompany ? (profile as Employer | null)?.logo_url : (profile as Seeker | null)?.avatar_url);
+    this.#container.innerHTML = template({ heading, isCompany, imageUrl, ...this.#describe(profile, isCompany) });
+    this.#container.querySelector('img')?.addEventListener('error', (event) => { (event.target as HTMLImageElement).hidden = true; }, { signal });
   }
 
   /**

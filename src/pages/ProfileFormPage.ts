@@ -1,3 +1,4 @@
+import { mountProfileImage } from '../components/ProfileImage';
 import { profileReturnPath } from '../profile-required';
 import {
   ApiError,
@@ -151,6 +152,11 @@ export default class ProfileFormPage implements Page {
     this.#container.innerHTML = template({ heading, profile, isCompany: this.#isCompany });
     this.#form = this.#container.querySelector<HTMLFormElement>('.edit-form');
     this.#initialValues = this.#snapshot();
+    if (profile) {
+      const container = document.createElement('div');
+      this.#form!.prepend(container);
+      mountProfileImage(container, { id: user.id, role: user.role }, this.#isCompany ? (profile as Employer).logo_url : (profile as Seeker).avatar_url, signal);
+    }
   }
 
   /**
@@ -158,7 +164,7 @@ export default class ProfileFormPage implements Page {
    * @returns Значения полей без пробелов по краям.
    */
   #snapshot(): string {
-    const fields = [...this.#form!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input, textarea')];
+    const fields = [...this.#form!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input:not([type="file"]), textarea')];
 
     return JSON.stringify(fields.map((field) => field.value.trim()));
   }
