@@ -3,7 +3,7 @@ import { deleteVacancy, getEmployerVacancies, type Vacancy } from '../api';
 import { confirmAction } from '../components/Modal';
 import { renderPagination } from '../components/pagination';
 import { showToast } from '../components/toast';
-import { formatSalary } from '../format';
+import { formatSalary } from '@hirenoon/format';
 import type { Page } from '../router';
 import template from './MyVacanciesPage.hbs';
 import resultsTemplate from './MyVacanciesResults.hbs';

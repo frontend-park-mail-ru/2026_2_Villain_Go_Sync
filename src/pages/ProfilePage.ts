@@ -2,7 +2,7 @@ import { mountImage } from '../components/profile-images';
 import { ApiError, profileImageURL, getEmployer, getSeeker, type Employer, type Seeker } from '../api';
 import type { Page } from '../router';
 import { getCurrentUser } from '../session';
-import { getWebsiteHref } from '../validation';
+import { getWebsiteHref } from '@hirenoon/validation';
 import template from './ProfilePage.hbs';
 
 const SKELETON_FIELDS = 2;

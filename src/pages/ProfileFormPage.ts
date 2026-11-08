@@ -16,7 +16,7 @@ import { hideToast, showToast } from '../components/toast';
 import type { Page, PageProps } from '../router';
 import type Router from '../router';
 import { getCurrentUser } from '../session';
-import { getPhoneError, normalizeWebsite, hasVisibleText } from '../validation';
+import { getPhoneError, normalizeWebsite, hasVisibleText } from '@hirenoon/validation';
 import template from './ProfileFormPage.hbs';
 
 const SKELETON_FIELDS = 3;

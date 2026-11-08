@@ -4,7 +4,7 @@ import { openApplicationDialog } from '../components/ApplicationDialog';
 import { setLoading } from '../components/form';
 import { confirmAction } from '../components/Modal';
 import { showToast } from '../components/toast';
-import { formatSalary } from '../format';
+import { formatSalary } from '@hirenoon/format';
 import type { Page, PageProps } from '../router';
 import type Router from '../router';
 import { getCurrentUser, isAuthorized } from '../session';
