@@ -55,7 +55,7 @@ export default class Header {
       const avatar = this.#container.querySelector<HTMLElement>('.header__avatar');
       if (user?.id === id && user.role === role && avatar) {
         this.#imageRequest?.abort();
-        mountImage(avatar, url, avatar.dataset.initials || '?');
+        mountImage(avatar, url, avatar.dataset.initials || { role });
       }
     });
     this.#update();
@@ -69,7 +69,9 @@ export default class Header {
     const role = getCurrentUser()?.role;
     const links = role === 'seeker' ? SEEKER_LINKS : role === 'employer' ? EMPLOYER_LINKS : LINKS;
 
-    this.#container.innerHTML = template({ appName: APP_NAME, links, isAuthorized: isAuthorized() });
+    this.#container.innerHTML = template({ appName: APP_NAME, links, isAuthorized: isAuthorized(), isCompany: role === 'employer' });
+    const avatar = this.#container.querySelector<HTMLElement>('.header__avatar');
+    if (avatar) { mountImage(avatar, '', role ? { role } : '?'); }
     this.#imageRequest?.abort();
     this.#imageRequest = new AbortController();
     void this.#loadImage(this.#imageRequest.signal);
@@ -91,7 +93,7 @@ export default class Header {
       const avatar = this.#container.querySelector<HTMLElement>('.header__avatar');
       if (avatar) {
         avatar.dataset.initials = initials;
-        mountImage(avatar, url, initials);
+        mountImage(avatar, url, initials || { role: user.role });
       }
     } catch { /* Меню доступно и при незаполненном или недоступном профиле. */ }
   }

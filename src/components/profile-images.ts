@@ -41,17 +41,22 @@ export function publicProfileImage(id: number, role: UserRole): string {
 }
 
 /**
- * Показывает изображение поверх текстовой заглушки только после успешной загрузки.
+ * Показывает изображение поверх заглушки только после успешной загрузки.
  * @param container Рамка изображения; подпись для доступности задаётся родителем.
  * @param url Адрес изображения.
- * @param fallback Инициалы или короткая заглушка.
+ * @param fallback Инициалы или роль для иконки пустого профиля.
  * @param lazy Отложить загрузку изображений за пределами экрана.
  */
-export function mountImage(container: HTMLElement, url: string, fallback: string, lazy = false): void {
+export function mountImage(container: HTMLElement, url: string, fallback: string | { role: UserRole }, lazy = false): void {
   container.replaceChildren();
   container.classList.add('image-frame');
   const placeholder = document.createElement('span');
-  placeholder.textContent = fallback || '?';
+  placeholder.setAttribute('aria-hidden', 'true');
+  if (typeof fallback === 'string') {
+    placeholder.textContent = fallback || '?';
+  } else {
+    placeholder.className = `image-frame__placeholder image-frame__placeholder_${fallback.role}`;
+  }
   container.append(placeholder);
   if (!url) { return; }
   const image = document.createElement('img');
