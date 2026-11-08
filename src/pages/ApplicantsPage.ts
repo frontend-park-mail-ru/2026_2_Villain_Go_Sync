@@ -136,7 +136,7 @@ export default class ApplicantsPage implements Page {
           initials: [applicant.first_name, applicant.last_name]
             .map((word) => word.trim().charAt(0).toUpperCase())
             .join(''),
-          status: STATUSES[applicant.status] ?? STATUSES.pending,
+          status: STATUSES[applicant.status] ?? { type: 'unknown', label: 'Неизвестный статус' },
           date: Number.isNaN(date.getTime()) ? '' : dateFormat.format(date),
           vacancy: applicant.vacancy_title,
           resume: applicant.resume_title,

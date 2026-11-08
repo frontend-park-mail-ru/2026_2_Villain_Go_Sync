@@ -1,6 +1,7 @@
 import { getEmployer, getSeeker, profileImageURL, saveProfileImage, type UserRole } from '../api';
 import template from './ProfileImage.hbs';
 import { notifyProfileImageChange, publicProfileImage } from './profile-images';
+import { getProfileImageError } from '../validation';
 
 /**
  * Подключает загрузку и удаление изображения в форме сохранённого профиля.
@@ -20,8 +21,9 @@ export function mountProfileImage(container: HTMLElement, user: { id: number; ro
   image.addEventListener('error', () => { image.hidden = true; }, { signal });
   const save = async (file: File | null): Promise<void> => {
     if (input.disabled) { return; }
-    if (file && (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size === 0 || file.size > 10 * 1024 * 1024)) {
-      message.textContent = 'Выберите PNG, JPEG или WebP размером от 1 байта до 10 МБ.';
+    const fileError = file ? getProfileImageError(file) : '';
+    if (fileError) {
+      message.textContent = fileError;
       input.value = '';
       return;
     }

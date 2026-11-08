@@ -1,3 +1,4 @@
+import { hasVisibleText } from '../validation';
 import { saveCreationDraft, restoreCreationDraft, clearCreationDraft } from '../components/creation-draft';
 import { hasRequiredProfile, showMissingProfile } from '../profile-required';
 import { ApiError, createVacancy, getVacancy, updateVacancy, type Currency, type VacancyFields } from '../api';
@@ -150,6 +151,14 @@ export default class VacancyFormPage implements Page {
   }
 
   /**
+   * Сообщает роутеру о несохранённых текстовых полях.
+   * @returns Есть ли изменения формы.
+   */
+  hasUnsavedChanges(): boolean {
+    return this.#form !== null && this.#snapshot() !== this.#initialValues;
+  }
+
+  /**
    * Заголовок страницы для текущего режима.
    * @returns Заголовок.
    */
@@ -287,7 +296,7 @@ export default class VacancyFormPage implements Page {
     }
 
     if (this.#id === null) { clearCreationDraft('/vacancies/new'); }
-    this.#router.navigate(this.#backPath(this.#id));
+    this.#router.navigate(this.#backPath(this.#id), { force: true });
   }
 
   /**
@@ -299,7 +308,7 @@ export default class VacancyFormPage implements Page {
       showToast('Не удалось сохранить черновик. Скопируйте текст перед переходом к профилю.', 'error');
       return;
     }
-    this.#router.navigate('/profile/edit?next=/vacancies/new');
+    this.#router.navigate('/profile/edit?next=/vacancies/new', { force: true });
   }
 
   /**
@@ -312,7 +321,7 @@ export default class VacancyFormPage implements Page {
     const to = parseSalary(salaryTo.value);
     const errors = new Map<HTMLInputElement, string>();
 
-    if (!title.value.trim()) {
+    if (!hasVisibleText(title.value)) {
       errors.set(title, 'Введите название вакансии.');
     }
 
@@ -386,7 +395,7 @@ export default class VacancyFormPage implements Page {
 
     if (!this.#isDestroyed) {
       if (this.#id === null) { clearCreationDraft('/vacancies/new'); }
-      this.#router.navigate(this.#backPath(id));
+      this.#router.navigate(this.#backPath(id), { force: true });
     }
   }
 

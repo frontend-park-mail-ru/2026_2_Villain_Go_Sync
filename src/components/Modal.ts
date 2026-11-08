@@ -26,6 +26,13 @@ export function confirmAction(options: ConfirmOptions): Promise<boolean> {
     wrapper.innerHTML = template(options);
 
     const dialog = wrapper.querySelector('dialog')!;
+    let settled = false;
+    const finish = (): void => {
+      if (settled) { return; }
+      settled = true;
+      dialog.remove();
+      resolve(dialog.returnValue === 'confirm');
+    };
 
     dialog.addEventListener('click', (event) => {
       const target = event.target as Element;
@@ -34,13 +41,11 @@ export function confirmAction(options: ConfirmOptions): Promise<boolean> {
 
       if (result) {
         dialog.close(result);
+        finish();
       }
     });
 
-    dialog.addEventListener('close', () => {
-      dialog.remove();
-      resolve(dialog.returnValue === 'confirm');
-    });
+    dialog.addEventListener('close', finish);
 
     document.body.append(dialog);
     dialog.showModal();

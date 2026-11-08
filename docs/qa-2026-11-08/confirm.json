@@ -1,0 +1,23 @@
+[
+  {
+    "name": "short vacancy width320",
+    "result": {
+      "viewport": 320,
+      "width": 376,
+      "button": {
+        "x": 200.0625,
+        "y": 158,
+        "width": 176,
+        "height": 48,
+        "top": 158,
+        "right": 376.0625,
+        "bottom": 206,
+        "left": 200.0625
+      }
+    }
+  },
+  {
+    "name": "real text R&D",
+    "actual": "R&amp;D"
+  }
+]

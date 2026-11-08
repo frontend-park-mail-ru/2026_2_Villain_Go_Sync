@@ -136,7 +136,7 @@ export default class VacanciesPage implements Page {
         id,
         title,
         salary: formatSalary(from, to, currency),
-        hasSalary: (from ?? 0) > 0 || (to ?? 0) > 0,
+        hasSalary: (from !== null && from !== undefined) || (to !== null && to !== undefined),
         published: formatPublished(createdAt),
       }));
 

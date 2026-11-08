@@ -1,0 +1,760 @@
+[
+  {
+    "name": "register email empty",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 333
+  },
+  {
+    "name": "register email spaces",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 259
+  },
+  {
+    "name": "register email no-at",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 262
+  },
+  {
+    "name": "register email no-domain",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 309
+  },
+  {
+    "name": "register email space-in",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 258
+  },
+  {
+    "name": "register email unicode",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 260
+  },
+  {
+    "name": "register email long",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 246
+  },
+  {
+    "name": "register email normal",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 278
+  },
+  {
+    "name": "register email plus",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 245
+  },
+  {
+    "name": "register email trim",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 261
+  },
+  {
+    "name": "register email double-dot",
+    "mode": "mock",
+    "status": "FAIL",
+    "message": "Отправка регистрации не соответствует ожидаемой валидности\n\ntrue !== false\n",
+    "ms": 333
+  },
+  {
+    "name": "register email leading-dot",
+    "mode": "mock",
+    "status": "FAIL",
+    "message": "Отправка регистрации не соответствует ожидаемой валидности\n\ntrue !== false\n",
+    "ms": 330
+  },
+  {
+    "name": "register email hyphen-domain",
+    "mode": "mock",
+    "status": "FAIL",
+    "message": "Отправка регистрации не соответствует ожидаемой валидности\n\ntrue !== false\n",
+    "ms": 366
+  },
+  {
+    "name": "register password empty",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 304
+  },
+  {
+    "name": "register password 7",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 262
+  },
+  {
+    "name": "register password 8",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 246
+  },
+  {
+    "name": "register password 72",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 288
+  },
+  {
+    "name": "register password 73",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 279
+  },
+  {
+    "name": "register password no-upper",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 265
+  },
+  {
+    "name": "register password no-lower",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 278
+  },
+  {
+    "name": "register password no-digit",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 247
+  },
+  {
+    "name": "register password space",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 274
+  },
+  {
+    "name": "register password unicode",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 293
+  },
+  {
+    "name": "register password symbol",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 246
+  },
+  {
+    "name": "register role required",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 251
+  },
+  {
+    "name": "password toggle accessible label changes",
+    "mode": "mock",
+    "status": "FAIL",
+    "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Показать пароль'\n- 'Скрыть пароль'\n",
+    "ms": 215
+  },
+  {
+    "name": "profile phone empty",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 239
+  },
+  {
+    "name": "profile phone 9digits",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 227
+  },
+  {
+    "name": "profile phone 10digits",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 230
+  },
+  {
+    "name": "profile phone 15digits",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 231
+  },
+  {
+    "name": "profile phone 16digits",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 233
+  },
+  {
+    "name": "profile phone formatted",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 233
+  },
+  {
+    "name": "profile phone letters",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 231
+  },
+  {
+    "name": "profile phone double-plus",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 246
+  },
+  {
+    "name": "profile website empty",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 231
+  },
+  {
+    "name": "profile website domain",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 230
+  },
+  {
+    "name": "profile website https",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 233
+  },
+  {
+    "name": "profile website javascript",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 244
+  },
+  {
+    "name": "profile website data",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 229
+  },
+  {
+    "name": "profile website spaces",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 233
+  },
+  {
+    "name": "profile website broken",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 231
+  },
+  {
+    "name": "profile website credentials",
+    "mode": "mock",
+    "status": "FAIL",
+    "message": "Expected values to be strictly equal:\n\ntrue !== false\n",
+    "ms": 273
+  },
+  {
+    "name": "profile website empty-label",
+    "mode": "mock",
+    "status": "FAIL",
+    "message": "Expected values to be strictly equal:\n\ntrue !== false\n",
+    "ms": 250
+  },
+  {
+    "name": "profile whitespace required seeker",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 234
+  },
+  {
+    "name": "profile whitespace required employer",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 230
+  },
+  {
+    "name": "vacancy salary empty",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 231
+  },
+  {
+    "name": "vacancy salary negative",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 247
+  },
+  {
+    "name": "vacancy salary decimal-dot",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 216
+  },
+  {
+    "name": "vacancy salary decimal-comma",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 232
+  },
+  {
+    "name": "vacancy salary exponent",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 229
+  },
+  {
+    "name": "vacancy salary letters",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 244
+  },
+  {
+    "name": "vacancy salary zero",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 207
+  },
+  {
+    "name": "vacancy salary max",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 244
+  },
+  {
+    "name": "vacancy salary over-max",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 242
+  },
+  {
+    "name": "vacancy salary separated",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 272
+  },
+  {
+    "name": "vacancy salary internal-space",
+    "mode": "mock",
+    "status": "FAIL",
+    "message": "Expected values to be strictly equal:\n\ntrue !== false\n",
+    "ms": 248
+  },
+  {
+    "name": "vacancy inverted salary rejected",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 246
+  },
+  {
+    "name": "resumes whitespace title rejected",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 229
+  },
+  {
+    "name": "resumes title only invisible characters rejected",
+    "mode": "mock",
+    "status": "FAIL",
+    "message": "The expression evaluated to a falsy value:\n\n  assert(!state.writes.some(r=>r.p==='/api/'+resource&&r.method==='POST'))\n",
+    "ms": 268
+  },
+  {
+    "name": "vacancies whitespace title rejected",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 225
+  },
+  {
+    "name": "vacancies title only invisible characters rejected",
+    "mode": "mock",
+    "status": "FAIL",
+    "message": "The expression evaluated to a falsy value:\n\n  assert(!state.writes.some(r=>r.p==='/api/'+resource&&r.method==='POST'))\n",
+    "ms": 255
+  },
+  {
+    "name": "list / count=0",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 174
+  },
+  {
+    "name": "list / count=1",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 156
+  },
+  {
+    "name": "list / count=12",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 142
+  },
+  {
+    "name": "list / count=13",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 221
+  },
+  {
+    "name": "list / count=25",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 246
+  },
+  {
+    "name": "list / count=1000",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 246
+  },
+  {
+    "name": "list / count=10000",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 252
+  },
+  {
+    "name": "list / search reset",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 209
+  },
+  {
+    "name": "list / error 500 retry",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 206
+  },
+  {
+    "name": "list / error offline retry",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 216
+  },
+  {
+    "name": "list /my/vacancies count=0",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 150
+  },
+  {
+    "name": "list /my/vacancies count=1",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 124
+  },
+  {
+    "name": "list /my/vacancies count=12",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 156
+  },
+  {
+    "name": "list /my/vacancies count=13",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 213
+  },
+  {
+    "name": "list /my/vacancies count=25",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 234
+  },
+  {
+    "name": "list /my/vacancies count=1000",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 244
+  },
+  {
+    "name": "list /my/vacancies count=10000",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 283
+  },
+  {
+    "name": "list /my/vacancies search reset",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 213
+  },
+  {
+    "name": "list /my/vacancies error 500 retry",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 223
+  },
+  {
+    "name": "list /my/vacancies error offline retry",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 197
+  },
+  {
+    "name": "list /resumes count=0",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 136
+  },
+  {
+    "name": "list /resumes count=1",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 138
+  },
+  {
+    "name": "list /resumes count=12",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 141
+  },
+  {
+    "name": "list /resumes count=13",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 198
+  },
+  {
+    "name": "list /resumes count=25",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 197
+  },
+  {
+    "name": "list /resumes count=1000",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 215
+  },
+  {
+    "name": "list /resumes count=10000",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 214
+  },
+  {
+    "name": "list /resumes search reset",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 182
+  },
+  {
+    "name": "list /resumes error 500 retry",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 217
+  },
+  {
+    "name": "list /resumes error offline retry",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 181
+  },
+  {
+    "name": "list /applicants count=0",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 132
+  },
+  {
+    "name": "list /applicants count=1",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 119
+  },
+  {
+    "name": "list /applicants count=12",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 137
+  },
+  {
+    "name": "list /applicants count=13",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 196
+  },
+  {
+    "name": "list /applicants count=25",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 214
+  },
+  {
+    "name": "list /applicants count=1000",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 215
+  },
+  {
+    "name": "list /applicants count=10000",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 231
+  },
+  {
+    "name": "list /applicants search reset",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 183
+  },
+  {
+    "name": "list /applicants error 500 retry",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 184
+  },
+  {
+    "name": "list /applicants error offline retry",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 185
+  },
+  {
+    "name": "dirty navigation protected /resumes/new",
+    "mode": "mock",
+    "status": "FAIL",
+    "message": "Переход по ссылке потерял несохранённую форму без подтверждения",
+    "ms": 235
+  },
+  {
+    "name": "cancel keeps form /resumes/new",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 203
+  },
+  {
+    "name": "dirty navigation protected /vacancies/new",
+    "mode": "mock",
+    "status": "FAIL",
+    "message": "Переход по ссылке потерял несохранённую форму без подтверждения",
+    "ms": 247
+  },
+  {
+    "name": "cancel keeps form /vacancies/new",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 202
+  },
+  {
+    "name": "dirty navigation protected /profile/edit",
+    "mode": "mock",
+    "status": "FAIL",
+    "message": "Переход по ссылке потерял несохранённую форму без подтверждения",
+    "ms": 226
+  },
+  {
+    "name": "cancel keeps form /profile/edit",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 204
+  },
+  {
+    "name": "invalid route /vacancies/0",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 104
+  },
+  {
+    "name": "invalid route /vacancies/-1",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 111
+  },
+  {
+    "name": "invalid route /vacancies/abc",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 104
+  },
+  {
+    "name": "invalid route /resumes/abc",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 116
+  },
+  {
+    "name": "invalid route /vacancies/%E0%A4%A",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 108
+  },
+  {
+    "name": "invalid route /unknown",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 106
+  },
+  {
+    "name": "guest protected routes",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 249
+  },
+  {
+    "name": "employer cannot open seeker create form",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 106
+  },
+  {
+    "name": "seeker cannot open employer create form",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 104
+  },
+  {
+    "name": "foreign resume editing denied",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 132
+  },
+  {
+    "name": "foreign vacancy editing denied",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 162
+  },
+  {
+    "name": "XSS in cards and description escaped",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 170
+  },
+  {
+    "name": "application 100 resumes scroll and required selection",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 298
+  },
+  {
+    "name": "application closes on route navigation while resumes load",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 755
+  },
+  {
+    "name": "registration failure after navigation leaves no foreign toast",
+    "mode": "mock",
+    "status": "FAIL",
+    "message": "Expected values to be strictly equal:\n\n1 !== 0\n",
+    "ms": 798
+  },
+  {
+    "name": "temporary me error does not discard recognized session",
+    "mode": "mock",
+    "status": "PASS",
+    "ms": 90
+  },
+  {
+    "name": "valid zero salary rendered faithfully",
+    "mode": "mock",
+    "status": "FAIL",
+    "message": "expect(locator).not.toContainText(expected) failed\n\nLocator: locator('.vacancy-card__salary')\nExpected substring: not \"не указана\"\nReceived string: \"Зарплата не указана\"\nTimeout: 5000ms\n\nCall log:\n  - Expect \"not toContainText\" locator('.vacancy-card__salary') with timeout 5000ms\n  - waiting for locator('.vacancy-card__salary')\n    14 × locator resolved to <p class=\"vacancy-card__salary vacancy-card__salary_empty\">Зарплата не указана</p>\n       - unexpected value \"Зарплата не указана\"\n",
+    "ms": 5133
+  }
+]

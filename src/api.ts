@@ -1,4 +1,5 @@
 import { API_URL } from './config';
+import { normalizeAPIText } from './api-text';
 import { setCurrentUser, type SessionUser } from './session';
 
 const STATUS_MESSAGES: Record<number, string> = {
@@ -190,7 +191,10 @@ function refreshSession(): Promise<boolean> {
   refreshing ??= request('POST', '/refresh', { canRefresh: false })
     .then(
       () => true,
-      () => false,
+      (error: unknown) => {
+        if (error instanceof ApiError && error.status === 401) { return false; }
+        throw error;
+      },
     )
     .finally(() => {
       refreshing = null;
@@ -281,7 +285,7 @@ async function request(
     throw new ApiError(response.status, getField(data, 'error') ?? data);
   }
 
-  return getField(data, 'data') ?? null;
+  return normalizeAPIText(getField(data, 'data') ?? null);
 }
 
 /**
@@ -405,8 +409,9 @@ async function loadCurrentUser(): Promise<void> {
 export async function restoreSession(): Promise<void> {
   try {
     await fetchCurrentUser();
-  } catch {
-    setCurrentUser(null);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) { setCurrentUser(null); }
+    else { throw error; }
   }
 }
 

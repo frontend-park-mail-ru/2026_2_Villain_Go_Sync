@@ -127,7 +127,7 @@ export default class MyVacanciesPage implements Page {
           title,
           description,
           salary: formatSalary(from, to, currency),
-          hasSalary: (from ?? 0) > 0 || (to ?? 0) > 0,
+          hasSalary: (from !== null && from !== undefined) || (to !== null && to !== undefined),
         })),
       hasQuery: Boolean(query),
       pagination: renderPagination(this.#page, pageCount),

@@ -87,7 +87,7 @@ export default class LoginPage implements Page {
     try {
       await login({ email: email.value.trim(), password: password.value });
     } catch (error) {
-      showToast((error as Error).message, 'error');
+      if (!this.#isDestroyed) { showToast((error as Error).message, 'error'); }
       return;
     } finally {
       this.#isSubmitting = false;

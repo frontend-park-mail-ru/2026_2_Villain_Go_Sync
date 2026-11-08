@@ -1,3 +1,4 @@
+import { hasVisibleText } from '../validation';
 import { saveCreationDraft, restoreCreationDraft, clearCreationDraft } from '../components/creation-draft';
 import { hasRequiredProfile, showMissingProfile } from '../profile-required';
 import { ApiError, createResume, getResume, updateResume, type ResumeFields } from '../api';
@@ -96,6 +97,14 @@ export default class ResumeFormPage implements Page {
   destroy(): void {
     this.#isDestroyed = true;
     this.#abortController.abort();
+  }
+
+  /**
+   * Сообщает роутеру о несохранённых текстовых полях.
+   * @returns Есть ли изменения формы.
+   */
+  hasUnsavedChanges(): boolean {
+    return this.#form !== null && JSON.stringify(this.#readFields()) !== this.#initialValues;
   }
 
   /**
@@ -237,7 +246,7 @@ export default class ResumeFormPage implements Page {
     }
 
     if (this.#id === null) { clearCreationDraft('/resumes/new'); }
-    this.#router.navigate(this.#backPath(this.#id));
+    this.#router.navigate(this.#backPath(this.#id), { force: true });
   }
 
   /**
@@ -249,7 +258,7 @@ export default class ResumeFormPage implements Page {
       showToast('Не удалось сохранить черновик. Скопируйте текст перед переходом к профилю.', 'error');
       return;
     }
-    this.#router.navigate('/profile/edit?next=/resumes/new');
+    this.#router.navigate('/profile/edit?next=/resumes/new', { force: true });
   }
 
   /**
@@ -265,7 +274,7 @@ export default class ResumeFormPage implements Page {
     const fields = this.#readFields();
     const { title } = this.#form.elements as ResumeFormElements;
 
-    if (!fields.title) {
+    if (!hasVisibleText(fields.title)) {
       setFieldError(title, 'Введите название резюме.');
       title.focus();
       return;
@@ -299,7 +308,7 @@ export default class ResumeFormPage implements Page {
 
     if (!this.#isDestroyed) {
       if (this.#id === null) { clearCreationDraft('/resumes/new'); }
-      this.#router.navigate(this.#backPath(id));
+      this.#router.navigate(this.#backPath(id), { force: true });
     }
   }
 }

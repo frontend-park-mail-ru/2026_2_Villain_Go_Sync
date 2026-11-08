@@ -1,0 +1,24 @@
+[
+  {
+    "name": "real roundtrip: текст R&D не искажается",
+    "status": "FAIL",
+    "message": "expect(locator).toBeVisible() failed\n\nLocator: getByRole('heading', { name: 'R&D', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('heading', { name: 'R&D', exact: true }) with timeout 5000ms\n  - waiting for getByRole('heading', { name: 'R&D', exact: true })\n",
+    "mode": "real API"
+  },
+  {
+    "name": "real roundtrip: повторное сохранение не меняет уже сохранённое значение",
+    "status": "PASS",
+    "mode": "real API"
+  },
+  {
+    "name": "real roundtrip: удаление тестового резюме",
+    "status": "PASS",
+    "mode": "real API"
+  },
+  {
+    "name": "real API: невалидный email не регистрируется",
+    "status": "FAIL",
+    "message": "Expected values to be strictly equal:\n\n201 !== 422\n",
+    "mode": "real API"
+  }
+]

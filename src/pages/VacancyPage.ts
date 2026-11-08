@@ -114,7 +114,7 @@ export default class VacancyPage implements Page {
       isGuest: !isAuthorized(),
       canApply: isAuthorized() && !isOwner && user?.role !== 'employer',
       salary: formatSalary(vacancy.salary_from, vacancy.salary_to, vacancy.currency),
-      hasSalary: (vacancy.salary_from ?? 0) > 0 || (vacancy.salary_to ?? 0) > 0,
+      hasSalary: (vacancy.salary_from !== null && vacancy.salary_from !== undefined) || (vacancy.salary_to !== null && vacancy.salary_to !== undefined),
     });
     mountCardImages(this.#container);
   }

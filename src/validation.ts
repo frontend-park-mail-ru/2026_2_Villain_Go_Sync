@@ -1,4 +1,4 @@
-// Правила повторяют проверки бэкенда, чтобы ошибка была видна до отправки формы.
+// Клиентские проверки показывают ошибки до отправки формы; сервер проверяет данные независимо.
 const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const PASSWORD_CHARS_PATTERN = /^[A-Za-z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]+$/;
 
@@ -12,11 +12,53 @@ const MAX_PASSWORD_LENGTH = 72;
  * @returns Текст ошибки или пустая строка, если почта корректна.
  */
 export function getEmailError(email: string): string {
-  if (email.length > MAX_EMAIL_LENGTH || !EMAIL_PATTERN.test(email)) {
+  const [local = '', domain = ''] = email.split('@');
+  if (email.length > MAX_EMAIL_LENGTH || !EMAIL_PATTERN.test(email) || local.length > 64 ||
+    local.startsWith('.') || local.endsWith('.') || local.includes('..') || !isValidHostname(domain)) {
     return 'Введите корректный адрес электронной почты';
   }
 
   return '';
+}
+
+/**
+ * Проверяет непустые доменные метки без дефисов на краях.
+ * @param hostname Домен в ASCII или punycode.
+ * @returns Корректен ли домен с точкой.
+ */
+function isValidHostname(hostname: string): boolean {
+  return hostname.length <= 253 && hostname.includes('.') && hostname.split('.').every((label) =>
+    label.length <= 63 && /^[a-z\d](?:[a-z\d-]*[a-z\d])?$/i.test(label));
+}
+
+/**
+ * Проверяет наличие видимых символов в обязательном поле.
+ * @param value Значение поля.
+ * @returns Есть ли текст кроме пробелов и форматирующих символов.
+ */
+export function hasVisibleText(value: string): boolean {
+  return value.replace(/[\s\p{Cf}]/gu, '').length > 0;
+}
+
+export const MAX_COVER_LETTER_LENGTH = 10_000;
+
+/**
+ * Проверяет формат и размер выбранного изображения профиля.
+ * @param file Выбранный файл.
+ * @returns Текст ошибки или пустая строка.
+ */
+export function getProfileImageError(file: File): string {
+  return !['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size === 0 || file.size > 10 * 1024 * 1024
+    ? 'Выберите PNG, JPEG или WebP размером от 1 байта до 10 МБ.' : '';
+}
+
+/**
+ * Проверяет длину письма с запасом относительно лимита JSON-запроса API в 64 КиБ.
+ * @param value Сопроводительное письмо.
+ * @returns Сообщение об ошибке или пустая строка.
+ */
+export function getCoverLetterError(value: string): string {
+  return value.length > MAX_COVER_LETTER_LENGTH ? 'Сократите письмо до 10 000 символов.' : '';
 }
 
 /**
@@ -69,7 +111,8 @@ export function normalizeWebsite(website: string): string | null {
   try {
     const url = new URL(withProtocol);
 
-    return /^https?:$/.test(url.protocol) && url.hostname.includes('.') && !/\s/.test(website) ? withProtocol : null;
+    return /^https?:$/.test(url.protocol) && isValidHostname(url.hostname) &&
+      !url.username && !url.password && !/\s/.test(website) ? withProtocol : null;
   } catch {
     return null;
   }
@@ -81,5 +124,5 @@ export function normalizeWebsite(website: string): string | null {
  * @returns Ссылка или `null`, если адрес не начинается с http:// или https://.
  */
 export function getWebsiteHref(website: string): string | null {
-  return /^https?:\/\//i.test(website) ? website : null;
+  return /^https?:\/\//i.test(website) ? normalizeWebsite(website) : null;
 }
