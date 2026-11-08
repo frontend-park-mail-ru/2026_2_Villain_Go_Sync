@@ -1,5 +1,5 @@
 import { saveProfileImage, type UserRole } from '../api';
-import { getProfileImageError } from '../validation';
+import { getProfileImageError } from '@hirenoon/validation';
 import template from './ProfileImage.hbs';
 import { notifyProfileImageChange, publicProfileImage } from './profile-images';
 

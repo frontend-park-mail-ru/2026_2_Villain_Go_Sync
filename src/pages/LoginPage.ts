@@ -3,7 +3,7 @@ import { initPasswordToggles, setFieldError, setFieldInvalid, setLoading } from 
 import { hideToast, showToast } from '../components/toast';
 import type { Page, PageProps } from '../router';
 import type Router from '../router';
-import { getEmailError } from '../validation';
+import { getEmailError } from '@hirenoon/validation';
 import template from './LoginPage.hbs';
 
 /**

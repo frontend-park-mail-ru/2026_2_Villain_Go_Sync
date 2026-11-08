@@ -1,6 +1,6 @@
 import { ApiError, applyToVacancy, type Resume } from '../api';
 import { setFieldError, setLoading } from './form';
-import { getCoverLetterError } from '../validation';
+import { getCoverLetterError } from '@hirenoon/validation';
 import { hideToast, showToast } from './toast';
 import template from './ApplicationDialog.hbs';
 

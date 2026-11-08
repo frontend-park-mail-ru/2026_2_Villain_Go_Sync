@@ -1,4 +1,4 @@
-import { hasVisibleText } from '../validation';
+import { hasVisibleText } from '@hirenoon/validation';
 import { saveCreationDraft, restoreCreationDraft, clearCreationDraft } from '../components/creation-draft';
 import { hasRequiredProfile, showMissingProfile } from '../profile-required';
 import { ApiError, createResume, getResume, updateResume, type ResumeFields } from '../api';

@@ -1,7 +1,7 @@
 import { getEmployer, getSeeker, profileImageURL, saveProfileImage, type UserRole } from '../api';
 import template from './ProfileImage.hbs';
 import { notifyProfileImageChange, publicProfileImage } from './profile-images';
-import { getProfileImageError } from '../validation';
+import { getProfileImageError } from '@hirenoon/validation';
 
 /**
  * Подключает загрузку и удаление изображения в форме сохранённого профиля.

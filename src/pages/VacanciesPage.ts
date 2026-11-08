@@ -1,7 +1,7 @@
 import { mountCardImages } from '../components/profile-images';
 import { getVacancies, type Vacancy } from '../api';
 import { renderPagination } from '../components/pagination';
-import { formatPublished, formatSalary } from '../format';
+import { formatPublished, formatSalary } from '@hirenoon/format';
 import type { Page } from '../router';
 import template from './VacanciesPage.hbs';
 import resultsTemplate from './VacanciesResults.hbs';
