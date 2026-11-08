@@ -126,6 +126,7 @@
   &__edit {
     flex: none;
     width: 240px;
+    max-width: 100%;
 
     &_fill {
       width: 208px;
@@ -165,3 +166,8 @@
     color: var(--color-text-muted);
   }
 }
+
+.profile__avatar { object-fit: cover; overflow: hidden; }
+.profile__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profile-image { align-items: flex-start; }
+.profile-image [hidden] { display: none; }

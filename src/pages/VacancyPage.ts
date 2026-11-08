@@ -1,4 +1,5 @@
-import { ApiError, deleteVacancy, getEmployer, getSeekerResumes, getVacancy, type Vacancy } from '../api';
+import { mountCardImages } from '../components/profile-images';
+import { ApiError, deleteVacancy, getSeekerResumes, getVacancy, type Vacancy } from '../api';
 import { openApplicationDialog } from '../components/ApplicationDialog';
 import { setLoading } from '../components/form';
 import { confirmAction } from '../components/Modal';
@@ -98,12 +99,6 @@ export default class VacancyPage implements Page {
       return;
     }
 
-    // Название компании приходит отдельным запросом; если профиль не заполнен, страница обходится без него.
-    const company = await getEmployer(vacancy.employer_id, { signal }).then(
-      (employer) => employer.company_name,
-      () => '',
-    );
-
     if (signal.aborted) {
       return;
     }
@@ -113,14 +108,15 @@ export default class VacancyPage implements Page {
 
     this.#container.innerHTML = template({
       vacancy,
-      company,
+      company: vacancy.company_name,
       isOwner,
       // Гостя кнопка отклика ведёт на вход, работодателю отклик не нужен.
       isGuest: !isAuthorized(),
       canApply: isAuthorized() && !isOwner && user?.role !== 'employer',
       salary: formatSalary(vacancy.salary_from, vacancy.salary_to, vacancy.currency),
-      hasSalary: (vacancy.salary_from ?? 0) > 0 || (vacancy.salary_to ?? 0) > 0,
+      hasSalary: (vacancy.salary_from !== null && vacancy.salary_from !== undefined) || (vacancy.salary_to !== null && vacancy.salary_to !== undefined),
     });
+    mountCardImages(this.#container);
   }
 
   /**

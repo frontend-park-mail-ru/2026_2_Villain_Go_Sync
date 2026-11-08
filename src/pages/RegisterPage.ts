@@ -94,7 +94,7 @@ export default class RegisterPage implements Page {
     try {
       await register({ email: email.value.trim(), password: password.value, role: role.value as UserRole });
     } catch (error) {
-      showToast((error as Error).message, 'error');
+      if (!this.#isDestroyed) { showToast((error as Error).message, 'error'); }
       return;
     } finally {
       this.#isSubmitting = false;

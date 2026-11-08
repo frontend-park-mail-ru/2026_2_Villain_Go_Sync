@@ -224,3 +224,9 @@
     height: 48px;
   }
 }
+.applicant-card__letter {
+  overflow-wrap: anywhere;
+
+  summary { cursor: pointer; }
+  p { white-space: pre-wrap; margin-top: 8px; }
+}

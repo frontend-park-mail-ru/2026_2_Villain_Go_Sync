@@ -514,3 +514,28 @@ label.chip {
     max-width: 100%;
   }
 }
+
+.image-frame {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  background: var(--color-surface-hover);
+
+  &__placeholder {
+    display: block;
+    width: 24px;
+    height: 24px;
+    background: currentColor;
+    mask: center / auto no-repeat;
+
+    &_seeker { mask-image: url('/images/avatar-person.svg'); }
+    &_employer { mask-image: url('/images/avatar-company.svg'); }
+  }
+
+  img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  [hidden] { display: none; }
+}

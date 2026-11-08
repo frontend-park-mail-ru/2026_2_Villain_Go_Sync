@@ -1,3 +1,6 @@
+import { mountProfileImage } from '../components/ProfileImage';
+import { mountPendingProfileImage, type PendingProfileImage } from '../components/PendingProfileImage';
+import { profileReturnPath } from '../profile-required';
 import {
   ApiError,
   getEmployer,
@@ -13,11 +16,10 @@ import { hideToast, showToast } from '../components/toast';
 import type { Page, PageProps } from '../router';
 import type Router from '../router';
 import { getCurrentUser } from '../session';
-import { getPhoneError, normalizeWebsite } from '../validation';
+import { getPhoneError, normalizeWebsite, hasVisibleText } from '../validation';
 import template from './ProfileFormPage.hbs';
 
 const SKELETON_FIELDS = 3;
-const BACK_PATH = '/profile';
 
 /**
  * Поля формы профиля; набор зависит от роли, поэтому все они необязательные.
@@ -42,6 +44,7 @@ interface ProfileFormElements extends HTMLFormControlsCollection {
  */
 export default class ProfileFormPage implements Page {
   #router: Router;
+  #backPath = profileReturnPath(window.location.search);
   #abortController = new AbortController();
   #container!: HTMLElement;
   #form: HTMLFormElement | null = null;
@@ -50,6 +53,7 @@ export default class ProfileFormPage implements Page {
   #initialValues = '';
   #isSubmitting = false;
   #isDestroyed = false;
+  #pendingImage: PendingProfileImage | null = null;
 
   /**
    * @param props Параметры страницы.
@@ -106,6 +110,14 @@ export default class ProfileFormPage implements Page {
   }
 
   /**
+   * Сообщает роутеру о несохранённых текстовых полях.
+   * @returns Есть ли изменения формы.
+   */
+  hasUnsavedChanges(): boolean {
+    return this.#form !== null && (this.#snapshot() !== this.#initialValues || Boolean(this.#pendingImage?.hasChanges()));
+  }
+
+  /**
    * Загружает текущий профиль; если его ещё нет, показывает пустую форму.
    */
   async #load(): Promise<void> {
@@ -150,6 +162,13 @@ export default class ProfileFormPage implements Page {
     this.#container.innerHTML = template({ heading, profile, isCompany: this.#isCompany });
     this.#form = this.#container.querySelector<HTMLFormElement>('.edit-form');
     this.#initialValues = this.#snapshot();
+    const container = document.createElement('div');
+    this.#form!.prepend(container);
+    if (profile) {
+      mountProfileImage(container, { id: user.id, role: user.role }, this.#isCompany ? (profile as Employer).logo_url : (profile as Seeker).avatar_url, signal);
+    } else {
+      this.#pendingImage = mountPendingProfileImage(container, { id: user.id, role: user.role }, signal);
+    }
   }
 
   /**
@@ -157,7 +176,7 @@ export default class ProfileFormPage implements Page {
    * @returns Значения полей без пробелов по краям.
    */
   #snapshot(): string {
-    const fields = [...this.#form!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input, textarea')];
+    const fields = [...this.#form!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input:not([type="file"]), textarea')];
 
     return JSON.stringify(fields.map((field) => field.value.trim()));
   }
@@ -166,7 +185,7 @@ export default class ProfileFormPage implements Page {
    * Уходит на страницу профиля; если в форме есть изменения, сначала спрашивает подтверждение.
    */
   async #cancel(): Promise<void> {
-    if (this.#form !== null && this.#snapshot() !== this.#initialValues) {
+    if (this.hasUnsavedChanges()) {
       const isConfirmed = await confirmAction({
         title: 'Отменить изменения?',
         text: 'Несохранённые изменения будут потеряны.',
@@ -179,7 +198,7 @@ export default class ProfileFormPage implements Page {
       }
     }
 
-    this.#router.navigate(BACK_PATH);
+    this.#router.navigate(this.#backPath, { force: true });
   }
 
   /**
@@ -196,7 +215,7 @@ export default class ProfileFormPage implements Page {
       const { companyName, website } = elements as Required<ProfileFormElements>;
       const normalizedWebsite = normalizeWebsite(value(website));
 
-      if (!value(companyName)) {
+      if (!hasVisibleText(value(companyName))) {
         errors.set(companyName, 'Введите название компании.');
       }
 
@@ -214,7 +233,7 @@ export default class ProfileFormPage implements Page {
       const { firstName, lastName, phone } = elements as Required<ProfileFormElements>;
       const phoneError = getPhoneError(value(phone));
 
-      if (!value(firstName)) {
+      if (!hasVisibleText(value(firstName))) {
         errors.set(firstName, 'Введите имя.');
       }
 
@@ -231,7 +250,7 @@ export default class ProfileFormPage implements Page {
         });
     }
 
-    for (const field of this.#form!.querySelectorAll<HTMLInputElement>('input')) {
+    for (const field of this.#form!.querySelectorAll<HTMLInputElement>('input:not([type="file"])')) {
       setFieldError(field, errors.get(field) ?? '');
     }
 
@@ -266,8 +285,11 @@ export default class ProfileFormPage implements Page {
 
     try {
       await save();
+      if (this.#isDestroyed) { return; }
+      this.#initialValues = this.#snapshot();
+      if (this.#pendingImage && !(await this.#pendingImage.save())) { return; }
     } catch {
-      showToast('Не удалось сохранить профиль. Попробуйте ещё раз.', 'error');
+      if (!this.#isDestroyed) { showToast('Не удалось сохранить профиль. Попробуйте ещё раз.', 'error'); }
       return;
     } finally {
       this.#isSubmitting = false;
@@ -275,7 +297,7 @@ export default class ProfileFormPage implements Page {
     }
 
     if (!this.#isDestroyed) {
-      this.#router.navigate(BACK_PATH);
+      this.#router.navigate(this.#backPath, { force: true });
     }
   }
 }

@@ -1,4 +1,5 @@
 import { API_URL } from './config';
+import { normalizeAPIText } from './api-text';
 import { setCurrentUser, type SessionUser } from './session';
 
 const STATUS_MESSAGES: Record<number, string> = {
@@ -39,6 +40,8 @@ export interface Vacancy extends VacancyFields {
   id: number;
   /** Идентификатор работодателя. */
   employer_id: number;
+  /** Название компании. */
+  company_name: string;
   /** Дата публикации в формате ISO 8601. */
   created_at: string;
 }
@@ -75,6 +78,8 @@ export interface Resume extends ResumeFields {
  * Профиль компании.
  */
 export interface Employer {
+  /** Путь логотипа относительно адреса API. */
+  logo_url?: string | null;
   /** Название компании. */
   company_name: string;
   /** Описание компании. */
@@ -87,6 +92,8 @@ export interface Employer {
  * Профиль соискателя.
  */
 export interface Seeker {
+  /** Путь фотографии относительно адреса API. */
+  avatar_url?: string | null;
   /** Имя. */
   first_name: string;
   /** Фамилия. */
@@ -170,6 +177,8 @@ function getField(body: unknown, key: string): unknown {
 
 // На эти запросы 401 означает неверные данные или отсутствие сессии, продлевать здесь нечего.
 const NO_REFRESH_PATHS = ['/login', '/register', '/refresh', '/logout'];
+const CSRF_EXEMPT_PATHS = ['/login', '/register', '/refresh'];
+const CSRF_ERRORS = new Set(['csrf token missing', 'csrf header missing', 'csrf token mismatch']);
 
 let refreshing: Promise<boolean> | null = null;
 
@@ -182,7 +191,10 @@ function refreshSession(): Promise<boolean> {
   refreshing ??= request('POST', '/refresh', { canRefresh: false })
     .then(
       () => true,
-      () => false,
+      (error: unknown) => {
+        if (error instanceof ApiError && error.status === 401) { return false; }
+        throw error;
+      },
     )
     .finally(() => {
       refreshing = null;
@@ -201,6 +213,7 @@ function refreshSession(): Promise<boolean> {
  * @param options.body Тело запроса, отправляется как JSON.
  * @param options.signal Сигнал для отмены запроса.
  * @param options.canRefresh Можно ли продлить сессию и повторить запрос при 401.
+ * @param options.canRetryCsrf Можно ли обновить CSRF-cookie после отказа проверки токена.
  * @returns Содержимое поля `data` из ответа или `null`, если его нет.
  * @throws {ApiError} Сервер недоступен или ответил ошибкой; в `body` — текст из поля `error`.
  */
@@ -211,14 +224,30 @@ async function request(
     body,
     signal,
     canRefresh = !NO_REFRESH_PATHS.includes(path),
-  }: { body?: unknown; signal?: AbortSignal; canRefresh?: boolean } = {},
+    canRetryCsrf = true,
+  }: { body?: unknown; signal?: AbortSignal; canRefresh?: boolean; canRetryCsrf?: boolean } = {},
 ): Promise<unknown> {
   const init: RequestInit = { method, credentials: 'include', signal };
+  const headers = new Headers();
+
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(method) && !CSRF_EXEMPT_PATHS.includes(path)) {
+    const token = document.cookie.split(';').map((cookie) => cookie.trim())
+      .find((cookie) => cookie.startsWith('csrf_token='))?.slice('csrf_token='.length);
+
+    if (token) {
+      headers.set('X-CSRF-Token', token);
+    }
+  }
 
   if (body !== undefined) {
-    init.headers = { 'Content-Type': 'application/json' };
-    init.body = JSON.stringify(body);
+    if (body instanceof FormData) {
+      init.body = body;
+    } else {
+      headers.set('Content-Type', 'application/json');
+      init.body = JSON.stringify(body);
+    }
   }
+  init.headers = headers;
 
   let response: Response;
   let data: unknown;
@@ -236,10 +265,18 @@ async function request(
 
   if (response.status === 401 && canRefresh) {
     if (await refreshSession()) {
-      return request(method, path, { body, signal, canRefresh: false });
+      return request(method, path, { body, signal, canRefresh: false, canRetryCsrf });
     }
 
     // Продлить не получилось — сессия закончилась, страницы для вошедших больше недоступны.
+    setCurrentUser(null);
+  }
+
+  // CSRF проверяется до обработчика: отклонённый запрос ещё не изменил данные.
+  if (response.status === 403 && canRetryCsrf && CSRF_ERRORS.has(String(getField(data, 'error')))) {
+    if (await refreshSession()) {
+      return request(method, path, { body, signal, canRefresh: false, canRetryCsrf: false });
+    }
     setCurrentUser(null);
   }
 
@@ -248,7 +285,37 @@ async function request(
     throw new ApiError(response.status, getField(data, 'error') ?? data);
   }
 
-  return getField(data, 'data') ?? null;
+  return normalizeAPIText(getField(data, 'data') ?? null);
+}
+
+/**
+ * Возвращает адрес изображения только с сервера API.
+ * @param path Путь из ответа профиля.
+ * @returns Абсолютный адрес или пустая строка.
+ */
+export function profileImageURL(path?: string | null): string {
+  if (!path) { return ''; }
+  try {
+    const base = new URL(API_URL, window.location.origin);
+    const url = new URL(path, base);
+    return url.origin === base.origin && /^https?:$/.test(url.protocol) ? url.href : '';
+  } catch { return ''; }
+}
+
+/**
+ * Загружает или удаляет изображение собственного профиля.
+ * @param role Роль владельца.
+ * @param file Изображение; `null` для удаления.
+ */
+export async function saveProfileImage(role: UserRole, file: File | null): Promise<void> {
+  const field = role === 'employer' ? 'logo' : 'avatar';
+  if (file) {
+    const body = new FormData();
+    body.append(field, file);
+    await request('PUT', `/me/${field}`, { body });
+  } else {
+    await request('DELETE', `/me/${field}`);
+  }
 }
 
 /**
@@ -315,24 +382,10 @@ async function fetchCurrentUser(): Promise<void> {
 
   const user: SessionUser = {
     id: typeof id === 'number' ? id : null,
-    role: role === 'seeker' || role === 'employer' ? role : await guessRole(),
+    role: role === 'seeker' || role === 'employer' ? role : null,
   };
 
   setCurrentUser(user);
-}
-
-/**
- * Узнаёт роль, пока `/me` её не отдаёт: список вакансий работодателя бэкенд отдаёт только работодателю,
- * остальным отвечает 403. Запрос только читает данные.
- * @returns Роль или `null`, если узнать не удалось.
- */
-async function guessRole(): Promise<UserRole | null> {
-  try {
-    await request('GET', '/employer/vacancies');
-    return 'employer';
-  } catch (error) {
-    return error instanceof ApiError && error.status === 403 ? 'seeker' : null;
-  }
 }
 
 /**
@@ -356,8 +409,9 @@ async function loadCurrentUser(): Promise<void> {
 export async function restoreSession(): Promise<void> {
   try {
     await fetchCurrentUser();
-  } catch {
-    setCurrentUser(null);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) { setCurrentUser(null); }
+    else { throw error; }
   }
 }
 
@@ -593,6 +647,18 @@ export async function applyToVacancy(
  * Отклик на вакансию в том виде, в котором его видит работодатель.
  */
 export interface Applicant {
+  /** Идентификатор отклика. */
+  application_id: number;
+  /** Идентификатор вакансии. */
+  vacancy_id: number;
+  /** Название вакансии на момент отклика. */
+  vacancy_title: string;
+  /** Идентификатор соискателя. */
+  seeker_id: number;
+  /** Идентификатор приложенного резюме. */
+  resume_id: number;
+  /** Сопроводительное письмо. */
+  cover_letter: string | null;
   /** Имя соискателя. */
   first_name: string;
   /** Фамилия соискателя. */
@@ -607,18 +673,16 @@ export interface Applicant {
 
 /**
  * Загружает отклики на вакансию; доступно только её работодателю.
- * @param vacancyId Идентификатор вакансии.
  * @param options Настройки запроса.
  * @param options.signal Сигнал для отмены запроса.
  * @returns Отклики; пустой массив, если их нет.
  * @throws {ApiError} 403 — вакансия чужая; сервер недоступен или ответил ошибкой.
  */
-export async function getVacancyApplicants(
-  vacancyId: number,
+export async function getEmployerApplicants(
   { signal }: { signal?: AbortSignal } = {},
 ): Promise<Applicant[]> {
   // Если откликов нет, бэкенд присылает null вместо пустого массива.
-  const applicants = (await request('GET', `/vacancies/${vacancyId}/applicants`, { signal })) ?? [];
+  const applicants = (await request('GET', '/employer/applications', { signal })) ?? [];
 
   if (!Array.isArray(applicants)) {
     throw new ApiError(500, applicants);

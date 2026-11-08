@@ -1,5 +1,6 @@
 import { ApiError, applyToVacancy, type Resume } from '../api';
-import { setLoading } from './form';
+import { setFieldError, setLoading } from './form';
+import { getCoverLetterError } from '../validation';
 import { hideToast, showToast } from './toast';
 import template from './ApplicationDialog.hbs';
 
@@ -32,6 +33,7 @@ export function openApplicationDialog(vacancyId: number, resumes: Resume[]): Pro
     const dialog = wrapper.querySelector('dialog')!;
     const form = dialog.querySelector<HTMLFormElement>('.application');
     let isSubmitting = false;
+    let isClosed = false;
 
     dialog.addEventListener('click', (event) => {
       const target = event.target as Element;
@@ -51,9 +53,12 @@ export function openApplicationDialog(vacancyId: number, resumes: Resume[]): Pro
     });
 
     dialog.addEventListener('close', () => {
+      isClosed = true;
       dialog.remove();
       resolve(dialog.returnValue === 'sent');
     });
+
+    form?.addEventListener('input', (event) => setFieldError(event.target as Element, ''));
 
     // Выбранное резюме убирает ошибку и возвращает подсказку.
     form?.addEventListener('change', () => {
@@ -73,6 +78,10 @@ export function openApplicationDialog(vacancyId: number, resumes: Resume[]): Pro
 
       const data = new FormData(form);
       const resumeId = Number(data.get('resume'));
+      const letter = form.querySelector<HTMLTextAreaElement>('[name="coverLetter"]')!;
+      const letterError = getCoverLetterError(letter.value);
+      setFieldError(letter, letterError);
+      if (letterError) { letter.focus(); return; }
       const group = form.querySelector('.application__group')!;
       const hint = group.querySelector<HTMLElement>('.application__hint')!;
 
@@ -93,15 +102,14 @@ export function openApplicationDialog(vacancyId: number, resumes: Resume[]): Pro
       try {
         await applyToVacancy(vacancyId, { resumeId, coverLetter: String(data.get('coverLetter') ?? '').trim() });
       } catch (error) {
-        showToast(getApplyError(error), 'error');
+        if (!isClosed) { showToast(getApplyError(error), 'error'); }
         return;
       } finally {
         isSubmitting = false;
         setLoading(button, false);
       }
 
-      dialog.close('sent');
-      showToast('Отклик отправлен');
+      if (!isClosed) { dialog.close('sent'); showToast('Отклик отправлен'); }
     });
 
     document.body.append(dialog);

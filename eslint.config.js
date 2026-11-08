@@ -5,7 +5,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  { ignores: ['node_modules/', 'dist/'] },
+  { ignores: ['node_modules/', 'dist/', 'test-results/', 'playwright-report/'] },
   js.configs.recommended,
   tseslint.configs.recommended,
   { files: ['**/*.js'], extends: [jsdoc.configs['flat/recommended-error']] },
@@ -24,6 +24,10 @@ export default defineConfig([
   {
     files: ['src/**/*.ts'],
     languageOptions: { globals: globals.browser },
+  },
+  {
+    files: ['tests/**/*.js'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
   {
     files: ['*.config.js'],

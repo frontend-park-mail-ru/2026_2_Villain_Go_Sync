@@ -18,7 +18,7 @@ export function setFieldError(control: Element, message: string): void {
   messageElement.textContent = message || messageElement.dataset.hint;
   field.classList.toggle('field_invalid', Boolean(message));
 
-  if (control instanceof HTMLInputElement) {
+  if (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) {
     control.setAttribute('aria-invalid', String(Boolean(message)));
   }
 }
@@ -49,6 +49,7 @@ export function initPasswordToggles(container: HTMLElement): void {
 
       input.type = isVisible ? 'text' : 'password';
       button.setAttribute('aria-pressed', String(isVisible));
+      button.setAttribute('aria-label', isVisible ? 'Скрыть пароль' : 'Показать пароль');
     });
   });
 }

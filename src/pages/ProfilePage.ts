@@ -1,4 +1,5 @@
-import { ApiError, getEmployer, getSeeker, type Employer, type Seeker } from '../api';
+import { mountImage } from '../components/profile-images';
+import { ApiError, profileImageURL, getEmployer, getSeeker, type Employer, type Seeker } from '../api';
 import type { Page } from '../router';
 import { getCurrentUser } from '../session';
 import { getWebsiteHref } from '../validation';
@@ -93,7 +94,11 @@ export default class ProfilePage implements Page {
       profile = null;
     }
 
-    this.#container.innerHTML = template({ heading, isCompany, ...this.#describe(profile, isCompany) });
+    const imageUrl = profileImageURL(isCompany ? (profile as Employer | null)?.logo_url : (profile as Seeker | null)?.avatar_url);
+    const description = this.#describe(profile, isCompany);
+    this.#container.innerHTML = template({ heading, isCompany, imageUrl, ...description });
+    const avatar = this.#container.querySelector<HTMLElement>('.profile__avatar');
+    if (avatar) { mountImage(avatar, imageUrl, description.initials ? String(description.initials) : { role: user.role }); }
   }
 
   /**

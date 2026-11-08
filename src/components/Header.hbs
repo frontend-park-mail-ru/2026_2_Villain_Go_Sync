@@ -12,12 +12,12 @@
     {{#if isAuthorized}}
       <div class="header__profile">
         <button
-          class="header__avatar"
+          class="header__avatar{{#if isCompany}} header__avatar_company{{/if}}"
           type="button"
           aria-label="Меню профиля"
           aria-haspopup="true"
           aria-expanded="false"
-        >?</button>
+        ></button>
         <div class="header__menu" hidden>
           <a class="button button_ghost header__menu-item" href="/profile">Профиль</a>
           <button class="button button_ghost header__menu-item header__logout" type="button">Выйти</button>

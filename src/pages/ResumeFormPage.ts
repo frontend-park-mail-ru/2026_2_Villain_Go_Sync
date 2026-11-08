@@ -1,3 +1,6 @@
+import { hasVisibleText } from '../validation';
+import { saveCreationDraft, restoreCreationDraft, clearCreationDraft } from '../components/creation-draft';
+import { hasRequiredProfile, showMissingProfile } from '../profile-required';
 import { ApiError, createResume, getResume, updateResume, type ResumeFields } from '../api';
 import { setFieldError, setLoading } from '../components/form';
 import { confirmAction } from '../components/Modal';
@@ -65,6 +68,8 @@ export default class ResumeFormPage implements Page {
 
         if (action === 'retry') {
           this.#load();
+        } else if (action === 'complete-profile') {
+          this.#completeProfile();
         } else if (action === 'cancel') {
           this.#cancel();
         }
@@ -95,6 +100,14 @@ export default class ResumeFormPage implements Page {
   }
 
   /**
+   * Сообщает роутеру о несохранённых текстовых полях.
+   * @returns Есть ли изменения формы.
+   */
+  hasUnsavedChanges(): boolean {
+    return this.#form !== null && JSON.stringify(this.#readFields()) !== this.#initialValues;
+  }
+
+  /**
    * Заголовок страницы для текущего режима.
    * @returns Заголовок.
    */
@@ -107,6 +120,20 @@ export default class ResumeFormPage implements Page {
    */
   async #load(): Promise<void> {
     if (this.#id === null) {
+      this.#form = null;
+      this.#container.innerHTML = template({ isLoading: true, heading: this.#heading });
+      try {
+        if (!(await hasRequiredProfile('seeker', this.#abortController.signal))) {
+          this.#container.innerHTML = template({ profileRequired: true, profilePath: '/profile/edit?next=/resumes/new' });
+          return;
+        }
+      } catch (error) {
+        if (!this.#abortController.signal.aborted) {
+          this.#container.innerHTML = template({ error: { title: 'Не удалось проверить профиль', text: (error as Error).message, canRetry: true } });
+        }
+        return;
+      }
+      if (this.#abortController.signal.aborted) { return; }
       this.#renderForm({ title: '', description: '', experience: '', education: '' });
       return;
     }
@@ -162,6 +189,7 @@ export default class ResumeFormPage implements Page {
 
     this.#form = this.#container.querySelector<HTMLFormElement>('.edit-form');
     this.#initialValues = JSON.stringify(this.#readFields());
+    if (this.#id === null) { restoreCreationDraft('/resumes/new', this.#form!); }
   }
 
   /**
@@ -217,7 +245,20 @@ export default class ResumeFormPage implements Page {
       }
     }
 
-    this.#router.navigate(this.#backPath(this.#id));
+    if (this.#id === null) { clearCreationDraft('/resumes/new'); }
+    this.#router.navigate(this.#backPath(this.#id), { force: true });
+  }
+
+  /**
+   * Сохраняет черновик перед заполнением профиля, не теряя текст при ошибке хранилища.
+   */
+  #completeProfile(): void {
+    if (!this.#form || this.#isSubmitting) { return; }
+    if (!saveCreationDraft('/resumes/new', this.#form)) {
+      showToast('Не удалось сохранить черновик. Скопируйте текст перед переходом к профилю.', 'error');
+      return;
+    }
+    this.#router.navigate('/profile/edit?next=/resumes/new', { force: true });
   }
 
   /**
@@ -233,7 +274,7 @@ export default class ResumeFormPage implements Page {
     const fields = this.#readFields();
     const { title } = this.#form.elements as ResumeFormElements;
 
-    if (!fields.title) {
+    if (!hasVisibleText(fields.title)) {
       setFieldError(title, 'Введите название резюме.');
       title.focus();
       return;
@@ -252,7 +293,10 @@ export default class ResumeFormPage implements Page {
       } else {
         await updateResume(id, fields);
       }
-    } catch {
+    } catch (error) {
+      if (this.#isDestroyed) { return; }
+      if (this.#id === null && await showMissingProfile(error, 'seeker', this.#abortController.signal, this.#form)) { return; }
+      if (this.#isDestroyed) { return; }
       const action = this.#id === null ? 'создать' : 'сохранить';
 
       showToast(`Не удалось ${action} резюме. Попробуйте ещё раз.`, 'error');
@@ -263,7 +307,8 @@ export default class ResumeFormPage implements Page {
     }
 
     if (!this.#isDestroyed) {
-      this.#router.navigate(this.#backPath(id));
+      if (this.#id === null) { clearCreationDraft('/resumes/new'); }
+      this.#router.navigate(this.#backPath(id), { force: true });
     }
   }
 }

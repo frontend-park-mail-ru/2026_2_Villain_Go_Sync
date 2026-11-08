@@ -1,3 +1,4 @@
+import { mountCardImages } from '../components/profile-images';
 import { getVacancies, type Vacancy } from '../api';
 import { renderPagination } from '../components/pagination';
 import { formatPublished, formatSalary } from '../format';
@@ -129,11 +130,13 @@ export default class VacanciesPage implements Page {
     const pageCount = Math.ceil(found.length / PAGE_SIZE);
     const vacancies = found
       .slice((this.#page - 1) * PAGE_SIZE, this.#page * PAGE_SIZE)
-      .map(({ id, title, salary_from: from, salary_to: to, currency, created_at: createdAt }) => ({
+      .map(({ id, title, salary_from: from, salary_to: to, currency, created_at: createdAt, company_name: company, employer_id: employerId }) => ({
+        company,
+        employerId,
         id,
         title,
         salary: formatSalary(from, to, currency),
-        hasSalary: (from ?? 0) > 0 || (to ?? 0) > 0,
+        hasSalary: (from !== null && from !== undefined) || (to !== null && to !== undefined),
         published: formatPublished(createdAt),
       }));
 
@@ -142,5 +145,6 @@ export default class VacanciesPage implements Page {
       hasQuery: Boolean(query),
       pagination: renderPagination(this.#page, pageCount),
     });
+    mountCardImages(this.#results);
   }
 }

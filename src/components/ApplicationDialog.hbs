@@ -27,14 +27,15 @@
         {{/if}}
 
         <div class="field">
-          <label class="field__label" for="application-letter">Сопроводительное письмо*</label>
+          <label class="field__label" for="application-letter">Сопроводительное письмо</label>
           <textarea
             class="field__input field__textarea"
             id="application-letter"
             name="coverLetter"
+            aria-describedby="application-letter-message"
             placeholder="Напишите сопроводительное письмо"
           ></textarea>
-          <p class="field__message">*Необязательно</p>
+          <p class="field__message" id="application-letter-message">Необязательно. Не более 10 000 символов.</p>
         </div>
 
         <div class="modal__actions">

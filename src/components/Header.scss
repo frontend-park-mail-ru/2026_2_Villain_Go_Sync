@@ -52,9 +52,17 @@
   &__nav {
     display: flex;
     gap: 24px;
+
+    @include mobile {
+      order: 3;
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+    }
   }
 
   &__link {
+    white-space: nowrap;
     font-weight: 500;
     line-height: 24px;
     color: var(--color-text-muted);
@@ -77,7 +85,9 @@
   }
 
   &__avatar {
-    display: block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 48px;
     height: 48px;
     padding: 0;
@@ -88,6 +98,10 @@
     color: var(--color-text-muted);
     background: var(--color-surface-hover);
     cursor: pointer;
+
+    &_company {
+      border-radius: var(--radius);
+    }
 
     &:focus-visible {
       outline: 2px solid var(--color-accent);

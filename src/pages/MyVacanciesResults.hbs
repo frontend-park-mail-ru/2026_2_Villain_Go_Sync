@@ -35,8 +35,8 @@
       {{#each vacancies}}
         <article class="vacancy-card vacancy-card_owner">
           <div class="vacancy-card__identity">
-            {{#if ../company}}
-              <p class="vacancy-card__company">{{../company}}</p>
+            {{#if company}}
+              <div class="vacancy-card__company"><span class="vacancy-card__logo" data-image-user="{{employerId}}" aria-hidden="true">{{company}}</span><span class="vacancy-card__company-name">{{company}}</span></div>
             {{/if}}
             <h2 class="vacancy-card__title">{{title}}</h2>
             {{#if description}}

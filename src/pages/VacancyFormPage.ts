@@ -1,3 +1,6 @@
+import { hasVisibleText } from '../validation';
+import { saveCreationDraft, restoreCreationDraft, clearCreationDraft } from '../components/creation-draft';
+import { hasRequiredProfile, showMissingProfile } from '../profile-required';
 import { ApiError, createVacancy, getVacancy, updateVacancy, type Currency, type VacancyFields } from '../api';
 import { setFieldError, setLoading } from '../components/form';
 import { confirmAction } from '../components/Modal';
@@ -99,6 +102,8 @@ export default class VacancyFormPage implements Page {
 
         if (action === 'retry') {
           this.#load();
+        } else if (action === 'complete-profile') {
+          this.#completeProfile();
         } else if (action === 'cancel') {
           this.#cancel();
         }
@@ -146,6 +151,14 @@ export default class VacancyFormPage implements Page {
   }
 
   /**
+   * Сообщает роутеру о несохранённых текстовых полях.
+   * @returns Есть ли изменения формы.
+   */
+  hasUnsavedChanges(): boolean {
+    return this.#form !== null && this.#snapshot() !== this.#initialValues;
+  }
+
+  /**
    * Заголовок страницы для текущего режима.
    * @returns Заголовок.
    */
@@ -158,6 +171,20 @@ export default class VacancyFormPage implements Page {
    */
   async #load(): Promise<void> {
     if (this.#id === null) {
+      this.#form = null;
+      this.#container.innerHTML = template({ isLoading: true, heading: this.#heading });
+      try {
+        if (!(await hasRequiredProfile('employer', this.#abortController.signal))) {
+          this.#container.innerHTML = template({ profileRequired: true, profilePath: '/profile/edit?next=/vacancies/new' });
+          return;
+        }
+      } catch (error) {
+        if (!this.#abortController.signal.aborted) {
+          this.#container.innerHTML = template({ error: { title: 'Не удалось проверить профиль', text: (error as Error).message, canRetry: true } });
+        }
+        return;
+      }
+      if (this.#abortController.signal.aborted) { return; }
       this.#renderForm({ title: '', description: '', salary_from: null, salary_to: null, currency: 'RUB' });
       return;
     }
@@ -219,6 +246,7 @@ export default class VacancyFormPage implements Page {
 
     this.#form = this.#container.querySelector<HTMLFormElement>('.edit-form');
     this.#initialValues = this.#snapshot();
+    if (this.#id === null) { restoreCreationDraft('/vacancies/new', this.#form!); }
   }
 
   /**
@@ -267,7 +295,20 @@ export default class VacancyFormPage implements Page {
       }
     }
 
-    this.#router.navigate(this.#backPath(this.#id));
+    if (this.#id === null) { clearCreationDraft('/vacancies/new'); }
+    this.#router.navigate(this.#backPath(this.#id), { force: true });
+  }
+
+  /**
+   * Сохраняет черновик перед заполнением профиля, не теряя текст при ошибке хранилища.
+   */
+  #completeProfile(): void {
+    if (!this.#form || this.#isSubmitting) { return; }
+    if (!saveCreationDraft('/vacancies/new', this.#form)) {
+      showToast('Не удалось сохранить черновик. Скопируйте текст перед переходом к профилю.', 'error');
+      return;
+    }
+    this.#router.navigate('/profile/edit?next=/vacancies/new', { force: true });
   }
 
   /**
@@ -280,7 +321,7 @@ export default class VacancyFormPage implements Page {
     const to = parseSalary(salaryTo.value);
     const errors = new Map<HTMLInputElement, string>();
 
-    if (!title.value.trim()) {
+    if (!hasVisibleText(title.value)) {
       errors.set(title, 'Введите название вакансии.');
     }
 
@@ -342,6 +383,9 @@ export default class VacancyFormPage implements Page {
         await updateVacancy(id, fields);
       }
     } catch (error) {
+      if (this.#isDestroyed) { return; }
+      if (this.#id === null && await showMissingProfile(error, 'employer', this.#abortController.signal, this.#form)) { return; }
+      if (this.#isDestroyed) { return; }
       showToast(this.#getSubmitError(error), 'error');
       return;
     } finally {
@@ -350,7 +394,8 @@ export default class VacancyFormPage implements Page {
     }
 
     if (!this.#isDestroyed) {
-      this.#router.navigate(this.#backPath(id));
+      if (this.#id === null) { clearCreationDraft('/vacancies/new'); }
+      this.#router.navigate(this.#backPath(id), { force: true });
     }
   }
 
