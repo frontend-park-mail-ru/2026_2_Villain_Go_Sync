@@ -64,7 +64,7 @@
           {{/if}}
           <div class="detail__meta">
             {{#if company}}
-              <div class="vacancy-card__company"><span class="vacancy-card__logo" data-image-user="{{vacancy.employer_id}}" aria-hidden="true">{{company}}</span><span class="detail__subtitle">{{company}}</span></div>
+              <div class="vacancy-card__company"><span class="vacancy-card__logo" data-image-url="{{vacancy.logo_url}}" aria-hidden="true">{{company}}</span><span class="detail__subtitle">{{company}}</span></div>
             {{/if}}
             <p class="detail__salary{{#unless hasSalary}} detail__salary_empty{{/unless}}">{{salary}}</p>
           </div>

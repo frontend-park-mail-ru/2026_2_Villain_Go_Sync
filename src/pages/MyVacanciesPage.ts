@@ -120,9 +120,9 @@ export default class MyVacanciesPage implements Page {
     this.#content.innerHTML = resultsTemplate({
       vacancies: found
         .slice((this.#page - 1) * PAGE_SIZE, this.#page * PAGE_SIZE)
-        .map(({ id, title, description, salary_from: from, salary_to: to, currency, company_name: company, employer_id: employerId }) => ({
+        .map(({ id, title, description, salary_from: from, salary_to: to, currency, company_name: company, logo_url: logoUrl }) => ({
           company,
-        employerId,
+          logoUrl,
           id,
           title,
           description,
