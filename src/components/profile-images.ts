@@ -13,6 +13,8 @@ export interface ProfileImageChange {
 }
 
 const listeners = new Set<(change: ProfileImageChange) => void>();
+const MAX_CACHED_IMAGE_GROUPS = 48;
+const cardImages = new WeakMap<HTMLElement, Map<string, HTMLElement[]>>();
 
 /**
  * Подписывает шапку на замену изображения без перезагрузки страницы.
@@ -51,6 +53,7 @@ export function publicProfileImage(id: number, role: UserRole): string {
 export function mountImage(container: HTMLElement, url: string, fallback: string | { role: UserRole }, lazy = false): void {
   container.replaceChildren();
   container.classList.add('image-frame');
+  container.classList.remove('image-frame_loading');
   const placeholder = document.createElement('span');
   placeholder.setAttribute('aria-hidden', 'true');
   if (typeof fallback === 'string') {
@@ -60,22 +63,61 @@ export function mountImage(container: HTMLElement, url: string, fallback: string
   }
   container.append(placeholder);
   if (!url) { return; }
+  placeholder.hidden = true;
+  container.classList.add('image-frame_loading');
   const image = document.createElement('img');
   image.alt = '';
   image.style.opacity = '0';
   if (lazy) { image.loading = 'lazy'; }
-  image.addEventListener('load', () => { image.style.opacity = '1'; placeholder.hidden = true; }, { once: true });
-  image.addEventListener('error', () => { image.remove(); placeholder.hidden = false; }, { once: true });
+  const showImage = (): void => {
+    if (image.parentElement !== container) { return; }
+    image.style.opacity = '1';
+    container.classList.remove('image-frame_loading');
+  };
+  image.addEventListener('load', showImage, { once: true });
+  image.addEventListener('error', () => {
+    if (image.parentElement !== container) { return; }
+    image.remove();
+    placeholder.hidden = false;
+    container.classList.remove('image-frame_loading');
+  }, { once: true });
   container.append(image);
   image.src = url;
+  if (image.complete && image.naturalWidth > 0) { showImage(); }
 }
 
 /**
- * Подключает изображения карточек без запросов полных профилей пользователей.
+ * Подключает изображения карточек и сохраняет их элементы при поиске и пагинации.
  * @param container Контейнер карточек.
  */
 export function mountCardImages(container: HTMLElement): void {
+  let cache = cardImages.get(container);
+  if (!cache) { cache = new Map(); cardImages.set(container, cache); }
+  for (const frames of cache.values()) {
+    for (const frame of frames) {
+      if (!container.contains(frame)) { frame.remove(); }
+    }
+  }
+  const used = new Map<string, number>();
   for (const element of container.querySelectorAll<HTMLElement>('[data-image-url]')) {
-    mountImage(element, profileImageURL(element.dataset.imageUrl), element.textContent?.trim().slice(0, 2) || '?', true);
+    const url = profileImageURL(element.dataset.imageUrl);
+    const fallback = element.textContent?.trim().slice(0, 2) || '?';
+    if (!url) { mountImage(element, '', fallback); continue; }
+    const classes = [...element.classList].filter((name) => !name.startsWith('image-frame')).join(' ');
+    const key = JSON.stringify([url, classes, fallback]);
+    const frames = cache.get(key) ?? [];
+    const index = used.get(key) ?? 0;
+    const existing = frames[index];
+    if (existing?.querySelector('img')) {
+      if (existing !== element) { element.replaceWith(existing); }
+    } else {
+      mountImage(element, url, fallback, true);
+      frames[index] = element;
+    }
+    used.set(key, index + 1);
+    cache.delete(key);
+    cache.set(key, frames);
+    // Храним ограниченный запас картинок; после удаления контейнера кэш освобождается вместе с ним.
+    while (cache.size > MAX_CACHED_IMAGE_GROUPS) { cache.delete(cache.keys().next().value!); }
   }
 }
