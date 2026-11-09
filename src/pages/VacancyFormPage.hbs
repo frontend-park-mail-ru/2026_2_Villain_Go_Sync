@@ -46,8 +46,9 @@
           type="text"
           placeholder="Введите название вакансии"
           value="{{vacancy.title}}"
-          aria-describedby="vacancy-title-message"
+          aria-describedby="vacancy-title-counter vacancy-title-message"
         />
+        <p class="field__counter" id="vacancy-title-counter"></p>
         <p class="field__message" id="vacancy-title-message"></p>
       </div>
 
@@ -58,7 +59,10 @@
           id="vacancy-description"
           name="description"
           placeholder="Опишите задачи и требования"
+          aria-describedby="vacancy-description-counter vacancy-description-message"
         >{{vacancy.description}}</textarea>
+        <p class="field__counter" id="vacancy-description-counter"></p>
+        <p class="field__message" id="vacancy-description-message"></p>
       </div>
 
       <div class="vacancy-form__salary">

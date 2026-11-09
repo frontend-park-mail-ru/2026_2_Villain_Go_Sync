@@ -2,6 +2,7 @@ import { mountImage } from '../components/profile-images';
 import { ApiError, profileImageURL, getEmployer, getSeeker, type Employer, type Seeker } from '../api';
 import type { Page } from '../router';
 import { getCurrentUser } from '../session';
+import { isProfileComplete } from '../profile-required';
 import { getWebsiteHref } from '@hirenoon/validation';
 import template from './ProfilePage.hbs';
 
@@ -66,7 +67,7 @@ export default class ProfilePage implements Page {
     const heading = isCompany ? 'Профиль компании' : 'Профиль';
 
     if (!user || user.id === null || user.role === null) {
-      this.#container.innerHTML = template({ heading, error: 'Не удалось узнать, кто вошёл в аккаунт.', canRetry: false });
+      this.#container.innerHTML = template({ heading, error: 'Не удалось узнать, кто вошёл в аккаунт', canRetry: false });
       return;
     }
 
@@ -94,6 +95,7 @@ export default class ProfilePage implements Page {
       profile = null;
     }
 
+    if (!isProfileComplete(profile, user.id, user.role)) { profile = null; }
     const imageUrl = profileImageURL(isCompany ? (profile as Employer | null)?.logo_url : (profile as Seeker | null)?.avatar_url);
     const description = this.#describe(profile, isCompany);
     this.#container.innerHTML = template({ heading, isCompany, imageUrl, ...description });

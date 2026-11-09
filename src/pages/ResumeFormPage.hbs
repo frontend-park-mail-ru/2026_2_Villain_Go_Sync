@@ -46,8 +46,9 @@
           type="text"
           placeholder="Введите название резюме"
           value="{{resume.title}}"
-          aria-describedby="resume-title-message"
+          aria-describedby="resume-title-counter resume-title-message"
         />
+        <p class="field__counter" id="resume-title-counter"></p>
         <p class="field__message" id="resume-title-message"></p>
       </div>
 
@@ -58,7 +59,10 @@
           id="resume-description"
           name="description"
           placeholder="Опишите ваши навыки и интересы"
+          aria-describedby="resume-description-counter resume-description-message"
         >{{resume.description}}</textarea>
+        <p class="field__counter" id="resume-description-counter"></p>
+        <p class="field__message" id="resume-description-message"></p>
       </div>
 
       <div class="edit-form__row">
@@ -69,7 +73,10 @@
             id="resume-experience"
             name="experience"
             placeholder="Опишите ваш опыт"
+            aria-describedby="resume-experience-counter resume-experience-message"
           >{{resume.experience}}</textarea>
+          <p class="field__counter" id="resume-experience-counter"></p>
+          <p class="field__message" id="resume-experience-message"></p>
         </div>
 
         <div class="field">
@@ -79,7 +86,10 @@
             id="resume-education"
             name="education"
             placeholder="Расскажите об образовании"
+            aria-describedby="resume-education-counter resume-education-message"
           >{{resume.education}}</textarea>
+          <p class="field__counter" id="resume-education-counter"></p>
+          <p class="field__message" id="resume-education-message"></p>
         </div>
       </div>
 

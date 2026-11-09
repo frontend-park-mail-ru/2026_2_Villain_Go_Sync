@@ -39,8 +39,9 @@
             placeholder="Введите название компании"
             value="{{profile.company_name}}"
             autocomplete="organization"
-            aria-describedby="profile-company-message"
+            aria-describedby="profile-company-counter profile-company-message"
           />
+          <p class="field__counter" id="profile-company-counter"></p>
           <p class="field__message" id="profile-company-message"></p>
         </div>
 
@@ -51,7 +52,10 @@
             id="profile-description"
             name="description"
             placeholder="Расскажите о компании"
+            aria-describedby="profile-description-counter profile-description-message"
           >{{profile.description}}</textarea>
+          <p class="field__counter" id="profile-description-counter"></p>
+          <p class="field__message" id="profile-description-message"></p>
         </div>
 
         <div class="field">
@@ -81,8 +85,9 @@
               placeholder="Введите имя"
               value="{{profile.first_name}}"
               autocomplete="given-name"
-              aria-describedby="profile-first-name-message"
+              aria-describedby="profile-first-name-counter profile-first-name-message"
             />
+            <p class="field__counter" id="profile-first-name-counter"></p>
             <p class="field__message" id="profile-first-name-message"></p>
           </div>
 
@@ -96,7 +101,10 @@
               placeholder="Введите фамилию"
               value="{{profile.last_name}}"
               autocomplete="family-name"
+              aria-describedby="profile-last-name-counter profile-last-name-message"
             />
+            <p class="field__counter" id="profile-last-name-counter"></p>
+            <p class="field__message" id="profile-last-name-message"></p>
           </div>
         </div>
 
@@ -122,7 +130,10 @@
             id="profile-description"
             name="description"
             placeholder="Расскажите о себе"
+            aria-describedby="profile-description-counter profile-description-message"
           >{{profile.description}}</textarea>
+          <p class="field__counter" id="profile-description-counter"></p>
+          <p class="field__message" id="profile-description-message"></p>
         </div>
       {{/if}}
 

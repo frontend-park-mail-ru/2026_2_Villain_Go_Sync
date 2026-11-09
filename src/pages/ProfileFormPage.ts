@@ -1,6 +1,6 @@
 import { mountProfileImage } from '../components/ProfileImage';
 import { mountPendingProfileImage, type PendingProfileImage } from '../components/PendingProfileImage';
-import { profileReturnPath } from '../profile-required';
+import { isProfileForUser, profileReturnPath } from '../profile-required';
 import {
   ApiError,
   getEmployer,
@@ -10,13 +10,13 @@ import {
   type Employer,
   type Seeker,
 } from '../api';
-import { setFieldError, setLoading } from '../components/form';
+import { setFieldError, setLoading, updateTextFields } from '../components/form';
 import { confirmAction } from '../components/Modal';
 import { hideToast, showToast } from '../components/toast';
 import type { Page, PageProps } from '../router';
 import type Router from '../router';
 import { getCurrentUser } from '../session';
-import { getPhoneError, normalizeWebsite, hasVisibleText } from '@hirenoon/validation';
+import { getProfileFieldError, PROFILE_FIELD_LIMITS, normalizeWebsite } from '@hirenoon/validation';
 import template from './ProfileFormPage.hbs';
 
 const SKELETON_FIELDS = 3;
@@ -96,7 +96,14 @@ export default class ProfileFormPage implements Page {
       { signal },
     );
 
-    container.addEventListener('input', (event) => setFieldError(event.target as Element, ''), { signal });
+    container.addEventListener('input', (event) => {
+      const field = event.target as Element;
+      setFieldError(field, '');
+      if (field instanceof HTMLInputElement && (field.name === 'phone' || field.name === 'website')) {
+        setFieldError(field, getProfileFieldError(field.name, field.value));
+      }
+      if (this.#form) { updateTextFields(this.#form, PROFILE_FIELD_LIMITS, getProfileFieldError, field); }
+    }, { signal });
 
     this.#load();
   }
@@ -130,7 +137,7 @@ export default class ProfileFormPage implements Page {
 
     if (!user || user.id === null || user.role === null) {
       this.#form = null;
-      this.#container.innerHTML = template({ heading, error: 'Не удалось узнать, кто вошёл в аккаунт.' });
+      this.#container.innerHTML = template({ heading, error: 'Не удалось узнать, кто вошёл в аккаунт' });
       return;
     }
 
@@ -159,9 +166,15 @@ export default class ProfileFormPage implements Page {
       profile = null;
     }
 
+    if (!isProfileForUser(profile, user.id)) { profile = null; }
     this.#container.innerHTML = template({ heading, profile, isCompany: this.#isCompany });
     this.#form = this.#container.querySelector<HTMLFormElement>('.edit-form');
     this.#initialValues = this.#snapshot();
+    updateTextFields(this.#form!, PROFILE_FIELD_LIMITS, getProfileFieldError);
+    for (const name of ['phone', 'website'] as const) {
+      const field = (this.#form!.elements as ProfileFormElements)[name];
+      if (field) { setFieldError(field, getProfileFieldError(name, field.value)); }
+    }
     const container = document.createElement('div');
     this.#form!.prepend(container);
     if (profile) {
@@ -208,22 +221,19 @@ export default class ProfileFormPage implements Page {
   #validate(): (() => Promise<void>) | null {
     const elements = this.#form!.elements as ProfileFormElements;
     const value = (field?: HTMLInputElement | HTMLTextAreaElement): string => field?.value.trim() ?? '';
-    const errors = new Map<HTMLInputElement, string>();
-    let save: () => Promise<void>;
+    let firstInvalid: HTMLInputElement | HTMLTextAreaElement | null = null;
+    for (const field of this.#form!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input:not([type="file"]), textarea')) {
+      const error = getProfileFieldError(field.name as keyof typeof PROFILE_FIELD_LIMITS | 'phone' | 'website', field.value);
+      setFieldError(field, error);
+      if (error) { firstInvalid ??= field; }
+    }
+    if (firstInvalid) { firstInvalid.focus(); return null; }
 
     if (this.#isCompany) {
       const { companyName, website } = elements as Required<ProfileFormElements>;
       const normalizedWebsite = normalizeWebsite(value(website));
 
-      if (!hasVisibleText(value(companyName))) {
-        errors.set(companyName, 'Введите название компании.');
-      }
-
-      if (normalizedWebsite === null) {
-        errors.set(website, 'Введите корректный адрес сайта.');
-      }
-
-      save = () =>
+      return () =>
         saveEmployerProfile({
           company_name: value(companyName),
           description: value(elements.description),
@@ -231,17 +241,7 @@ export default class ProfileFormPage implements Page {
         });
     } else {
       const { firstName, lastName, phone } = elements as Required<ProfileFormElements>;
-      const phoneError = getPhoneError(value(phone));
-
-      if (!hasVisibleText(value(firstName))) {
-        errors.set(firstName, 'Введите имя.');
-      }
-
-      if (phoneError) {
-        errors.set(phone, phoneError);
-      }
-
-      save = () =>
+      return () =>
         saveSeekerProfile({
           first_name: value(firstName),
           last_name: value(lastName),
@@ -249,17 +249,6 @@ export default class ProfileFormPage implements Page {
           description: value(elements.description),
         });
     }
-
-    for (const field of this.#form!.querySelectorAll<HTMLInputElement>('input:not([type="file"])')) {
-      setFieldError(field, errors.get(field) ?? '');
-    }
-
-    if (errors.size > 0) {
-      errors.keys().next().value?.focus();
-      return null;
-    }
-
-    return save;
   }
 
   /**
@@ -289,7 +278,7 @@ export default class ProfileFormPage implements Page {
       this.#initialValues = this.#snapshot();
       if (this.#pendingImage && !(await this.#pendingImage.save())) { return; }
     } catch {
-      if (!this.#isDestroyed) { showToast('Не удалось сохранить профиль. Попробуйте ещё раз.', 'error'); }
+      if (!this.#isDestroyed) { showToast('Не удалось сохранить профиль. Попробуйте ещё раз', 'error'); }
       return;
     } finally {
       this.#isSubmitting = false;

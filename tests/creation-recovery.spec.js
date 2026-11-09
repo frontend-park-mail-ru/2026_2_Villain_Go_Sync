@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
-for (const role of ['seeker', 'employer']) {
-  test(`исчезнувший профиль: восстановление черновика и создание ${role}`, async ({ page }) => {
+for (const [role, missingStatus] of [['seeker', 404], ['seeker', 200], ['employer', 404], ['employer', 200]]) {
+  test(`исчезнувший профиль (${missingStatus}): восстановление черновика и создание ${role}`, async ({ page }) => {
     const resource = role === 'seeker' ? 'resumes' : 'vacancies';
     const destination = `/${resource}/new`;
     let profileExists = true;
@@ -26,7 +26,7 @@ for (const role of ['seeker', 'employer']) {
         return route.fulfill({ json: { data: null } });
       }
       if (path === '/api/seekers/5' || path === '/api/employers/5') {
-        return route.fulfill({ status: profileExists ? 200 : 404, json: { data: profileExists ? { first_name: 'Иван', last_name: 'Петров', company_name: 'Компания', phone: '', website: '', description: '' } : null } });
+        return route.fulfill({ status: profileExists ? 200 : missingStatus, json: { data: profileExists ? { user_id: 5, first_name: 'Иван', last_name: 'Петров', company_name: 'Компания', phone: '', website: '', description: '' } : { user_id: 0, first_name: '', company_name: '' } } });
       }
       return route.fulfill({ status: 404, json: { error: 'not found' } });
     });
@@ -59,7 +59,7 @@ for (const role of ['seeker', 'employer']) {
 
 test('внешний next не перенаправляет после сохранения профиля', async ({ page }) => {
   await page.route('**/api/**', (route) => route.fulfill({ json: { data: route.request().url().endsWith('/me')
-    ? { id: 5, role: 'seeker' } : { first_name: 'Иван', last_name: '', phone: '', description: '' } } }));
+    ? { id: 5, role: 'seeker' } : { user_id: 5, first_name: 'Иван', last_name: '', phone: '', description: '' } } }));
   await page.goto('/profile/edit?next=//example.com');
   await page.locator('button[type="submit"]').click();
   await expect(page).toHaveURL('/profile');

@@ -19,7 +19,7 @@ async function setup(page, role) {
     if (path === `/api/profile/${role}`) {
       state.writes.push('profile');
       if (state.failProfile) { return route.fulfill({ status: 500, json: { error: 'failed' } }); }
-      state.profile = request.postDataJSON();
+      state.profile = { ...request.postDataJSON(), user_id: 5 };
       return route.fulfill({ json: { data: state.profile } });
     }
     if (path === `/api/me/${field}`) {
@@ -90,7 +90,7 @@ for (const role of ['seeker', 'employer']) {
     await page.locator(`[name=${required}]`).fill('Тест');
     await page.locator('input[type=file]').setInputFiles({ name: 'first.png', mimeType: 'image/png', buffer: png });
     await page.locator('button[type=submit]').click();
-    await expect(page.getByText('Не удалось сохранить профиль. Попробуйте ещё раз.')).toBeVisible();
+    await expect(page.getByText('Не удалось сохранить профиль. Попробуйте ещё раз')).toBeVisible();
     expect(state.writes).toEqual(['profile']);
     state.failProfile = false;
     await page.locator('button[type=submit]').click();

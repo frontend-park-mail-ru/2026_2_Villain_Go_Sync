@@ -132,7 +132,7 @@ export default class VacancyPage implements Page {
     }
 
     if (userId === null) {
-      showToast('Не удалось узнать, кто вошёл в аккаунт.', 'error');
+      showToast('Не удалось узнать, кто вошёл в аккаунт', 'error');
       return;
     }
 
@@ -159,7 +159,7 @@ export default class VacancyPage implements Page {
    */
   #renderNotFound(): void {
     this.#container.innerHTML = template({
-      error: { title: 'Вакансия не найдена', text: 'Возможно, её удалили или ссылка устарела.' },
+      error: { title: 'Вакансия не найдена', text: 'Возможно, её удалили или ссылка устарела' },
     });
   }
 

@@ -1,4 +1,29 @@
+import { countCharacters } from '@hirenoon/validation';
+
 const LOADING_LABEL = 'Загрузка…';
+
+/**
+ * Обновляет счётчики и ошибки текстовых полей, не обрезая ввод.
+ * @param form Форма с текстовыми полями.
+ * @param limits Лимиты по именам полей.
+ * @param validate Проверка значения поля.
+ * @param changed Изменённое поле; без него обновляются все поля формы.
+ */
+export function updateTextFields<T extends string>(
+  form: HTMLFormElement,
+  limits: Readonly<Record<T, number>>,
+  validate: (name: NoInfer<T>, value: string) => string,
+  changed?: Element,
+): void {
+  for (const field of form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input:not([type="file"]), textarea')) {
+    const name = field.name as T;
+    const limit = limits[name];
+    if (typeof limit !== 'number' || (changed && changed !== field)) { continue; }
+    const counter = field.closest('.field')?.querySelector<HTMLElement>('.field__counter');
+    if (counter) { counter.textContent = `${countCharacters(field.value)} / ${limit} символов`; }
+    setFieldError(field, field.value || changed ? validate(name, field.value) : '');
+  }
+}
 
 /**
  * Показывает ошибку под полем или возвращает исходную подсказку.

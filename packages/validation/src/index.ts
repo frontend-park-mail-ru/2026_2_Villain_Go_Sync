@@ -40,6 +40,85 @@ export function hasVisibleText(value: string): boolean {
   return value.replace(/[\s\p{Cf}]/gu, '').length > 0;
 }
 
+export const MAX_VACANCY_TITLE_LENGTH = 100;
+export const MAX_VACANCY_DESCRIPTION_LENGTH = 10_000;
+
+export const RESUME_FIELD_LIMITS = { title: 100, description: 10_000, experience: 5000, education: 2000 } as const;
+export const PROFILE_FIELD_LIMITS = {
+  firstName: 100, lastName: 100, companyName: 200, description: 10_000,
+} as const;
+
+const RESUME_FIELD_LABELS = { title: 'название', description: 'описание', experience: 'опыт', education: 'образование' } as const;
+const PROFILE_FIELD_LABELS = {
+  firstName: 'имя', lastName: 'фамилию', companyName: 'название компании', description: 'описание',
+} as const;
+
+/**
+ * Считает символы Unicode, считая эмодзи вне BMP одним символом.
+ * @param value Текст поля.
+ * @returns Количество кодовых точек Unicode.
+ */
+export function countCharacters(value: string): number {
+  return Array.from(value).length;
+}
+
+/**
+ * Проверяет длину поля и формирует сообщение с его названием.
+ * @param value Текст поля.
+ * @param limit Максимальное количество символов.
+ * @param label Название поля в винительном падеже.
+ * @returns Текст ошибки или пустая строка.
+ */
+function getLengthError(value: string, limit: number, label: string): string {
+  return countCharacters(value) > limit ? `Сократите ${label} до ${limit.toLocaleString('ru-RU').replace(/\s/g, ' ')} символов` : '';
+}
+
+/**
+ * Проверяет поле резюме, включая обязательность названия.
+ * @param name Имя поля формы.
+ * @param value Значение поля до обрезки пробелов.
+ * @returns Текст ошибки или пустая строка.
+ */
+export function getResumeFieldError(name: keyof typeof RESUME_FIELD_LIMITS, value: string): string {
+  if (name === 'title' && !hasVisibleText(value)) { return 'Введите название резюме'; }
+  return getLengthError(value, RESUME_FIELD_LIMITS[name], RESUME_FIELD_LABELS[name]);
+}
+
+/**
+ * Проверяет длину, обязательность и формат поля профиля.
+ * @param name Имя поля формы.
+ * @param value Значение поля до обрезки пробелов.
+ * @returns Текст ошибки или пустая строка.
+ */
+export function getProfileFieldError(name: keyof typeof PROFILE_FIELD_LIMITS | 'phone' | 'website', value: string): string {
+  if (name === 'phone') { return getPhoneError(value); }
+  if (name === 'website') { return getWebsiteError(value); }
+  if (name === 'firstName' && !hasVisibleText(value)) { return 'Введите имя'; }
+  if (name === 'companyName' && !hasVisibleText(value)) { return 'Введите название компании'; }
+  const lengthError = getLengthError(value, PROFILE_FIELD_LIMITS[name], PROFILE_FIELD_LABELS[name]);
+  if (lengthError) { return lengthError; }
+  return '';
+}
+
+/**
+ * Проверяет обязательное название вакансии и его длину.
+ * @param value Название вакансии.
+ * @returns Сообщение об ошибке или пустая строка.
+ */
+export function getVacancyTitleError(value: string): string {
+  if (!hasVisibleText(value)) { return 'Введите название вакансии'; }
+  return getLengthError(value, MAX_VACANCY_TITLE_LENGTH, 'название');
+}
+
+/**
+ * Проверяет длину необязательного описания вакансии.
+ * @param value Описание вакансии.
+ * @returns Сообщение об ошибке или пустая строка.
+ */
+export function getVacancyDescriptionError(value: string): string {
+  return getLengthError(value, MAX_VACANCY_DESCRIPTION_LENGTH, 'описание');
+}
+
 export const MAX_COVER_LETTER_LENGTH = 10_000;
 
 /**
@@ -49,7 +128,7 @@ export const MAX_COVER_LETTER_LENGTH = 10_000;
  */
 export function getProfileImageError(file: File): string {
   return !['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size === 0 || file.size > 10 * 1024 * 1024
-    ? 'Выберите PNG, JPEG или WebP размером от 1 байта до 10 МБ.' : '';
+    ? 'Выберите PNG, JPEG или WebP размером от 1 байта до 10 МБ' : '';
 }
 
 /**
@@ -58,7 +137,7 @@ export function getProfileImageError(file: File): string {
  * @returns Сообщение об ошибке или пустая строка.
  */
 export function getCoverLetterError(value: string): string {
-  return value.length > MAX_COVER_LETTER_LENGTH ? 'Сократите письмо до 10 000 символов.' : '';
+  return value.length > MAX_COVER_LETTER_LENGTH ? 'Сократите письмо до 10 000 символов' : '';
 }
 
 /**
@@ -82,18 +161,33 @@ export function getPasswordError(password: string): string {
 const PHONE_CHARS_PATTERN = /^\+?[\d\s()-]+$/;
 const MIN_PHONE_DIGITS = 10;
 const MAX_PHONE_DIGITS = 15;
+const MAX_PHONE_LENGTH = 30;
 
 /**
- * Проверяет телефон: цифры, пробелы, скобки, дефисы и плюс в начале.
+ * Проверяет формат телефона, количество цифр и общую длину строки с разделителями.
  * @param phone Телефон; пустой допускается.
  * @returns Текст ошибки или пустая строка, если телефон подходит.
  */
 export function getPhoneError(phone: string): string {
-  const digits = phone.replace(/\D/g, '').length;
+  if (phone.length > MAX_PHONE_LENGTH) { return 'Введите корректный номер телефона'; }
+  const normalized = phone.trim();
+  const digits = normalized.replace(/\D/g, '').length;
   const isValid =
-    !phone || (PHONE_CHARS_PATTERN.test(phone) && digits >= MIN_PHONE_DIGITS && digits <= MAX_PHONE_DIGITS);
+    !normalized || (PHONE_CHARS_PATTERN.test(normalized) && digits >= MIN_PHONE_DIGITS && digits <= MAX_PHONE_DIGITS);
 
-  return isValid ? '' : 'Введите корректный номер телефона.';
+  return isValid ? '' : 'Введите корректный номер телефона';
+}
+
+const MAX_WEBSITE_LENGTH = 255;
+
+/**
+ * Проверяет формат и длину адреса сайта; пустой адрес допускается.
+ * @param website Адрес из поля формы.
+ * @returns Текст ошибки или пустая строка.
+ */
+export function getWebsiteError(website: string): string {
+  return countCharacters(website) > MAX_WEBSITE_LENGTH || normalizeWebsite(website.trim()) === null
+    ? 'Введите корректный адрес сайта' : '';
 }
 
 /**
@@ -107,6 +201,7 @@ export function normalizeWebsite(website: string): string | null {
   }
 
   const withProtocol = /^[a-z][a-z\d+.-]*:/i.test(website) ? website : `https://${website}`;
+  if (countCharacters(withProtocol) > MAX_WEBSITE_LENGTH) { return null; }
 
   try {
     const url = new URL(withProtocol);

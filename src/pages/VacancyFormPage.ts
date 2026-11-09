@@ -1,8 +1,13 @@
-import { hasVisibleText } from '@hirenoon/validation';
+import {
+  getVacancyTitleError,
+  getVacancyDescriptionError,
+  MAX_VACANCY_TITLE_LENGTH,
+  MAX_VACANCY_DESCRIPTION_LENGTH,
+} from '@hirenoon/validation';
 import { saveCreationDraft, restoreCreationDraft, clearCreationDraft } from '../components/creation-draft';
 import { hasRequiredProfile, showMissingProfile } from '../profile-required';
 import { ApiError, createVacancy, getVacancy, updateVacancy, type Currency, type VacancyFields } from '../api';
-import { setFieldError, setLoading } from '../components/form';
+import { setFieldError, setLoading, updateTextFields } from '../components/form';
 import { confirmAction } from '../components/Modal';
 import { hideToast, showToast } from '../components/toast';
 import type { Page, PageProps } from '../router';
@@ -12,6 +17,7 @@ import template from './VacancyFormPage.hbs';
 
 const SKELETON_FIELDS = 3;
 const MAX_SALARY = 9_999_999_999;
+const TEXT_FIELD_LIMITS = { title: MAX_VACANCY_TITLE_LENGTH, description: MAX_VACANCY_DESCRIPTION_LENGTH };
 
 const CURRENCIES: { code: Currency; label: string }[] = [
   { code: 'RUB', label: 'RUB ₽' },
@@ -52,12 +58,12 @@ function parseSalary(value: string): number | null | { error: string } {
 
   // Копейки в зарплате не указывают, а в карточках сумма всё равно округляется до рублей.
   if (!/^\d+$/.test(normalized)) {
-    return { error: 'Введите сумму целым числом.' };
+    return { error: 'Введите сумму целым числом' };
   }
 
   const salary = Number(normalized);
 
-  return salary > MAX_SALARY ? { error: 'Слишком большая сумма.' } : salary;
+  return salary > MAX_SALARY ? { error: 'Слишком большая сумма' } : salary;
 }
 
 /**
@@ -120,7 +126,11 @@ export default class VacancyFormPage implements Page {
       { signal },
     );
 
-    container.addEventListener('input', (event) => setFieldError(event.target as Element, ''), { signal });
+    container.addEventListener('input', (event) => {
+      const field = event.target as HTMLInputElement | HTMLTextAreaElement;
+      setFieldError(field, '');
+      if (this.#form) { this.#updateTextFields(field); }
+    }, { signal });
 
     // Правильную сумму после ввода показываем с пробелами между разрядами.
     container.addEventListener(
@@ -247,6 +257,15 @@ export default class VacancyFormPage implements Page {
     this.#form = this.#container.querySelector<HTMLFormElement>('.edit-form');
     this.#initialValues = this.#snapshot();
     if (this.#id === null) { restoreCreationDraft('/vacancies/new', this.#form!); }
+    this.#updateTextFields();
+  }
+
+  /**
+   * Обновляет счётчики и ошибки длины, сохраняя весь введённый текст.
+   * @param changed Изменённое поле; без него обновляется вся форма.
+   */
+  #updateTextFields(changed?: Element): void {
+    updateTextFields(this.#form!, TEXT_FIELD_LIMITS, (name, value) => name === 'title' ? getVacancyTitleError(value) : getVacancyDescriptionError(value), changed);
   }
 
   /**
@@ -255,7 +274,7 @@ export default class VacancyFormPage implements Page {
   #renderNotFound(): void {
     this.#form = null;
     this.#container.innerHTML = template({
-      error: { title: 'Вакансия не найдена', text: 'Возможно, её удалили или ссылка устарела.' },
+      error: { title: 'Вакансия не найдена', text: 'Возможно, её удалили или ссылка устарела' },
     });
   }
 
@@ -305,7 +324,7 @@ export default class VacancyFormPage implements Page {
   #completeProfile(): void {
     if (!this.#form || this.#isSubmitting) { return; }
     if (!saveCreationDraft('/vacancies/new', this.#form)) {
-      showToast('Не удалось сохранить черновик. Скопируйте текст перед переходом к профилю.', 'error');
+      showToast('Не удалось сохранить черновик. Скопируйте текст перед переходом к профилю', 'error');
       return;
     }
     this.#router.navigate('/profile/edit?next=/vacancies/new', { force: true });
@@ -319,11 +338,12 @@ export default class VacancyFormPage implements Page {
     const { title, description, salaryFrom, salaryTo, currency } = this.#form!.elements as VacancyFormElements;
     const from = parseSalary(salaryFrom.value);
     const to = parseSalary(salaryTo.value);
-    const errors = new Map<HTMLInputElement, string>();
+    const errors = new Map<HTMLInputElement | HTMLTextAreaElement, string>();
 
-    if (!hasVisibleText(title.value)) {
-      errors.set(title, 'Введите название вакансии.');
-    }
+    const titleError = getVacancyTitleError(title.value);
+    const descriptionError = getVacancyDescriptionError(description.value);
+    if (titleError) { errors.set(title, titleError); }
+    if (descriptionError) { errors.set(description, descriptionError); }
 
     if (typeof from === 'object' && from !== null) {
       errors.set(salaryFrom, from.error);
@@ -332,10 +352,10 @@ export default class VacancyFormPage implements Page {
     if (typeof to === 'object' && to !== null) {
       errors.set(salaryTo, to.error);
     } else if (typeof from === 'number' && typeof to === 'number' && to < from) {
-      errors.set(salaryTo, 'Зарплата до не может быть меньше зарплаты от.');
+      errors.set(salaryTo, 'Зарплата до не может быть меньше зарплаты от');
     }
 
-    for (const field of [title, salaryFrom, salaryTo]) {
+    for (const field of [title, description, salaryFrom, salaryTo]) {
       setFieldError(field, errors.get(field) ?? '');
     }
 
@@ -407,11 +427,11 @@ export default class VacancyFormPage implements Page {
   #getSubmitError(error: unknown): string {
     // Без заполненного профиля компании бэкенд не даёт создавать вакансии.
     if (this.#id === null && error instanceof ApiError && error.status === 403) {
-      return 'Создавать вакансии может только работодатель с заполненным профилем компании.';
+      return 'Создавать вакансии может только работодатель с заполненным профилем компании';
     }
 
     const action = this.#id === null ? 'создать' : 'сохранить';
 
-    return `Не удалось ${action} вакансию. Попробуйте ещё раз.`;
+    return `Не удалось ${action} вакансию. Попробуйте ещё раз`;
   }
 }

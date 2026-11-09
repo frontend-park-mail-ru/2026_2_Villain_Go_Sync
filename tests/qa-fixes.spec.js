@@ -25,7 +25,7 @@ async function fixture(page, role = 'seeker') {
     }
     let data = [];
     if (path.startsWith('/api/seekers/') || path.startsWith('/api/employers/')) {
-      data = { first_name: 'Иван', last_name: 'Петров', phone: '', website: 'https://example.com', company_name: state.company, description: '' };
+      data = { user_id: Number(path.split('/')[3]), first_name: 'Иван', last_name: 'Петров', phone: '', website: 'https://example.com', company_name: state.company, description: '' };
     } else if (path === '/api/vacancies/1') {
       data = { id: 1, employer_id: 4, company_name: state.company, title: state.title, description: state.title, salary_from: state.salaryFrom, salary_to: state.salaryTo, currency: 'RUB' };
     } else if (path === '/api/resumes') { data = [{ id: 1, seeker_id: 5, title: state.title }]; }
@@ -143,7 +143,7 @@ test('ошибка сервера при refresh не уничтожает со�
   state.refreshStatus = 500;
   await page.route('**/api/profile/seeker', (route) => route.fulfill({ status: 401, json: { error: 'unauthorized' } }));
   await page.locator('button[type=submit]').click();
-  await expect(page.getByText('Не удалось сохранить профиль. Попробуйте ещё раз.')).toBeVisible();
+  await expect(page.getByText('Не удалось сохранить профиль. Попробуйте ещё раз')).toBeVisible();
   await expect(page).toHaveURL('/profile/edit');
   await expect(page.locator('[name=firstName]')).toHaveValue('Новое имя');
   await expect(page.locator('.header__avatar')).toBeVisible();
@@ -210,7 +210,7 @@ test('слишком большое письмо остаётся в форме 
   await page.locator('[name=coverLetter]').fill('Я'.repeat(10001));
   await page.getByRole('dialog').getByRole('button', { name: 'Откликнуться', exact: true }).click();
   await expect(page.locator('[name=coverLetter]')).toHaveAttribute('aria-invalid', 'true');
-  await expect(page.getByText('Сократите письмо до 10 000 символов.')).toBeVisible();
+  await expect(page.getByText('Сократите письмо до 10 000 символов')).toBeVisible();
   expect(state.requests.some((request) => request.path.endsWith('/applications'))).toBe(false);
   await page.locator('[name=coverLetter]').fill('Я'.repeat(10000));
   await page.getByRole('dialog').getByRole('button', { name: 'Откликнуться', exact: true }).click();

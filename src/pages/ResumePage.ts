@@ -115,7 +115,7 @@ export default class ResumePage implements Page {
    */
   #renderNotFound(): void {
     this.#container.innerHTML = template({
-      error: { title: 'Резюме не найдено', text: 'Возможно, его удалили или ссылка устарела.' },
+      error: { title: 'Резюме не найдено', text: 'Возможно, его удалили или ссылка устарела' },
     });
   }
 

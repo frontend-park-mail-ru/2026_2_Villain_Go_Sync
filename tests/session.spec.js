@@ -13,7 +13,7 @@ for (const failure of [null, 'expired', 'csrf', 'forbidden']) {
       let status = 200;
       let body = { data: [] };
       if (path === '/api/me') {body = { data: { id: 5, role: 'seeker' } };}
-      if (path === '/api/seekers/5') {body = { data: { first_name: 'Иван', last_name: '', phone: '', description: '' } };}
+      if (path === '/api/seekers/5') {body = { data: { user_id: 5, first_name: 'Иван', last_name: '', phone: '', description: '' } };}
       if (path === '/api/refresh') {
         refreshes++;
         await context.addCookies([{ name: 'csrf_token', value: 'new-token', url: 'http://localhost:8001' }]);
@@ -33,7 +33,7 @@ for (const failure of [null, 'expired', 'csrf', 'forbidden']) {
     await page.locator('[name="firstName"]').fill('Пётр');
     await page.locator('button[type="submit"]').click();
     if (failure === 'forbidden') {
-      await expect(page.getByText('Не удалось сохранить профиль. Попробуйте ещё раз.')).toBeVisible();
+      await expect(page.getByText('Не удалось сохранить профиль. Попробуйте ещё раз')).toBeVisible();
     } else {
       await expect(page).toHaveURL('/profile');
     }
