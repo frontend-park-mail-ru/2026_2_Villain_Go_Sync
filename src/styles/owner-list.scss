@@ -1,0 +1,93 @@
+// Страница со своими записями — резюме или вакансиями: заголовок с кнопкой создания, поиск, список и пустое состояние.
+.owner-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 16px;
+
+  &__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+  }
+
+  &__create {
+    flex: none;
+    --icon: url('/images/plus.svg');
+  }
+
+  &__search {
+    display: flex;
+    gap: 8px;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  &__search-input {
+    width: 320px;
+    min-width: 0;
+  }
+
+  &__search-button {
+    flex: none;
+    --icon: url('/images/search.svg');
+  }
+
+  &__search-skeleton {
+    width: 320px;
+    max-width: 100%;
+    height: 48px;
+    border-radius: var(--radius);
+  }
+
+  &__search-loading {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__search-button-skeleton {
+    flex: none;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius);
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  // Без строки поиска пустое состояние отстоит от заголовка на 24px, как в макете.
+  &__empty {
+    gap: 24px;
+    margin-top: 16px;
+  }
+
+  &__empty-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__empty-button {
+    width: 240px;
+    max-width: 100%;
+  }
+}

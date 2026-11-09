@@ -1,0 +1,58 @@
+<dialog class="modal modal_wide" aria-labelledby="application-title">
+  <div class="modal__content">
+    <h2 class="modal__title" id="application-title">Откликнуться на вакансию</h2>
+
+    {{#if resumes.length}}
+      <form class="application" method="dialog" novalidate>
+        {{#if single}}
+          <div class="application__group">
+            <p class="field__label application__label">Резюме</p>
+            <p class="application__single">{{single.title}}</p>
+            <input type="hidden" name="resume" value="{{single.id}}" />
+            <p class="application__hint">Единственное резюме выбрано автоматически.</p>
+          </div>
+        {{else}}
+          <fieldset class="application__group" aria-describedby="application-resume-hint">
+            <legend class="field__label application__legend">Резюме</legend>
+            <div class="application__options">
+              {{#each resumes}}
+                <label class="application__option">
+                  <input class="application__radio" type="radio" name="resume" value="{{id}}" />
+                  <span class="application__option-title">{{title}}</span>
+                </label>
+              {{/each}}
+            </div>
+            <p class="application__hint" id="application-resume-hint">Выберите одно из ваших резюме.</p>
+          </fieldset>
+        {{/if}}
+
+        <div class="field">
+          <label class="field__label" for="application-letter">Сопроводительное письмо</label>
+          <textarea
+            class="field__input field__textarea"
+            id="application-letter"
+            name="coverLetter"
+            aria-describedby="application-letter-message"
+            placeholder="Напишите сопроводительное письмо"
+          ></textarea>
+          <p class="field__message" id="application-letter-message">Необязательно. Не более 10 000 символов.</p>
+        </div>
+
+        <div class="modal__actions">
+          <button class="button button_outline modal__button" type="button" data-result="cancel">Отмена</button>
+          <button class="button button_secondary application__submit" type="submit">Откликнуться</button>
+        </div>
+      </form>
+    {{else}}
+      <div class="modal__body application__empty">
+        <p class="application__empty-title">У вас нет резюме</p>
+        <p class="modal__text">Создайте резюме, чтобы откликнуться на вакансию.</p>
+      </div>
+      <div class="modal__actions">
+        <button class="button button_outline modal__button" type="button" data-result="cancel">Отмена</button>
+        <a class="button button_secondary application__create" href="/resumes/new" data-result="cancel">Создать резюме</a>
+      </div>
+    {{/if}}
+  </div>
+  <button class="modal__close" type="button" data-result="cancel" aria-label="Закрыть">×</button>
+</dialog>

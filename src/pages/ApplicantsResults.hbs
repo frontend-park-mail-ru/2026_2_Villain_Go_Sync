@@ -1,0 +1,77 @@
+{{#if isLoading}}
+  <div class="applicants__search-loading" aria-hidden="true">
+    <div class="skeleton applicants__search-skeleton"></div>
+    <div class="skeleton applicants__search-button-skeleton"></div>
+  </div>
+  <div class="card-grid" aria-hidden="true">
+    {{#each skeletons}}
+      <div class="applicant-card applicant-card_skeleton">
+        <div class="applicant-card__summary">
+          <div class="skeleton applicant-card__skeleton-name"></div>
+          <div class="skeleton applicant-card__skeleton-line"></div>
+          <div class="skeleton applicant-card__skeleton-line applicant-card__skeleton-line_short"></div>
+          <div class="applicant-card__meta">
+            <div class="skeleton applicant-card__skeleton-date"></div>
+            <div class="skeleton applicant-card__skeleton-status"></div>
+          </div>
+        </div>
+        <div class="skeleton applicant-card__skeleton-button"></div>
+      </div>
+    {{/each}}
+  </div>
+{{else if error}}
+  <div class="empty-state">
+    <h2 class="empty-state__title">Не удалось загрузить отклики</h2>
+    <p class="empty-state__text">{{error}}</p>
+    <button class="button button_secondary empty-state__button" type="button" data-action="retry">
+      Повторить
+    </button>
+  </div>
+{{else if applicants}}
+  <div class="applicants__list">
+    <div class="card-grid">
+      {{#each applicants}}
+        <article class="applicant-card">
+          <div class="applicant-card__summary">
+            <div class="applicant-card__meta">
+              <span class="applicant-card__status applicant-card__status_{{status.type}}">{{status.label}}</span>
+              {{#if date}}
+                <span class="applicant-card__date">Отклик: {{date}}</span>
+              {{/if}}
+            </div>
+            <div class="applicant-card__identity">
+              <span class="applicant-card__avatar" data-image-user="{{seekerId}}" data-image-role="seeker" aria-hidden="true">{{initials}}</span>
+              <h2 class="applicant-card__name">{{name}}</h2>
+            </div>
+            <div class="applicant-card__details">
+              <p class="applicant-card__detail">Вакансия: {{vacancy}}</p>
+              <p class="applicant-card__detail">Резюме: {{resume}}</p>
+            </div>
+          </div>
+          {{#if coverLetter}}
+            <details class="applicant-card__letter">
+              <summary>Сопроводительное письмо</summary>
+              <p>{{coverLetter}}</p>
+            </details>
+          {{/if}}
+          <a class="button button_secondary applicant-card__button" href="/resumes/{{resumeId}}">Смотреть резюме</a>
+        </article>
+      {{/each}}
+    </div>
+    {{! Разметку пагинации собирает компонент из номеров страниц, поэтому вставка без экранирования безопасна. }}
+    {{{pagination}}}
+  </div>
+{{else if hasQuery}}
+  <div class="empty-state">
+    <h2 class="empty-state__title">По вашему запросу ничего не найдено</h2>
+    <p class="empty-state__text">Попробуйте изменить запрос.</p>
+    <button class="button button_secondary empty-state__button" type="button" data-action="reset">
+      Сбросить поиск
+    </button>
+  </div>
+{{else}}
+  <div class="empty-state applicants__empty">
+    <h2 class="empty-state__title">Пока нет откликов</h2>
+    <p class="empty-state__text">Когда соискатели откликнутся на ваши вакансии, они появятся здесь.</p>
+  </div>
+{{/if}}

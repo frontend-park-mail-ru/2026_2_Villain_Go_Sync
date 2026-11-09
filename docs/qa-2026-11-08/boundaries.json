@@ -1,0 +1,290 @@
+[
+  {
+    "name": "long data 320 / employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 320 /profile seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 320 /profile/edit seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 320 /profile/edit employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 320 /vacancies/new employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 320 /resumes/new seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 320 /vacancies/1 seeker",
+    "status": "FAIL",
+    "message": "{\"width\":320,\"scroll\":9492,\"items\":[\"button button_secondary detail__heading-button\",\"detail__subtitle\"]}",
+    "shot": "test-results/qa/boundary-7.png"
+  },
+  {
+    "name": "long data 320 /resumes/1 seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 320 /applicants employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 320 /login null",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 320 /register null",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 375 / employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 375 /profile seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 375 /profile/edit seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 375 /profile/edit employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 375 /vacancies/new employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 375 /resumes/new seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 375 /vacancies/1 seeker",
+    "status": "FAIL",
+    "message": "{\"width\":375,\"scroll\":9492,\"items\":[\"detail__subtitle\"]}",
+    "shot": "test-results/qa/boundary-18.png"
+  },
+  {
+    "name": "long data 375 /resumes/1 seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 375 /applicants employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 375 /login null",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 375 /register null",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 768 / employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 768 /profile seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 768 /profile/edit seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 768 /profile/edit employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 768 /vacancies/new employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 768 /resumes/new seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 768 /vacancies/1 seeker",
+    "status": "FAIL",
+    "message": "{\"width\":768,\"scroll\":9492,\"items\":[\"detail__subtitle\"]}",
+    "shot": "test-results/qa/boundary-29.png"
+  },
+  {
+    "name": "long data 768 /resumes/1 seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 768 /applicants employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 768 /login null",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 768 /register null",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1024 / employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1024 /profile seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1024 /profile/edit seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1024 /profile/edit employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1024 /vacancies/new employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1024 /resumes/new seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1024 /vacancies/1 seeker",
+    "status": "FAIL",
+    "message": "{\"width\":1024,\"scroll\":9532,\"items\":[\"detail__subtitle\"]}",
+    "shot": "test-results/qa/boundary-40.png"
+  },
+  {
+    "name": "long data 1024 /resumes/1 seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1024 /applicants employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1024 /login null",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1024 /register null",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1440 / employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1440 /profile seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1440 /profile/edit seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1440 /profile/edit employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1440 /vacancies/new employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1440 /resumes/new seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1440 /vacancies/1 seeker",
+    "status": "FAIL",
+    "message": "{\"width\":1440,\"scroll\":9532,\"items\":[\"detail__subtitle\"]}",
+    "shot": "test-results/qa/boundary-51.png"
+  },
+  {
+    "name": "long data 1440 /resumes/1 seeker",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1440 /applicants employer",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1440 /login null",
+    "status": "PASS"
+  },
+  {
+    "name": "long data 1440 /register null",
+    "status": "PASS"
+  },
+  {
+    "name": "me 500 shows retry instead of guest",
+    "status": "FAIL",
+    "message": "При сбое /me страница перенаправлена на login",
+    "shot": "test-results/qa/boundary-56.png"
+  },
+  {
+    "name": "me offline shows retry instead of guest",
+    "status": "FAIL",
+    "message": "При сбое /me страница перенаправлена на login",
+    "shot": "test-results/qa/boundary-57.png"
+  },
+  {
+    "name": "expired refresh clears user",
+    "status": "PASS"
+  },
+  {
+    "name": "shared refresh for simultaneous requests",
+    "status": "PASS"
+  },
+  {
+    "name": "profile form textarea error aria",
+    "status": "PASS"
+  },
+  {
+    "name": "image validation empty",
+    "status": "PASS"
+  },
+  {
+    "name": "image validation wrong-type",
+    "status": "PASS"
+  },
+  {
+    "name": "image validation over-limit",
+    "status": "PASS"
+  },
+  {
+    "name": "image upload error keeps text fields",
+    "status": "PASS"
+  },
+  {
+    "name": "SPA back closes confirmation without delete",
+    "status": "PASS"
+  },
+  {
+    "name": "changed fields retained after submit 500",
+    "status": "PASS"
+  },
+  {
+    "name": "submit repeated while pending only one POST",
+    "status": "PASS"
+  },
+  {
+    "name": "unknown status displayed distinctly",
+    "status": "FAIL",
+    "message": "expect(locator).not.toHaveText(expected) failed\n\nLocator:  locator('.applicant-card__status')\nExpected: not \"Новый\"\nReceived: \"Новый\"\nTimeout:  5000ms\n\nCall log:\n  - Expect \"not toHaveText\" locator('.applicant-card__status') with timeout 5000ms\n  - waiting for locator('.applicant-card__status')\n    14 × locator resolved to <span class=\"applicant-card__status applicant-card__status_new\">Новый</span>\n       - unexpected value \"Новый\"\n",
+    "shot": "test-results/qa/boundary-68.png"
+  }
+]

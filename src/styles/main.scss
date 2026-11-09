@@ -1,0 +1,91 @@
+@use 'mixins' as *;
+@use 'fonts';
+@use 'ui';
+@use '../components/Header';
+@use '../components/ApplicationDialog';
+@use '../pages/AuthPage';
+@use '../pages/VacanciesPage';
+@use '../pages/ResumesPage';
+@use '../pages/VacancyFormPage';
+@use '../pages/ProfilePage';
+@use '../pages/ApplicantsPage';
+@use 'detail';
+@use 'owner-list';
+@use 'edit-form';
+
+:root {
+  --content-width: 1440px;
+  --page-padding: 48px;
+
+  --color-bg: #fff7f2;
+  --color-surface: #fffcfa;
+  --color-surface-hover: #f9eae2;
+  --color-border: #e3d8d5;
+  --color-text: #2d2324;
+  --color-text-muted: #6a6063;
+  --color-text-disabled: #91878a;
+  --color-text-on-color: #fff9f7;
+  --color-primary: #c14a3b;
+  --color-primary-hover: #a83b32;
+  --color-accent: #247a78;
+  --color-accent-hover: #1b605f;
+  --color-accent-soft: #e6f4f2;
+  --color-danger: #b4232c;
+  --color-danger-soft: #efd7d1;
+  --color-warning: #a9460b;
+  --color-success: #137a52;
+  --color-skeleton: #e3d8d5;
+
+  --radius: 12px;
+  --radius-small: 8px;
+
+  @include mobile {
+    --page-padding: 16px;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 22px;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.page {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 var(--page-padding) var(--page-padding);
+}
+
+.page-stub {
+  padding-top: 16px;
+
+  &__title {
+    margin: 0 0 4px;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+  }
+
+  &__text {
+    margin: 0;
+    color: var(--color-text-muted);
+  }
+}

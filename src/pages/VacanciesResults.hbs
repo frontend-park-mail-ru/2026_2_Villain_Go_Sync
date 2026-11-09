@@ -1,0 +1,69 @@
+{{#if isLoading}}
+  <div class="card-grid">
+    {{#each skeletons}}
+      <div class="vacancy-card vacancy-card_skeleton" aria-hidden="true">
+        <div class="skeleton vacancy-card__skeleton-title"></div>
+        <div class="skeleton vacancy-card__skeleton-company"></div>
+        <div class="skeleton vacancy-card__skeleton-date"></div>
+        <div class="vacancy-card__tags">
+          <div class="skeleton vacancy-card__skeleton-tag"></div>
+          <div class="skeleton vacancy-card__skeleton-tag"></div>
+          <div class="skeleton vacancy-card__skeleton-tag"></div>
+        </div>
+        <div class="vacancy-card__footer">
+          <div class="skeleton vacancy-card__skeleton-salary"></div>
+          <div class="skeleton vacancy-card__skeleton-button"></div>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+{{else if error}}
+  <div class="empty-state">
+    <h2 class="empty-state__title">Не удалось загрузить вакансии</h2>
+    <p class="empty-state__text">{{error}}</p>
+    <button class="button button_secondary empty-state__button" type="button" data-action="retry">
+      Повторить
+    </button>
+  </div>
+{{else if vacancies}}
+  <div class="card-grid">
+    {{#each vacancies}}
+      <article class="vacancy-card">
+        {{#if company}}
+          <div class="vacancy-card__company">
+            <span class="vacancy-card__logo" data-image-user="{{employerId}}" aria-hidden="true">{{company}}</span>
+            <span class="vacancy-card__company-name">{{company}}</span>
+          </div>
+        {{/if}}
+        <h2 class="vacancy-card__title">{{title}}</h2>
+        <p class="vacancy-card__date">{{published}}</p>
+        {{#if tags.length}}
+          <div class="vacancy-card__tags">
+            {{#each tags}}
+              <span class="chip">{{this}}</span>
+            {{/each}}
+          </div>
+        {{/if}}
+        <div class="vacancy-card__footer">
+          <p class="vacancy-card__salary{{#unless hasSalary}} vacancy-card__salary_empty{{/unless}}">{{salary}}</p>
+          <a class="button button_secondary vacancy-card__button" href="/vacancies/{{id}}">Смотреть вакансию</a>
+        </div>
+      </article>
+    {{/each}}
+  </div>
+  {{! Разметку пагинации собирает компонент из номеров страниц, поэтому вставка без экранирования безопасна. }}
+  {{{pagination}}}
+{{else if hasQuery}}
+  <div class="empty-state">
+    <h2 class="empty-state__title">По вашему запросу ничего не найдено</h2>
+    <p class="empty-state__text">Попробуйте изменить запрос или сбросить выбранные фильтры.</p>
+    <button class="button button_secondary empty-state__button" type="button" data-action="reset">
+      Сбросить поиск и фильтры
+    </button>
+  </div>
+{{else}}
+  <div class="empty-state">
+    <h2 class="empty-state__title">Вакансий пока нет</h2>
+    <p class="empty-state__text">Загляните позже — здесь появятся новые предложения.</p>
+  </div>
+{{/if}}

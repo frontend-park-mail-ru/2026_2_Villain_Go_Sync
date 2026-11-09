@@ -1,0 +1,63 @@
+<section class="auth">
+  <div class="auth__hero">
+    <div class="auth__hero-accent">
+      <img class="auth__hero-image" src="/images/sunrise.svg" alt="" width="121" height="64" />
+    </div>
+    <p class="auth__hero-title">HireNoon —</p>
+    <p class="auth__hero-slogan">самое время</p>
+    <p class="auth__hero-text">найти работу.</p>
+  </div>
+
+  <div class="auth__card auth__card_compact">
+    <h1 class="auth__title">Создать аккаунт</h1>
+    <p class="auth__subtitle">Зарегистрируйтесь, чтобы начать.</p>
+
+    <form class="auth__form" novalidate>
+      <div class="chips" role="radiogroup" aria-label="Кто вы">
+        <input class="chip__control" id="register-role-seeker" name="role" type="radio" value="seeker" />
+        <label class="chip" for="register-role-seeker">Ищу работу</label>
+        <input class="chip__control" id="register-role-employer" name="role" type="radio" value="employer" />
+        <label class="chip" for="register-role-employer">Ищу сотрудников</label>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="register-email">Электронная почта</label>
+        <input
+          class="field__input"
+          id="register-email"
+          name="email"
+          type="email"
+          placeholder="name@example.com"
+          autocomplete="email"
+        />
+        <p class="field__message"></p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="register-password">Пароль</label>
+        <div class="field__control">
+          <input
+            class="field__input"
+            id="register-password"
+            name="password"
+            type="password"
+            placeholder="Введите пароль"
+            autocomplete="new-password"
+          />
+          <button
+            class="field__toggle"
+            type="button"
+            aria-label="Показать пароль"
+            aria-controls="register-password"
+            aria-pressed="false"
+          ></button>
+        </div>
+        <p class="field__message">8–72 символа, латинские A–Z, a–z и цифра</p>
+      </div>
+
+      <button class="button" type="submit">Создать аккаунт</button>
+    </form>
+
+    <p class="auth__footer">Уже есть аккаунт? <a href="/login">Войти</a></p>
+  </div>
+</section>

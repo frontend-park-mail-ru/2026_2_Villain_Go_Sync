@@ -1,0 +1,65 @@
+{{#if isLoading}}
+  <div class="skeleton owner-list__search-skeleton" aria-hidden="true"></div>
+  <div class="card-grid" aria-hidden="true">
+    {{#each skeletons}}
+      <div class="resume-card resume-card_skeleton">
+        <div class="resume-card__summary">
+          <div class="skeleton resume-card__skeleton-title"></div>
+          <div class="skeleton resume-card__skeleton-text"></div>
+        </div>
+        <div class="skeleton resume-card__skeleton-button"></div>
+      </div>
+    {{/each}}
+  </div>
+{{else if error}}
+  <div class="empty-state owner-list__empty">
+    <h2 class="empty-state__title">Не удалось загрузить резюме</h2>
+    <p class="empty-state__text">{{error}}</p>
+    <button class="button button_secondary empty-state__button" type="button" data-action="retry">
+      Повторить
+    </button>
+  </div>
+{{else if resumes}}
+  <div class="owner-list__list">
+    <div class="card-grid">
+      {{#each resumes}}
+        <article class="resume-card">
+          <div class="resume-card__summary">
+            <h2 class="resume-card__title">{{title}}</h2>
+            {{#if description}}
+              <p class="resume-card__description">{{description}}</p>
+            {{/if}}
+          </div>
+          <div class="resume-card__footer">
+            <a class="button button_secondary resume-card__button" href="/resumes/{{id}}">Смотреть резюме</a>
+            <button
+              class="icon-button icon-button_delete"
+              type="button"
+              data-action="delete"
+              data-id="{{id}}"
+              aria-label="Удалить резюме «{{title}}»"
+            ></button>
+          </div>
+        </article>
+      {{/each}}
+    </div>
+    {{! Разметку пагинации собирает компонент из номеров страниц, поэтому вставка без экранирования безопасна. }}
+    {{{pagination}}}
+  </div>
+{{else if hasQuery}}
+  <div class="empty-state">
+    <h2 class="empty-state__title">По вашему запросу ничего не найдено</h2>
+    <p class="empty-state__text">Попробуйте изменить запрос.</p>
+    <button class="button button_secondary empty-state__button" type="button" data-action="reset">
+      Сбросить поиск
+    </button>
+  </div>
+{{else}}
+  <div class="empty-state owner-list__empty">
+    <div class="owner-list__empty-copy">
+      <h2 class="empty-state__title">У вас пока нет резюме</h2>
+      <p class="empty-state__text">Создайте резюме, чтобы откликаться на вакансии.</p>
+    </div>
+    <a class="button button_secondary owner-list__empty-button" href="/resumes/new">Создать резюме</a>
+  </div>
+{{/if}}

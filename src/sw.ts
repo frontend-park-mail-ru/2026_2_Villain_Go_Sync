@@ -1,0 +1,22 @@
+/// <reference lib="webworker" />
+
+import { clientsClaim } from 'workbox-core';
+import { createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
+import { NavigationRoute, registerRoute } from 'workbox-routing';
+import { NetworkFirst } from 'workbox-strategies';
+
+declare let self: ServiceWorkerGlobalScope;
+
+self.skipWaiting();
+clientsClaim();
+
+precacheAndRoute(self.__WB_MANIFEST);
+
+registerRoute(new NavigationRoute(createHandlerBoundToURL('/index.html')));
+
+// Кэшируется только общий список вакансий. Ответы, зависящие от сессии (например, /api/me), всегда идут в сеть:
+// устаревшая копия показала бы пользователя вошедшим после выхода.
+registerRoute(
+  ({ url, request }) => request.method === 'GET' && url.pathname === '/api/vacancies',
+  new NetworkFirst({ cacheName: 'api', networkTimeoutSeconds: 3 }),
+);

@@ -1,0 +1,232 @@
+.applicants {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 16px;
+
+  &__title {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    margin: 0 0 8px;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+  }
+
+  &__search,
+  &__search-loading {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+  }
+
+  &__search[hidden] {
+    display: none;
+  }
+
+  &__search-field {
+    width: 320px;
+    min-width: 0;
+  }
+
+  &__search-button {
+    flex: none;
+    --icon: url('/images/search.svg');
+  }
+
+  // Пока идёт загрузка, вместо подписи «Поиск» остаётся пустое место той же высоты.
+  &__search-loading {
+    padding-top: 32px;
+  }
+
+  &__search-skeleton {
+    width: 320px;
+    min-width: 0;
+    height: 48px;
+    border-radius: var(--radius);
+  }
+
+  &__search-button-skeleton {
+    flex: none;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius);
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+}
+
+.applicant-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 312px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+
+  &_skeleton {
+    min-height: 318px;
+    padding: 24px;
+  }
+
+  &__summary {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__status {
+    padding: 3px 11px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    font-weight: 500;
+    line-height: 24px;
+    white-space: nowrap;
+
+    &_new {
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+      background: var(--color-surface);
+    }
+
+    &_viewed {
+      color: var(--color-text-muted);
+      background: var(--color-surface-hover);
+    }
+
+    &_interview {
+      color: var(--color-warning);
+      background: var(--color-surface-hover);
+    }
+
+    &_accepted {
+      color: var(--color-success);
+      background: var(--color-accent-soft);
+    }
+
+    &_rejected {
+      color: var(--color-danger);
+      background: var(--color-danger-soft);
+    }
+  }
+
+  &__date {
+    font-size: 14px;
+    line-height: 20px;
+    white-space: nowrap;
+    color: var(--color-text-muted);
+  }
+
+  &__identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  &__avatar {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    font-weight: 500;
+    line-height: 24px;
+    color: var(--color-text-on-color);
+    background: var(--color-primary);
+  }
+
+  &__name {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 28px;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  &__details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__detail {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__button {
+    align-self: flex-start;
+    width: 176px;
+  }
+
+  &__skeleton-name {
+    width: 280px;
+    max-width: 100%;
+    height: 28px;
+    margin: 10px 0;
+  }
+
+  &__skeleton-line {
+    width: 100%;
+    height: 24px;
+
+    &_short {
+      width: 320px;
+      max-width: 100%;
+    }
+  }
+
+  &__skeleton-date {
+    width: 136px;
+    height: 20px;
+  }
+
+  &__skeleton-status {
+    width: 112px;
+    height: 32px;
+  }
+
+  &__skeleton-button {
+    align-self: flex-end;
+    width: 160px;
+    height: 48px;
+  }
+}
+.applicant-card__letter {
+  overflow-wrap: anywhere;
+
+  summary { cursor: pointer; }
+  p { white-space: pre-wrap; margin-top: 8px; }
+}

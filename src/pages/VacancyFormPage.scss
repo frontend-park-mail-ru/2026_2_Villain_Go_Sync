@@ -1,0 +1,16 @@
+@use '../styles/mixins' as *;
+
+.vacancy-form {
+  &__salary {
+    display: grid;
+    grid-template-columns: minmax(0, 280fr) minmax(0, 280fr) minmax(0, 216fr);
+    align-items: start;
+    gap: 24px;
+    padding-top: 24px;
+
+    @include mobile {
+      grid-template-columns: minmax(0, 1fr);
+      padding-top: 0;
+    }
+  }
+}

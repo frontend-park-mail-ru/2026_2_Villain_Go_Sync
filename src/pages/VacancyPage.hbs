@@ -1,0 +1,103 @@
+{{#if isLoading}}
+  <section class="detail">
+    <div class="detail__heading"></div>
+    <div class="detail__card detail__card_loading" aria-hidden="true">
+      <div class="detail__skeleton-group">
+        <div class="skeleton detail__skeleton-line"></div>
+        <div class="skeleton detail__skeleton-line"></div>
+        <div class="skeleton detail__skeleton-line"></div>
+      </div>
+      <div class="detail__skeleton-group">
+        <div class="skeleton detail__skeleton-line"></div>
+        <div class="skeleton detail__skeleton-line"></div>
+        <div class="skeleton detail__skeleton-line"></div>
+      </div>
+      <div class="detail__skeleton-group">
+        <div class="skeleton detail__skeleton-line"></div>
+        <div class="skeleton detail__skeleton-line"></div>
+        <div class="skeleton detail__skeleton-line"></div>
+      </div>
+    </div>
+  </section>
+{{else if error}}
+  <section class="detail">
+    <div class="empty-state">
+      <h1 class="empty-state__title">{{error.title}}</h1>
+      <p class="empty-state__text">{{error.text}}</p>
+      {{#if error.canRetry}}
+        <button class="button button_secondary empty-state__button" type="button" data-action="retry">
+          Повторить
+        </button>
+      {{else}}
+        <a class="button button_secondary empty-state__button" href="/">Вернуться к вакансиям</a>
+      {{/if}}
+    </div>
+  </section>
+{{else}}
+  <section class="detail{{#if isOwner}} detail_owner{{/if}}">
+    {{#if isOwner}}
+      <nav class="detail__heading detail__breadcrumbs" aria-label="Навигация">
+        <a class="detail__breadcrumb" href="/my/vacancies">Вакансии</a>
+        <span aria-hidden="true">/</span>
+        <span class="detail__breadcrumb-current">{{vacancy.title}}</span>
+      </nav>
+    {{else}}
+      <div class="detail__heading">
+        <h1 class="detail__title">Вакансия</h1>
+        {{#if isGuest}}
+          <a class="button button_secondary detail__heading-button" href="/login">Откликнуться</a>
+        {{else if canApply}}
+          <button class="button button_secondary detail__heading-button" type="button" data-action="apply">
+            Откликнуться
+          </button>
+        {{/if}}
+      </div>
+    {{/if}}
+
+    <article class="detail__card">
+      <div class="detail__header">
+        <div class="detail__summary">
+          {{#if isOwner}}
+            <h1 class="detail__name detail__name_large">{{vacancy.title}}</h1>
+          {{else}}
+            <h2 class="detail__name">{{vacancy.title}}</h2>
+          {{/if}}
+          <div class="detail__meta">
+            {{#if company}}
+              <div class="vacancy-card__company"><span class="vacancy-card__logo" data-image-user="{{vacancy.employer_id}}" aria-hidden="true">{{company}}</span><span class="detail__subtitle">{{company}}</span></div>
+            {{/if}}
+            <p class="detail__salary{{#unless hasSalary}} detail__salary_empty{{/unless}}">{{salary}}</p>
+          </div>
+        </div>
+        {{#if isOwner}}
+          <div class="detail__actions">
+            <a
+              class="icon-button icon-button_edit"
+              href="/vacancies/{{vacancy.id}}/edit"
+              aria-label="Редактировать вакансию"
+            ></a>
+            <button
+              class="icon-button icon-button_delete"
+              type="button"
+              data-action="delete"
+              aria-label="Удалить вакансию"
+            ></button>
+          </div>
+        {{/if}}
+      </div>
+
+      {{#if categories.length}}
+        <div class="chips">
+          {{#each categories}}
+            <span class="chip">{{this}}</span>
+          {{/each}}
+        </div>
+      {{/if}}
+
+      <section class="detail__section">
+        <h2 class="detail__section-title">Описание</h2>
+        <p class="detail__text">{{vacancy.description}}</p>
+      </section>
+    </article>
+  </section>
+{{/if}}

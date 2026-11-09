@@ -1,0 +1,148 @@
+{{#if isLoading}}
+  <section class="form-page">
+    <h1 class="form-page__title">{{heading}}</h1>
+    <div class="edit-form" aria-hidden="true">
+      {{#each skeletonFields}}
+        <div class="detail__skeleton-group">
+          <div class="skeleton detail__skeleton-line detail__skeleton-line_label"></div>
+          <div class="skeleton edit-form__skeleton-field"></div>
+        </div>
+      {{/each}}
+    </div>
+  </section>
+{{else if error}}
+  <section class="form-page">
+    <h1 class="form-page__title">{{heading}}</h1>
+    <div class="empty-state">
+      <h2 class="empty-state__title">Не удалось загрузить профиль</h2>
+      <p class="empty-state__text">{{error}}</p>
+      {{#if canRetry}}
+        <button class="button button_secondary empty-state__button" type="button" data-action="retry">
+          Повторить
+        </button>
+      {{/if}}
+    </div>
+  </section>
+{{else}}
+  <section class="form-page">
+    <h1 class="form-page__title">{{heading}}</h1>
+
+    <form class="edit-form" novalidate>
+      {{#if isCompany}}
+        <div class="field">
+          <label class="field__label" for="profile-company">Название компании</label>
+          <input
+            class="field__input"
+            id="profile-company"
+            name="companyName"
+            type="text"
+            placeholder="Введите название компании"
+            value="{{profile.company_name}}"
+            autocomplete="organization"
+            aria-describedby="profile-company-counter profile-company-message"
+          />
+          <p class="field__counter" id="profile-company-counter"></p>
+          <p class="field__message" id="profile-company-message"></p>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="profile-description">О компании</label>
+          <textarea
+            class="field__input field__textarea"
+            id="profile-description"
+            name="description"
+            placeholder="Расскажите о компании"
+            aria-describedby="profile-description-counter profile-description-message"
+          >{{profile.description}}</textarea>
+          <p class="field__counter" id="profile-description-counter"></p>
+          <p class="field__message" id="profile-description-message"></p>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="profile-website">Сайт</label>
+          <input
+            class="field__input"
+            id="profile-website"
+            name="website"
+            type="text"
+            inputmode="url"
+            placeholder="Введите адрес сайта"
+            value="{{profile.website}}"
+            autocomplete="url"
+            aria-describedby="profile-website-message"
+          />
+          <p class="field__message" id="profile-website-message"></p>
+        </div>
+      {{else}}
+        <div class="edit-form__row">
+          <div class="field">
+            <label class="field__label" for="profile-first-name">Имя</label>
+            <input
+              class="field__input"
+              id="profile-first-name"
+              name="firstName"
+              type="text"
+              placeholder="Введите имя"
+              value="{{profile.first_name}}"
+              autocomplete="given-name"
+              aria-describedby="profile-first-name-counter profile-first-name-message"
+            />
+            <p class="field__counter" id="profile-first-name-counter"></p>
+            <p class="field__message" id="profile-first-name-message"></p>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="profile-last-name">Фамилия</label>
+            <input
+              class="field__input"
+              id="profile-last-name"
+              name="lastName"
+              type="text"
+              placeholder="Введите фамилию"
+              value="{{profile.last_name}}"
+              autocomplete="family-name"
+              aria-describedby="profile-last-name-counter profile-last-name-message"
+            />
+            <p class="field__counter" id="profile-last-name-counter"></p>
+            <p class="field__message" id="profile-last-name-message"></p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="profile-phone">Телефон</label>
+          <input
+            class="field__input"
+            id="profile-phone"
+            name="phone"
+            type="tel"
+            placeholder="Введите номер телефона"
+            value="{{profile.phone}}"
+            autocomplete="tel"
+            aria-describedby="profile-phone-message"
+          />
+          <p class="field__message" id="profile-phone-message"></p>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="profile-description">О себе</label>
+          <textarea
+            class="field__input field__textarea"
+            id="profile-description"
+            name="description"
+            placeholder="Расскажите о себе"
+            aria-describedby="profile-description-counter profile-description-message"
+          >{{profile.description}}</textarea>
+          <p class="field__counter" id="profile-description-counter"></p>
+          <p class="field__message" id="profile-description-message"></p>
+        </div>
+      {{/if}}
+
+      <div class="edit-form__actions">
+        <button class="button button_secondary edit-form__submit edit-form__submit_compact" type="submit">
+          Сохранить
+        </button>
+        <button class="button button_ghost edit-form__cancel" type="button" data-action="cancel">Отмена</button>
+      </div>
+    </form>
+  </section>
+{{/if}}
