@@ -11,10 +11,10 @@ import template from './ApplicationDialog.hbs';
  */
 function getApplyError(error: unknown): string {
   if (error instanceof ApiError && error.status === 409) {
-    return 'Вы уже откликались на эту вакансию с этим резюме.';
+    return 'Вы уже откликались на эту вакансию с этим резюме';
   }
 
-  return 'Не удалось отправить отклик. Попробуйте ещё раз.';
+  return 'Не удалось отправить отклик. Попробуйте ещё раз';
 }
 
 /**
@@ -87,7 +87,7 @@ export function openApplicationDialog(vacancyId: number, resumes: Resume[]): Pro
 
       if (!resumeId) {
         hint.dataset.text ??= hint.textContent ?? '';
-        hint.textContent = 'Выберите резюме.';
+        hint.textContent = 'Выберите резюме';
         group.classList.add('application__group_invalid');
         group.querySelector<HTMLInputElement>('input')?.focus();
         return;

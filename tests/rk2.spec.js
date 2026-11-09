@@ -16,7 +16,7 @@ async function mockAPI(page, role) {
     if (path.endsWith('/avatar') || path.endsWith('/logo')) { return route.fulfill({ status: 404 }); }
     if (path === '/api/me') { data = { id: 5, role }; }
     else if (path.startsWith('/api/seekers/') || path.startsWith('/api/employers/')) {
-      data = { first_name: 'Иван', last_name: 'Петров', company_name: 'Компания', phone: '+79990000000', website: 'https://example.com', description: 'Описание профиля' };
+      data = { user_id: 5, first_name: 'Иван', last_name: 'Петров', company_name: 'Компания', phone: '+79990000000', website: 'https://example.com', description: 'Описание профиля' };
     } else if (path.endsWith('/applications') && method === 'POST') {
       state.applications.push(request.postDataJSON());
     } else if (/\/api\/(vacancies|resumes)/.test(path)) {
@@ -43,7 +43,7 @@ for (const role of ['seeker', 'employer']) {
     const state = await mockAPI(page, role);
     await page.goto(`/${resource}/new`);
     await page.locator('button[type="submit"]').click();
-    await expect(page.getByText(role === 'seeker' ? 'Введите название резюме.' : 'Введите название вакансии.')).toBeVisible();
+    await expect(page.getByText(role === 'seeker' ? 'Введите название резюме' : 'Введите название вакансии')).toBeVisible();
     expect(state.writes).toHaveLength(0);
     await page.locator('[name="title"]').fill('Первое название');
     await page.locator('[name="description"]').fill('Описание документа');

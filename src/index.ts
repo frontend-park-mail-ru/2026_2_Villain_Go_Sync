@@ -51,11 +51,11 @@ async function startApplication(): Promise<void> {
     const isPublic = window.location.pathname === '/' || /^\/(vacancies|resumes)\/[1-9]\d*\/?$/.test(window.location.pathname);
     if (!isPublic) {
       const container = document.getElementById('page')!;
-      container.innerHTML = '<section class="empty-state"><h1 class="empty-state__title">Не удалось проверить вход</h1><p class="empty-state__text">Проверьте соединение и повторите попытку.</p><button class="button button_secondary" type="button" data-session-retry>Повторить</button></section>';
+      container.innerHTML = '<section class="empty-state"><h1 class="empty-state__title">Не удалось проверить вход</h1><p class="empty-state__text">Проверьте соединение и повторите попытку</p><button class="button button_secondary" type="button" data-session-retry>Повторить</button></section>';
       container.querySelector('button')!.addEventListener('click', () => { void startApplication(); }, { once: true });
       return;
     }
-    showToast('Не удалось проверить вход. Для проверки сессии обновите страницу.', 'error');
+    showToast('Не удалось проверить вход. Для проверки сессии обновите страницу', 'error');
   }
 
   new Header().render(document.getElementById('header')!);

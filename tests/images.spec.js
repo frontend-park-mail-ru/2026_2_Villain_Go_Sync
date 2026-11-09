@@ -28,14 +28,14 @@ for (const role of ['seeker', 'employer']) {
         return route.fulfill({ json: { data: { id: 5, role } } });
       }
       return route.fulfill({ json: { data: {
-        first_name: 'Иван', last_name: '', phone: '', description: '', company_name: 'Компания', website: '',
+        user_id: 5, first_name: 'Иван', last_name: '', phone: '', description: '', company_name: 'Компания', website: '',
         [`${field}_url`]: uploaded ? `/api/${role === 'seeker' ? 'seekers' : 'employers'}/5/${field}` : null,
       } } });
     });
     await page.goto('/profile/edit');
     const input = page.locator('input[type="file"]');
     await input.setInputFiles({ name: 'wrong.txt', mimeType: 'text/plain', buffer: Buffer.from('text') });
-    await expect(page.getByText('Выберите PNG, JPEG или WebP размером от 1 байта до 10 МБ.')).toBeVisible();
+    await expect(page.getByText('Выберите PNG, JPEG или WebP размером от 1 байта до 10 МБ')).toBeVisible();
     expect(mutations).toBe(0);
     await input.setInputFiles({ name: 'image.png', mimeType: 'image/png', buffer: png });
     await expect(page.getByText('Изображение сохранено.')).toBeVisible();

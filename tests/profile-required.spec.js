@@ -11,7 +11,7 @@ for (const role of ['seeker', 'employer']) {
         return route.fulfill({ json: { data: { id: 5, role } } });
       }
       if (path === `/api/profile/${role}`) {
-        profile = request.postDataJSON();
+        profile = { ...request.postDataJSON(), user_id: 5 };
         return route.fulfill({ json: { data: profile } });
       }
       if (path === '/api/seekers/5' || path === '/api/employers/5') {

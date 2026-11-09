@@ -167,6 +167,7 @@
     }
   }
 
+  &__counter,
   &__message {
     margin: 0;
     font-size: 14px;
@@ -182,6 +183,7 @@
     border: 2px solid var(--color-danger);
   }
 
+  &_invalid &__counter,
   &_invalid &__message {
     color: var(--color-danger);
   }

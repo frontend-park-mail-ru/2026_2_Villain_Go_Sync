@@ -11,7 +11,7 @@ for (const broken of [false, true]) {
       }
       let data = [];
       if (path === '/api/me') { data = { id: 5, role: 'seeker' }; }
-      if (path === '/api/seekers/5') { data = { first_name: 'Иван', last_name: 'Петров', avatar_url: '/api/seekers/5/avatar' }; }
+      if (path === '/api/seekers/5') { data = { user_id: 5, first_name: 'Иван', last_name: 'Петров', avatar_url: '/api/seekers/5/avatar' }; }
       if (path === '/api/vacancies') {
         data = [{ id: 1, employer_id: 4, company_name: 'Компания', title: 'Разработчик', description: '', salary_from: null, salary_to: null, currency: 'RUB', created_at: '2026-11-07' }];
       }

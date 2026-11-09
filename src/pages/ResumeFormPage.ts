@@ -1,8 +1,8 @@
-import { hasVisibleText } from '@hirenoon/validation';
+import { RESUME_FIELD_LIMITS, getResumeFieldError } from '@hirenoon/validation';
 import { saveCreationDraft, restoreCreationDraft, clearCreationDraft } from '../components/creation-draft';
 import { hasRequiredProfile, showMissingProfile } from '../profile-required';
 import { ApiError, createResume, getResume, updateResume, type ResumeFields } from '../api';
-import { setFieldError, setLoading } from '../components/form';
+import { setFieldError, setLoading, updateTextFields } from '../components/form';
 import { confirmAction } from '../components/Modal';
 import { hideToast, showToast } from '../components/toast';
 import type { Page, PageProps } from '../router';
@@ -86,7 +86,11 @@ export default class ResumeFormPage implements Page {
       { signal },
     );
 
-    container.addEventListener('input', (event) => setFieldError(event.target as Element, ''), { signal });
+    container.addEventListener('input', (event) => {
+      const field = event.target as Element;
+      setFieldError(field, '');
+      if (this.#form) { updateTextFields(this.#form, RESUME_FIELD_LIMITS, getResumeFieldError, field); }
+    }, { signal });
 
     this.#load();
   }
@@ -190,6 +194,7 @@ export default class ResumeFormPage implements Page {
     this.#form = this.#container.querySelector<HTMLFormElement>('.edit-form');
     this.#initialValues = JSON.stringify(this.#readFields());
     if (this.#id === null) { restoreCreationDraft('/resumes/new', this.#form!); }
+    updateTextFields(this.#form!, RESUME_FIELD_LIMITS, getResumeFieldError);
   }
 
   /**
@@ -198,7 +203,7 @@ export default class ResumeFormPage implements Page {
   #renderNotFound(): void {
     this.#form = null;
     this.#container.innerHTML = template({
-      error: { title: 'Резюме не найдено', text: 'Возможно, его удалили или ссылка устарела.' },
+      error: { title: 'Резюме не найдено', text: 'Возможно, его удалили или ссылка устарела' },
     });
   }
 
@@ -255,14 +260,14 @@ export default class ResumeFormPage implements Page {
   #completeProfile(): void {
     if (!this.#form || this.#isSubmitting) { return; }
     if (!saveCreationDraft('/resumes/new', this.#form)) {
-      showToast('Не удалось сохранить черновик. Скопируйте текст перед переходом к профилю.', 'error');
+      showToast('Не удалось сохранить черновик. Скопируйте текст перед переходом к профилю', 'error');
       return;
     }
     this.#router.navigate('/profile/edit?next=/resumes/new', { force: true });
   }
 
   /**
-   * Проверяет название и сохраняет резюме.
+   * Проверяет поля и сохраняет резюме.
    */
   async #submit(): Promise<void> {
     if (this.#isSubmitting || !this.#form) {
@@ -272,13 +277,14 @@ export default class ResumeFormPage implements Page {
     hideToast();
 
     const fields = this.#readFields();
-    const { title } = this.#form.elements as ResumeFormElements;
-
-    if (!hasVisibleText(fields.title)) {
-      setFieldError(title, 'Введите название резюме.');
-      title.focus();
-      return;
+    let firstInvalid: HTMLInputElement | HTMLTextAreaElement | null = null;
+    for (const name of Object.keys(RESUME_FIELD_LIMITS) as (keyof typeof RESUME_FIELD_LIMITS)[]) {
+      const field = (this.#form.elements as ResumeFormElements)[name];
+      const error = getResumeFieldError(name, field.value);
+      setFieldError(field, error);
+      if (error) { firstInvalid ??= field; }
     }
+    if (firstInvalid) { firstInvalid.focus(); return; }
 
     const button = this.#form.querySelector<HTMLButtonElement>('[type="submit"]')!;
 
@@ -299,7 +305,7 @@ export default class ResumeFormPage implements Page {
       if (this.#isDestroyed) { return; }
       const action = this.#id === null ? 'создать' : 'сохранить';
 
-      showToast(`Не удалось ${action} резюме. Попробуйте ещё раз.`, 'error');
+      showToast(`Не удалось ${action} резюме. Попробуйте ещё раз`, 'error');
       return;
     } finally {
       this.#isSubmitting = false;

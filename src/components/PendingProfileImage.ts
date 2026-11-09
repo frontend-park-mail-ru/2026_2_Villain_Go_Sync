@@ -73,7 +73,7 @@ export function mountPendingProfileImage(container: HTMLElement, user: { id: num
         if (!signal.aborted) { image.src = url; message.textContent = 'Изображение сохранено.'; }
         return true;
       } catch {
-        if (!signal.aborted) { message.textContent = 'Профиль сохранён, но изображение загрузить не удалось. Нажмите «Сохранить», чтобы повторить.'; }
+        if (!signal.aborted) { message.textContent = 'Профиль сохранён, но изображение загрузить не удалось. Нажмите «Сохранить», чтобы повторить'; }
         return false;
       } finally {
         saving = false;

@@ -40,7 +40,7 @@ export function mountProfileImage(container: HTMLElement, user: { id: number; ro
       if (url) { image.src = `${url}?v=${Date.now()}`; }
       message.textContent = file ? 'Изображение сохранено.' : 'Изображение удалено.';
     } catch {
-      if (!signal.aborted) { message.textContent = 'Не удалось сохранить изображение. Попробуйте ещё раз.'; }
+      if (!signal.aborted) { message.textContent = 'Не удалось сохранить изображение. Попробуйте ещё раз'; }
     } finally {
       input.disabled = remove.disabled = false;
       input.value = '';

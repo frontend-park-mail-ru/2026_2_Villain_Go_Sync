@@ -1,6 +1,7 @@
 import { getEmployer, getSeeker, logout, profileImageURL } from '../api';
 import { mountImage, onProfileImageChange } from './profile-images';
 import { APP_NAME } from '../config';
+import { isProfileComplete } from '../profile-required';
 import { getCurrentUser, isAuthorized, onSessionChange } from '../session';
 import template from './Header.hbs';
 import { confirmAction } from './Modal';
@@ -86,7 +87,7 @@ export default class Header {
     if (!user || user.id === null || user.role === null) { return; }
     try {
       const profile = user.role === 'employer' ? await getEmployer(user.id, { signal }) : await getSeeker(user.id, { signal });
-      if (signal.aborted) { return; }
+      if (signal.aborted || !isProfileComplete(profile, user.id, user.role)) { return; }
       const name = 'company_name' in profile ? profile.company_name : `${profile.first_name} ${profile.last_name}`;
       const initials = name.trim().split(/\s+/).slice(0, 2).map((word) => word.charAt(0)).join('').toUpperCase();
       const url = profileImageURL('company_name' in profile ? profile.logo_url : profile.avatar_url);
