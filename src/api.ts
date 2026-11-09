@@ -42,6 +42,8 @@ export interface Vacancy extends VacancyFields {
   employer_id: number;
   /** Название компании. */
   company_name: string;
+  /** Адрес логотипа; пустой или отсутствующий, если изображения нет. */
+  logo_url?: string | null;
   /** Дата публикации в формате ISO 8601. */
   created_at: string;
 }
@@ -294,7 +296,7 @@ async function request(
  * @returns Абсолютный адрес или пустая строка.
  */
 export function profileImageURL(path?: string | null): string {
-  if (!path) { return ''; }
+  if (typeof path !== 'string' || !path.trim()) { return ''; }
   try {
     const base = new URL(API_URL, window.location.origin);
     const url = new URL(path, base);
@@ -657,6 +659,8 @@ export interface Applicant {
   seeker_id: number;
   /** Идентификатор приложенного резюме. */
   resume_id: number;
+  /** Адрес фотографии соискателя; пустой или отсутствующий, если изображения нет. */
+  avatar_url?: string | null;
   /** Сопроводительное письмо. */
   cover_letter: string | null;
   /** Имя соискателя. */

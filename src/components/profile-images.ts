@@ -1,5 +1,6 @@
 import { API_URL } from '../config';
 import type { UserRole } from '../api';
+import { profileImageURL } from '../api';
 
 /** Обновление изображения собственного профиля. */
 export interface ProfileImageChange {
@@ -74,8 +75,7 @@ export function mountImage(container: HTMLElement, url: string, fallback: string
  * @param container Контейнер карточек.
  */
 export function mountCardImages(container: HTMLElement): void {
-  for (const element of container.querySelectorAll<HTMLElement>('[data-image-user]')) {
-    const role = element.dataset.imageRole === 'seeker' ? 'seeker' : 'employer';
-    mountImage(element, publicProfileImage(Number(element.dataset.imageUser), role), element.textContent?.trim().slice(0, 2) || '?', true);
+  for (const element of container.querySelectorAll<HTMLElement>('[data-image-url]')) {
+    mountImage(element, profileImageURL(element.dataset.imageUrl), element.textContent?.trim().slice(0, 2) || '?', true);
   }
 }

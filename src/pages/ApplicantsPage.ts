@@ -141,7 +141,7 @@ export default class ApplicantsPage implements Page {
           vacancy: applicant.vacancy_title,
           resume: applicant.resume_title,
           resumeId: applicant.resume_id,
-          seekerId: applicant.seeker_id,
+          avatarUrl: applicant.avatar_url,
           coverLetter: applicant.cover_letter,
         };
       }),
