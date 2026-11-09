@@ -116,7 +116,7 @@ export default class VacancyPage implements Page {
       salary: formatSalary(vacancy.salary_from, vacancy.salary_to, vacancy.currency),
       hasSalary: (vacancy.salary_from !== null && vacancy.salary_from !== undefined) || (vacancy.salary_to !== null && vacancy.salary_to !== undefined),
     });
-    mountCardImages(this.#container);
+    mountCardImages(this.#container.querySelector<HTMLElement>('.detail__card')!);
   }
 
   /**
