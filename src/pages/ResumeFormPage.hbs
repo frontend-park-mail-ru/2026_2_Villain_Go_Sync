@@ -36,66 +36,150 @@
   <section class="form-page">
     <h1 class="form-page__title">{{heading}}</h1>
 
-    <form class="edit-form" novalidate>
-      <div class="field">
-        <label class="field__label" for="resume-title">Название</label>
-        <input
-          class="field__input"
-          id="resume-title"
-          name="title"
-          type="text"
-          placeholder="Введите название резюме"
-          value="{{resume.title}}"
-          aria-describedby="resume-title-counter resume-title-message"
-        />
-        <p class="field__counter" id="resume-title-counter"></p>
-        <p class="field__message" id="resume-title-message"></p>
-      </div>
+    <form class="edit-form editor" novalidate>
+      <p class="editor__instructions" data-instructions></p>
+      <nav class="editor__steps" aria-label="Этапы заполнения">
+        <button type="button" data-step>
+          <b>1</b>
+          <span>Желаемая работа<small>Предстоит</small></span>
+        </button>
+        <button type="button" data-step>
+          <b>2</b>
+          <span>Опыт и образование<small>Предстоит</small></span>
+        </button>
+        <button type="button" data-step>
+          <b>3</b>
+          <span>Навыки и о себе<small>Предстоит</small></span>
+        </button>
+        <button type="button" data-step>
+          <b>4</b>
+          <span>Предпросмотр<small>Предстоит</small></span>
+        </button>
+      </nav>
+      <div class="editor__body">
+        <div class="editor__panels">
+          <section class="editor__panel" tabindex="-1" data-panel data-instructions="Определите желаемую должность, формат и условия работы." hidden>
+            {{#if canImport}}
+              <div class="editor__import">
+                <div>
+                  <strong>Уже заполнили профиль?</strong>
+                  <p>Скопируйте раздел «О себе» в это резюме.</p>
+                </div>
+                <button type="button" class="button button_secondary" data-from-profile>Заполнить из профиля</button>
+              </div>
+            {{/if}}
+            <h2>Желаемая работа</h2>
+            <div class="field">
+              <label class="field__label" for="resume-title">Название резюме *</label>
+              <input
+                class="field__input"
+                id="resume-title"
+                name="title"
+                type="text"
+                placeholder="Введите название резюме"
+                value="{{resume.title}}"
+                aria-describedby="resume-title-counter resume-title-message"
+              />
+              <p class="field__counter" id="resume-title-counter"></p>
+              <p class="field__message" id="resume-title-message"></p>
+            </div>
 
-      <div class="field">
-        <label class="field__label" for="resume-description">Описание</label>
-        <textarea
-          class="field__input field__textarea"
-          id="resume-description"
-          name="description"
-          placeholder="Опишите ваши навыки и интересы"
-          aria-describedby="resume-description-counter resume-description-message"
-        >{{resume.description}}</textarea>
-        <p class="field__counter" id="resume-description-counter"></p>
-        <p class="field__message" id="resume-description-message"></p>
-      </div>
+            <label class="field">Желаемая должность<input class="field__input" disabled placeholder="Пока недоступно"></label>
+            <label class="field">Город поиска<input class="field__input" disabled placeholder="Пока недоступно"></label>
+            <fieldset class="unavailable-options" disabled>
+              <legend>Формат работы</legend>
+              <span class="chip">Удалённо</span>
+              <span class="chip">Гибрид</span>
+              <span class="chip">Офис</span>
+            </fieldset>
+            <label class="field">Зарплата от<input class="field__input" disabled placeholder="Пока недоступно"></label>
+          </section>
+          <section class="editor__panel" tabindex="-1" data-panel data-instructions="Добавьте опыт, достижения и образование." hidden>
+            <h2>Опыт работы и образование</h2>
+            <div class="edit-form__row">
+              <div class="field">
+                <label class="field__label" for="resume-experience">Опыт</label>
+                <textarea
+                  class="field__input field__textarea"
+                  id="resume-experience"
+                  name="experience"
+                  placeholder="Опишите ваш опыт"
+                  aria-describedby="resume-experience-counter resume-experience-message"
+                >{{resume.experience}}</textarea>
+                <p class="field__counter" id="resume-experience-counter"></p>
+                <p class="field__message" id="resume-experience-message"></p>
+              </div>
 
-      <div class="edit-form__row">
-        <div class="field">
-          <label class="field__label" for="resume-experience">Опыт</label>
-          <textarea
-            class="field__input field__textarea"
-            id="resume-experience"
-            name="experience"
-            placeholder="Опишите ваш опыт"
-            aria-describedby="resume-experience-counter resume-experience-message"
-          >{{resume.experience}}</textarea>
-          <p class="field__counter" id="resume-experience-counter"></p>
-          <p class="field__message" id="resume-experience-message"></p>
+              <div class="field">
+                <label class="field__label" for="resume-education">Образование</label>
+                <textarea
+                  class="field__input field__textarea"
+                  id="resume-education"
+                  name="education"
+                  placeholder="Расскажите об образовании"
+                  aria-describedby="resume-education-counter resume-education-message"
+                >{{resume.education}}</textarea>
+                <p class="field__counter" id="resume-education-counter"></p>
+                <p class="field__message" id="resume-education-message"></p>
+              </div>
+            </div>
+
+
+          </section>
+          <section class="editor__panel" tabindex="-1" data-panel data-instructions="Выберите навыки, добавьте информацию о себе и ссылки на портфолио." hidden>
+            <h2>Навыки и информация о себе</h2>
+            <div class="field">
+              <label class="field__label" for="resume-description">О себе</label>
+              <textarea
+                class="field__input field__textarea"
+                id="resume-description"
+                name="description"
+                placeholder="Опишите ваши навыки и интересы"
+                aria-describedby="resume-description-counter resume-description-message"
+              >{{resume.description}}</textarea>
+              <p class="field__counter" id="resume-description-counter"></p>
+              <p class="field__message" id="resume-description-message"></p>
+            </div>
+
+            <label class="field">Навыки<input class="field__input" disabled placeholder="Пока недоступно"></label>
+            <label class="field">Портфолио / GitHub<input class="field__input" disabled placeholder="Пока недоступно"></label>
+            <label class="field">Языки<input class="field__input" disabled placeholder="Пока недоступно"></label>
+          </section>
+          <section class="editor__panel" tabindex="-1" data-panel data-instructions="Проверьте готовое резюме и при необходимости вернитесь к предыдущим этапам." hidden>
+            <h2>Предпросмотр резюме</h2>
+            <dl class="editor__review">
+              <div>
+                <dt>Должность</dt>
+                <dd data-value="title"></dd>
+              </div>
+              <div>
+                <dt>Опыт работы</dt>
+                <dd data-value="experience"></dd>
+              </div>
+              <div>
+                <dt>Образование</dt>
+                <dd data-value="education"></dd>
+              </div>
+              <div>
+                <dt>О себе</dt>
+                <dd data-value="description"></dd>
+              </div>
+            </dl>
+          </section>
         </div>
-
-        <div class="field">
-          <label class="field__label" for="resume-education">Образование</label>
-          <textarea
-            class="field__input field__textarea"
-            id="resume-education"
-            name="education"
-            placeholder="Расскажите об образовании"
-            aria-describedby="resume-education-counter resume-education-message"
-          >{{resume.education}}</textarea>
-          <p class="field__counter" id="resume-education-counter"></p>
-          <p class="field__message" id="resume-education-message"></p>
-        </div>
+        <aside class="editor__preview">
+          <small>ПРЕДПРОСМОТР</small>
+          <h2 data-value="title" data-empty="Название резюме"></h2>
+          <p data-value="description" data-empty=""></p>
+        </aside>
       </div>
-
-      <div class="edit-form__actions">
-        <button class="button button_secondary edit-form__submit" type="submit">{{submitLabel}}</button>
-        <button class="button button_ghost edit-form__cancel" type="button" data-action="cancel">Отмена</button>
+      <div class="edit-form__actions editor__actions">
+        <button type="button" class="button button_outline" data-back>← Назад</button>
+        <button type="submit" class="button button_secondary edit-form__submit">{{submitLabel}}</button>
+        {{#unless isEdit}}
+          <button type="button" class="button button_outline" data-draft>Сохранить черновик</button>
+        {{/unless}}
+        <button type="button" class="button button_ghost" data-action="cancel">Отмена</button>
       </div>
     </form>
   </section>

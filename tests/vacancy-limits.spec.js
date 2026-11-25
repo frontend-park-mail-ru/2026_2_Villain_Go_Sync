@@ -1,3 +1,4 @@
+import { saveEditor } from './editor-steps.js';
 import { test, expect } from '@playwright/test';
 
 /**
@@ -33,6 +34,7 @@ for (const edit of [false, true]) {
       const state = await setup(page);
       await page.goto(edit ? '/vacancies/9/edit' : '/vacancies/new');
       await page.locator('[name=title]').fill('Разработчик');
+      if (name === 'description') { await page.locator('[data-step]').nth(2).click(); }
       const field = page.locator(`[name=${name}]`);
       const counter = page.locator(`#vacancy-${name}-counter`);
       await field.fill('Я'.repeat(limit - 1));
@@ -43,7 +45,7 @@ for (const edit of [false, true]) {
       await expect(field).toHaveAttribute('aria-invalid', 'true');
       await expect(counter).toHaveText(`${limit + 1} / ${limit} символов`);
       await expect(page.locator(`#vacancy-${name}-message`)).toContainText('Сократите');
-      await page.locator('button[type=submit]').click();
+      await saveEditor(page);
       expect(state.writes).toEqual([]);
       await expect(field).toHaveValue('Я'.repeat(limit + 1));
       await expect(field).toBeFocused();
@@ -51,7 +53,7 @@ for (const edit of [false, true]) {
       await field.fill('Я'.repeat(limit));
       await expect(field).toHaveAttribute('aria-invalid', 'false');
       await expect(page.locator(`#vacancy-${name}-message`)).toBeEmpty();
-      await page.locator('button[type=submit]').click();
+      await saveEditor(page);
       await expect(page).toHaveURL('/vacancies/9');
       expect(state.writes).toHaveLength(1);
       expect(state.writes[0].method).toBe(edit ? 'PATCH' : 'POST');
@@ -69,7 +71,7 @@ test('длина вакансии: эмодзи считается одним с
   await expect(title).toHaveAttribute('aria-invalid', 'true');
   await title.fill('🚀'.repeat(100));
   await expect(title).toHaveAttribute('aria-invalid', 'false');
-  await page.locator('button[type=submit]').click();
+  await saveEditor(page);
   await expect(page).toHaveURL('/vacancies/9');
   expect(state.writes[0].fields.title).toBe('🚀'.repeat(100));
 });
@@ -84,16 +86,17 @@ test('старая вакансия с 100 000 символов не обрез�
   await expect(page.locator('#vacancy-description-counter')).toHaveText('100000 / 10000 символов');
   await expect(page.locator('[name=title]')).toHaveAttribute('aria-invalid', 'true');
   await expect(page.locator('[name=description]')).toHaveAttribute('aria-invalid', 'true');
-  await page.locator('button[type=submit]').click();
+  await saveEditor(page);
   expect(state.writes).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
   await page.locator('[name=title]').fill(' ');
-  await page.locator('[name=description]').fill('');
-  await page.locator('button[type=submit]').click();
+  await saveEditor(page);
   await expect(page.locator('#vacancy-title-message')).toHaveText('Введите название вакансии');
-  await expect(page.locator('[name=description]')).toHaveAttribute('aria-invalid', 'false');
   await page.locator('[name=title]').fill('Исправленная вакансия');
-  await page.locator('button[type=submit]').click();
+  await page.locator('[data-step]').nth(2).click();
+  await page.locator('[name=description]').fill('');
+  await expect(page.locator('[name=description]')).toHaveAttribute('aria-invalid', 'false');
+  await saveEditor(page);
   await expect(page).toHaveURL('/vacancies/9');
   expect(state.writes[0].fields.description).toBe('');
 });
@@ -107,6 +110,6 @@ test('длинный черновик восстанавливается цел�
   await expect(page.locator('[name=title]')).toHaveValue('Я'.repeat(101));
   await expect(page.locator('#vacancy-title-counter')).toHaveText('101 / 100 символов');
   await expect(page.locator('#vacancy-description-counter')).toHaveText('10001 / 10000 символов');
-  await page.locator('button[type=submit]').click();
+  await saveEditor(page);
   expect(state.writes).toEqual([]);
 });

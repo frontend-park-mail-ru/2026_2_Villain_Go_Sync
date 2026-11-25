@@ -1,5 +1,7 @@
+import jobsTemplate from './ProfileJobs.hbs';
+import { formatSalary } from '@hirenoon/format';
 import { mountImage } from '../components/profile-images';
-import { ApiError, profileImageURL, getEmployer, getSeeker, type Employer, type Seeker } from '../api';
+import { ApiError, getEmployerVacancies, profileImageURL, getEmployer, getSeeker, type Employer, type Seeker } from '../api';
 import type { Page } from '../router';
 import { getCurrentUser } from '../session';
 import { isProfileComplete } from '../profile-required';
@@ -64,15 +66,16 @@ export default class ProfilePage implements Page {
     const { signal } = this.#abortController;
     const user = getCurrentUser();
     const isCompany = user?.role === 'employer';
-    const heading = isCompany ? 'Профиль компании' : 'Профиль';
+    const heading = isCompany ? 'Профиль компании' : 'Мой профиль';
 
     if (!user || user.id === null || user.role === null) {
-      this.#container.innerHTML = template({ heading, error: 'Не удалось узнать, кто вошёл в аккаунт', canRetry: false });
+      this.#container.innerHTML = template({ heading, isCompany, error: 'Не удалось узнать, кто вошёл в аккаунт', canRetry: false });
       return;
     }
 
     this.#container.innerHTML = template({
       heading,
+      isCompany,
       isLoading: true,
       skeletonFields: Array.from({ length: SKELETON_FIELDS }),
     });
@@ -88,7 +91,7 @@ export default class ProfilePage implements Page {
 
       // 404 — профиль ещё не заполняли.
       if (!(error instanceof ApiError && error.status === 404)) {
-        this.#container.innerHTML = template({ heading, error: (error as Error).message, canRetry: true });
+        this.#container.innerHTML = template({ heading, isCompany, error: (error as Error).message, canRetry: true });
         return;
       }
 
@@ -98,9 +101,31 @@ export default class ProfilePage implements Page {
     if (!isProfileComplete(profile, user.id, user.role)) { profile = null; }
     const imageUrl = profileImageURL(isCompany ? (profile as Employer | null)?.logo_url : (profile as Seeker | null)?.avatar_url);
     const description = this.#describe(profile, isCompany);
-    this.#container.innerHTML = template({ heading, isCompany, imageUrl, ...description });
+    const sections = isCompany ? [
+      { title: 'Направления и технологии', subtitle: 'Чем занимается команда' },
+      { title: 'Команда и культура', subtitle: 'Подходы к работе и ценности' },
+      { title: 'Условия и преимущества', subtitle: 'Что получает сотрудник' },
+    ] : [
+      { title: 'Желаемая работа', subtitle: 'Предпочтения для поиска работы' },
+      { title: 'Опыт работы', subtitle: 'Профессиональный опыт' },
+      { title: 'Образование и курсы', subtitle: 'Обучение и квалификация' },
+      { title: 'Навыки', subtitle: 'Профессиональные компетенции' },
+      { title: 'Портфолио и проекты', subtitle: 'Примеры выполненных работ' },
+    ];
+    this.#container.innerHTML = template({ heading, isCompany, sections, ...description });
     const avatar = this.#container.querySelector<HTMLElement>('.profile__avatar');
     if (avatar) { mountImage(avatar, imageUrl, description.initials ? String(description.initials) : { role: user.role }); }
+    const jobs = this.#container.querySelector<HTMLElement>('[data-company-jobs]');
+    if (jobs) {
+      try {
+        const vacancies = await getEmployerVacancies({ signal });
+        if (signal.aborted) { return; }
+        jobs.innerHTML = jobsTemplate({ vacancies: vacancies.slice(0, 2).map((item) => ({
+          id: item.id, title: item.title, salary: formatSalary(item.salary_from, item.salary_to, item.currency),
+        })) });
+        jobs.hidden = false;
+      } catch { /* Профиль остаётся доступен и при ошибке загрузки вакансий. */ }
+    }
   }
 
   /**
@@ -126,7 +151,7 @@ export default class ProfilePage implements Page {
       const { company_name: companyName, website, description } = profile as Employer;
 
       return {
-        initials: getInitials(companyName).slice(0, 1),
+        initials: getInitials(companyName),
         name: { label: 'Название компании', value: companyName },
         contact: { label: 'Сайт', value: website, href: getWebsiteHref(website) },
         about: { title: 'О компании', text: description },

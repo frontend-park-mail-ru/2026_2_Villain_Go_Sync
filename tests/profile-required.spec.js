@@ -1,3 +1,4 @@
+import { saveEditor } from './editor-steps.js';
 import { test, expect } from '@playwright/test';
 
 for (const role of ['seeker', 'employer']) {
@@ -23,7 +24,7 @@ for (const role of ['seeker', 'employer']) {
     await expect(page.getByText('Сначала заполните профиль')).toBeVisible();
     await page.getByRole('link', { name: 'Заполнить профиль' }).click();
     await page.locator(role === 'seeker' ? '[name="firstName"]' : '[name="companyName"]').fill('Тест');
-    await page.locator('button[type="submit"]').click();
+    await saveEditor(page);
     await expect(page).toHaveURL(destination);
     await expect(page.locator('[name="title"]')).toBeVisible();
   });

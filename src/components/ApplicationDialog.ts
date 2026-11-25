@@ -22,9 +22,10 @@ function getApplyError(error: unknown): string {
  * Если резюме нет, окно предлагает его создать.
  * @param vacancyId Идентификатор вакансии.
  * @param resumes Резюме вошедшего соискателя.
+ * @param signal Сигнал ухода со страницы вакансии.
  * @returns Обещание, которое выполняется после закрытия окна; `true`, если отклик отправлен.
  */
-export function openApplicationDialog(vacancyId: number, resumes: Resume[]): Promise<boolean> {
+export function openApplicationDialog(vacancyId: number, resumes: Resume[], signal: AbortSignal): Promise<boolean> {
   return new Promise((resolve) => {
     const wrapper = document.createElement('div');
 
@@ -52,7 +53,10 @@ export function openApplicationDialog(vacancyId: number, resumes: Resume[]): Pro
       }
     });
 
+    const dismiss = (): void => dialog.close();
+    signal.addEventListener('abort', dismiss, { once: true });
     dialog.addEventListener('close', () => {
+      signal.removeEventListener('abort', dismiss);
       isClosed = true;
       dialog.remove();
       resolve(dialog.returnValue === 'sent');
@@ -102,7 +106,10 @@ export function openApplicationDialog(vacancyId: number, resumes: Resume[]): Pro
       try {
         await applyToVacancy(vacancyId, { resumeId, coverLetter: String(data.get('coverLetter') ?? '').trim() });
       } catch (error) {
-        if (!isClosed) { showToast(getApplyError(error), 'error'); }
+        if (!isClosed) {
+          showToast(getApplyError(error), 'error');
+          if (error instanceof ApiError && error.status === 409 && resumes.length === 1) { dialog.close('sent'); }
+        }
         return;
       } finally {
         isSubmitting = false;

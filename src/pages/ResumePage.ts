@@ -43,6 +43,8 @@ export default class ResumePage implements Page {
 
         if (action === 'retry') {
           this.#load();
+        } else if (action === 'print') {
+          window.print();
         } else if (action === 'delete') {
           this.#confirmDelete();
         }
@@ -98,8 +100,8 @@ export default class ResumePage implements Page {
 
     const user = getCurrentUser();
     const sections = [
-      { title: 'Описание', text: resume.description },
-      { title: 'Опыт', text: resume.experience },
+      { title: 'О себе', text: resume.description },
+      { title: 'Опыт работы', text: resume.experience },
       { title: 'Образование', text: resume.education },
     ].filter(({ text }) => text?.trim());
 

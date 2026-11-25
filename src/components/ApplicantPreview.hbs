@@ -1,0 +1,34 @@
+<dialog class="modal candidate-preview" aria-labelledby="candidate-name">
+  <div class="modal__content">
+    <p class="candidate-preview__label">Быстрый просмотр</p>
+    <button class="modal__close" type="button" aria-label="Закрыть">×</button>
+    <header class="candidate-preview__heading">
+      <span class="applicant-card__avatar" data-image-url="{{avatar_url}}" aria-hidden="true">{{initials}}</span>
+      <h2 class="modal__title" id="candidate-name">{{first_name}} {{last_name}}</h2>
+    </header>
+    <p class="candidate-preview__label">Отклик на {{vacancy_title}}{{#if date}} · {{date}}{{/if}}</p>
+    <section>
+      <h3>Резюме</h3>
+      <a href="/resumes/{{resume_id}}">{{resume_title}}</a>
+      <p class="detail__text" data-resume-summary></p>
+    </section>
+    {{#if cover_letter}}
+      <section class="candidate-preview__letter">
+        <h3>Сопроводительное письмо</h3>
+        <p class="detail__text">{{cover_letter}}</p>
+      </section>
+    {{/if}}
+    <section>
+      <h3>История отклика</h3>
+      <p>{{#if date}}{{date}} · {{/if}}Отклик получен</p>
+      <p>Текущий этап · {{status}}</p>
+    </section>
+    <fieldset class="unavailable-options" disabled>
+      <legend>Изменить этап</legend>
+      <button class="chip" type="button">Рассмотрение</button>
+      <button class="chip" type="button">Собеседование</button>
+      <button class="chip" type="button">Отказать</button>
+    </fieldset>
+    <p class="editor__hint">Изменение этапа пока недоступно.</p>
+  </div>
+</dialog>

@@ -5,11 +5,13 @@
   </a>
   <nav class="header__nav">
     {{#each links}}
-      <a class="header__link" href="{{href}}">{{title}}</a>
+      {{#if href}}<a class="header__link" href="{{href}}">{{title}}</a>
+      {{else}}<span class="header__link" aria-disabled="true" title="Раздел пока недоступен">{{title}}</span>{{/if}}
     {{/each}}
   </nav>
   <div class="header__actions">
     {{#if isAuthorized}}
+      <span class="header__bell" role="img" aria-label="Уведомления" title="Уведомления пока недоступны"><img src="/images/bell.svg" alt=""></span>
       <div class="header__profile">
         <button
           class="header__avatar{{#if isCompany}} header__avatar_company{{/if}}"

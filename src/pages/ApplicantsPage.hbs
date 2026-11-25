@@ -1,23 +1,24 @@
 <section class="applicants">
-  <h1 class="applicants__title">Соискатели</h1>
-
-  <form class="applicants__search" role="search" novalidate hidden>
-    <div class="field applicants__search-field">
-      <label class="field__label" for="applicants-query">Поиск</label>
-      <input
-        class="field__input"
-        id="applicants-query"
-        name="query"
-        type="search"
-        placeholder="Имя, резюме или вакансия"
-      />
+  <header class="applicants__heading">
+    <div>
+      <h1 class="applicants__title">Отклики</h1>
+      <p>Управляйте кандидатами на всех этапах найма</p>
     </div>
-    <button
-      class="button button_secondary button_icon applicants__search-button"
-      type="submit"
-      aria-label="Найти"
-    ></button>
+    <div class="applicants__views" role="group" aria-label="Вид откликов">
+      <button type="button" data-view="board" aria-pressed="true"><span aria-hidden="true">◫</span> Доска</button>
+      <button type="button" data-view="table" aria-pressed="false"><span aria-hidden="true">☷</span> Список</button>
+      <button type="button" data-view="cards" aria-pressed="false"><span aria-hidden="true">▦</span> Карточки</button>
+    </div>
+  </header>
+  <form class="applicants__search" role="search" novalidate hidden>
+    <select class="field__input" name="vacancy" aria-label="Вакансия">
+      <option value="">Все вакансии</option></select>
+    <input class="field__input" id="applicants-query" type="search" placeholder="Имя кандидата" aria-label="Имя кандидата, резюме или вакансия">
+    <select class="field__input" name="days" aria-label="Период">
+      <option value="">За всё время</option>
+      <option value="30">За 30 дней</option>
+      <option value="7">За неделю</option></select>
+    <button type="reset" class="button button_outline">Сбросить</button>
   </form>
-
   <div class="applicants__content" aria-live="polite"></div>
 </section>

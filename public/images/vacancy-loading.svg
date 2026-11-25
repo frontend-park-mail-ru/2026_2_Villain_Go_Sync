@@ -1,0 +1,19 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="432" height="318" viewBox="0 0 432 318" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="UX 2026 / Vacancy Card / Loading Skeleton">
+<rect x="0.5" y="0.5" width="431" height="317" rx="11.5" fill="#FFFCFA"/>
+<rect x="0.5" y="0.5" width="431" height="317" rx="11.5" stroke="#E3D8D5"/>
+<rect id="Logo / loading" x="25" y="17" width="40" height="40" rx="10" fill="#E3D8D5"/>
+<rect id="Company / loading" x="73" y="31" width="104" height="12" rx="5" fill="#E3D8D5"/>
+<circle id="Favorite / loading" cx="394.5" cy="36.5" r="6.5" fill="#E3D8D5"/>
+<rect id="Job title / line 1" x="25" y="69" width="312" height="15" rx="6" fill="#E3D8D5"/>
+<rect id="Job title / line 2" x="25" y="98" width="218" height="15" rx="6" fill="#E3D8D5"/>
+<rect id="Salary / loading" x="25" y="132" width="173" height="20" rx="6" fill="#E3D8D5"/>
+<rect id="Location and format / loading" x="25" y="163" width="244" height="12" rx="5" fill="#E3D8D5"/>
+<rect id="Experience / loading" x="25" y="187" width="150" height="11" rx="5" fill="#E3D8D5"/>
+<rect id="Application deadline / loading" x="25" y="211" width="207" height="11" rx="5" fill="#E3D8D5"/>
+<rect id="Tag / 1" x="25" y="233" width="53" height="24" rx="7" fill="#E3D8D5"/>
+<rect id="Tag / 2" x="86" y="233" width="85" height="24" rx="7" fill="#E3D8D5"/>
+<rect id="Footer divider / loading" x="25" y="270" width="390" height="1" fill="#E3D8D5"/>
+<rect id="Publication date / loading" x="25" y="284" width="78" height="12" rx="5" fill="#E3D8D5"/>
+</g>
+</svg>

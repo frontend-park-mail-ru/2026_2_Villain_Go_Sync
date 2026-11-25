@@ -31,10 +31,10 @@ for (const role of ['seeker', 'employer']) {
 
       await page.goto('/profile');
       if (kind === 'valid') {
-        await expect(page.getByRole('link', { name: 'Редактировать профиль' })).toBeVisible();
+        await expect(page.getByRole('link', { name: role === 'employer' ? 'Редактировать компанию' : 'Редактировать профиль' })).toBeVisible();
       } else {
         await expect(page.getByRole('link', { name: 'Заполнить профиль' })).toBeVisible();
-        await expect(page.locator('.profile__avatar')).toHaveText('');
+        await expect(page.locator('.profile__avatar')).toHaveCount(0);
       }
 
       await page.goto('/profile/edit');

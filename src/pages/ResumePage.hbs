@@ -1,18 +1,24 @@
 {{#if isLoading}}
   <section class="detail">
     <div class="detail__heading"></div>
-    <div class="detail__card" aria-hidden="true">
-      <div class="skeleton detail__skeleton-line detail__skeleton-line_title"></div>
-      {{#each skeletonSections}}
-        <div class="detail__skeleton-group detail__skeleton-group_section">
-          <div class="skeleton detail__skeleton-line detail__skeleton-line_label"></div>
-          <div class="detail__skeleton-group">
+    <div class="detail__layout" aria-hidden="true">
+      <div class="detail__column">
+        <div class="detail__card">
+          <div class="skeleton detail__skeleton-line detail__skeleton-line_title"></div>
+        </div>
+        {{#each skeletonSections}}
+          <div class="detail__card">
+            <div class="skeleton detail__skeleton-line detail__skeleton-line_label"></div>
             <div class="skeleton detail__skeleton-line detail__skeleton-line_wide"></div>
             <div class="skeleton detail__skeleton-line"></div>
-            <div class="skeleton detail__skeleton-line"></div>
           </div>
-        </div>
-      {{/each}}
+        {{/each}}
+      </div>
+      <aside class="detail__card">
+        <div class="skeleton detail__skeleton-line detail__skeleton-line_label"></div>
+        <div class="skeleton edit-form__skeleton-field"></div>
+        <div class="skeleton edit-form__skeleton-field"></div>
+      </aside>
     </div>
   </section>
 {{else if error}}
@@ -30,51 +36,37 @@
     </div>
   </section>
 {{else}}
-  <section class="detail{{#if isOwner}} detail_owner{{/if}}">
-    {{#if isOwner}}
-      <nav class="detail__heading detail__breadcrumbs" aria-label="Навигация">
-        <a class="detail__breadcrumb" href="/resumes">Резюме</a>
-        <span aria-hidden="true">/</span>
-        <span class="detail__breadcrumb-current">{{resume.title}}</span>
-      </nav>
-    {{else}}
-      <div class="detail__heading">
-        <h1 class="detail__title">Резюме</h1>
+  <section class="detail detail_resume">
+    <nav class="detail__breadcrumbs" aria-label="Навигация">
+      {{#if isOwner}}
+        <a href="/resumes">Мои резюме</a>{{else}}
+        <span>Резюме</span>
+      {{/if}}
+      <span aria-hidden="true">›</span>
+      <span class="detail__breadcrumb-current">{{resume.title}}</span>
+    </nav>
+    <div class="detail__layout">
+      <div class="detail__column">
+        <article class="detail__card">
+          <h1 class="detail__name detail__name_large">{{resume.title}}</h1>
+          <p class="detail__subtitle">Профиль соискателя</p>
+        </article>
+        {{#each sections}}
+          <section class="detail__card">
+            <h2 class="detail__section-title">{{title}}</h2>
+            <p class="detail__text">{{text}}</p>
+          </section>
+        {{/each}}
       </div>
-    {{/if}}
-
-    <article class="detail__card">
-      <div class="detail__header">
-        <div class="detail__summary">
-          {{#if isOwner}}
-            <h1 class="detail__name detail__name_large">{{resume.title}}</h1>
-          {{else}}
-            <h2 class="detail__name">{{resume.title}}</h2>
-          {{/if}}
-        </div>
-        {{#if isOwner}}
-          <div class="detail__actions">
-            <a
-              class="icon-button icon-button_edit"
-              href="/resumes/{{resume.id}}/edit"
-              aria-label="Редактировать резюме"
-            ></a>
-            <button
-              class="icon-button icon-button_delete"
-              type="button"
-              data-action="delete"
-              aria-label="Удалить резюме"
-            ></button>
-          </div>
-        {{/if}}
-      </div>
-
-      {{#each sections}}
-        <section class="detail__section">
-          <h2 class="detail__section-title">{{title}}</h2>
-          <p class="detail__text">{{text}}</p>
-        </section>
-      {{/each}}
-    </article>
+      {{#if isOwner}}
+        <aside class="detail__card detail__aside">
+          <h2 class="detail__section-title">Действия с резюме</h2>
+          <a class="button button_secondary" href="/resumes/{{resume.id}}/edit">Редактировать резюме</a>
+          <a class="button button_outline" href="/resumes/new?copy={{resume.id}}">Дублировать</a>
+          <button class="button button_outline" type="button" data-action="print">Сохранить в PDF</button>
+          <button class="button button_ghost" type="button" data-action="delete">Удалить резюме</button>
+        </aside>
+      {{/if}}
+    </div>
   </section>
 {{/if}}

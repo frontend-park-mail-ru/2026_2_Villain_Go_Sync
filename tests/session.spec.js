@@ -1,3 +1,4 @@
+import { saveEditor } from './editor-steps.js';
 import { test, expect } from '@playwright/test';
 
 for (const failure of [null, 'expired', 'csrf', 'forbidden']) {
@@ -31,7 +32,7 @@ for (const failure of [null, 'expired', 'csrf', 'forbidden']) {
     await page.goto('/profile/edit');
     await expect(page.getByRole('link', { name: 'Мои резюме' })).toBeVisible();
     await page.locator('[name="firstName"]').fill('Пётр');
-    await page.locator('button[type="submit"]').click();
+    await saveEditor(page);
     if (failure === 'forbidden') {
       await expect(page.getByText('Не удалось сохранить профиль. Попробуйте ещё раз')).toBeVisible();
     } else {

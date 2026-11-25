@@ -1,0 +1,6 @@
+<h2 class="profile__section-title">Открытые вакансии</h2>
+<p class="profile__subtitle">Актуальные направления найма</p>
+{{#each vacancies}}
+  <div><a href="/vacancies/{{id}}">{{title}}</a><p class="profile__value">{{salary}}</p></div>
+{{/each}}
+<a class="profile__link" href="/my/vacancies">Смотреть все вакансии компании</a>

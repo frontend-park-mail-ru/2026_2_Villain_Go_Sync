@@ -1,3 +1,5 @@
+import { mountCardImages } from '../components/profile-images';
+import { mountFormSteps } from '../components/form-steps';
 import {
   getVacancyTitleError,
   getVacancyDescriptionError,
@@ -5,7 +7,7 @@ import {
   MAX_VACANCY_DESCRIPTION_LENGTH,
 } from '@hirenoon/validation';
 import { saveCreationDraft, restoreCreationDraft, clearCreationDraft } from '../components/creation-draft';
-import { hasRequiredProfile, showMissingProfile } from '../profile-required';
+import { getRequiredProfile, showMissingProfile } from '../profile-required';
 import { ApiError, createVacancy, getVacancy, updateVacancy, type Currency, type VacancyFields } from '../api';
 import { setFieldError, setLoading, updateTextFields } from '../components/form';
 import { confirmAction } from '../components/Modal';
@@ -71,6 +73,8 @@ function parseSalary(value: string): number | null | { error: string } {
  */
 export default class VacancyFormPage implements Page {
   #router: Router;
+  #company = '';
+  #logo?: string | null;
   /** Идентификатор редактируемой вакансии; `null` при создании. */
   #id: number | null;
   #abortController = new AbortController();
@@ -184,10 +188,13 @@ export default class VacancyFormPage implements Page {
       this.#form = null;
       this.#container.innerHTML = template({ isLoading: true, heading: this.#heading });
       try {
-        if (!(await hasRequiredProfile('employer', this.#abortController.signal))) {
+        const profile = await getRequiredProfile('employer', this.#abortController.signal);
+        if (this.#abortController.signal.aborted) { return; }
+        if (!profile) {
           this.#container.innerHTML = template({ profileRequired: true, profilePath: '/profile/edit?next=/vacancies/new' });
           return;
         }
+        if ('company_name' in profile) { this.#company = profile.company_name; this.#logo = profile.logo_url; }
       } catch (error) {
         if (!this.#abortController.signal.aborted) {
           this.#container.innerHTML = template({ error: { title: 'Не удалось проверить профиль', text: (error as Error).message, canRetry: true } });
@@ -221,6 +228,8 @@ export default class VacancyFormPage implements Page {
         return;
       }
 
+      this.#company = vacancy.company_name;
+      this.#logo = vacancy.logo_url;
       this.#renderForm(vacancy);
     } catch (error) {
       if (signal.aborted) {
@@ -245,10 +254,10 @@ export default class VacancyFormPage implements Page {
     const formatOptional = (salary: number | null): string => (salary === null ? '' : salaryFormat.format(salary));
 
     this.#container.innerHTML = template({
-      vacancy,
+      vacancy, company: this.#company, logo: this.#logo,
       heading: this.#heading,
       isEdit: this.#id !== null,
-      submitLabel: this.#id === null ? 'Создать вакансию' : 'Сохранить',
+      submitLabel: this.#id === null ? 'Опубликовать вакансию' : 'Сохранить',
       salaryFrom: formatOptional(vacancy.salary_from),
       salaryTo: formatOptional(vacancy.salary_to),
       currencies: CURRENCIES.map((currency) => ({ ...currency, selected: currency.code === vacancy.currency })),
@@ -258,6 +267,8 @@ export default class VacancyFormPage implements Page {
     this.#initialValues = this.#snapshot();
     if (this.#id === null) { restoreCreationDraft('/vacancies/new', this.#form!); }
     this.#updateTextFields();
+    mountCardImages(this.#form!);
+    mountFormSteps(this.#form!, (field) => this.#fieldError(field), this.#id === null ? '/vacancies/new' : undefined);
   }
 
   /**
@@ -331,6 +342,22 @@ export default class VacancyFormPage implements Page {
   }
 
   /**
+   * Проверяет поле и границы диапазона зарплаты.
+   * @param field Поле текущего шага.
+   * @returns Ошибка или пустая строка.
+   */
+  #fieldError(field: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement): string {
+    if (field.name === 'title') { return getVacancyTitleError(field.value); }
+    if (field.name === 'description') { return getVacancyDescriptionError(field.value); }
+    if (field.name !== 'salaryFrom' && field.name !== 'salaryTo') { return ''; }
+    const value = parseSalary(field.value);
+    if (value && typeof value === 'object') { return value.error; }
+    const from = parseSalary((this.#form!.elements as VacancyFormElements).salaryFrom.value);
+    return field.name === 'salaryTo' && typeof from === 'number' && typeof value === 'number' && value < from
+      ? 'Зарплата до не может быть меньше зарплаты от' : '';
+  }
+
+  /**
    * Проверяет поля и показывает ошибки под ними.
    * @returns Поля вакансии или `null`, если есть ошибки.
    */
@@ -340,19 +367,9 @@ export default class VacancyFormPage implements Page {
     const to = parseSalary(salaryTo.value);
     const errors = new Map<HTMLInputElement | HTMLTextAreaElement, string>();
 
-    const titleError = getVacancyTitleError(title.value);
-    const descriptionError = getVacancyDescriptionError(description.value);
-    if (titleError) { errors.set(title, titleError); }
-    if (descriptionError) { errors.set(description, descriptionError); }
-
-    if (typeof from === 'object' && from !== null) {
-      errors.set(salaryFrom, from.error);
-    }
-
-    if (typeof to === 'object' && to !== null) {
-      errors.set(salaryTo, to.error);
-    } else if (typeof from === 'number' && typeof to === 'number' && to < from) {
-      errors.set(salaryTo, 'Зарплата до не может быть меньше зарплаты от');
+    for (const field of [title, description, salaryFrom, salaryTo]) {
+      const error = this.#fieldError(field);
+      if (error) { errors.set(field, error); }
     }
 
     for (const field of [title, description, salaryFrom, salaryTo]) {

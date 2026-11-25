@@ -67,3 +67,68 @@
     height: 48px;
   }
 }
+
+.edit-form.editor {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  margin-top: -16px;
+  min-height: calc(100dvh - 216px);
+}
+.editor {
+  [hidden] { display: none; }
+  h2 { margin: 0; font-size: 20px; line-height: 28px; }
+  &__instructions, &__hint { margin: 0; color: var(--color-text-muted); }
+  &__steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  &__steps button {
+    padding: 12px; border: 1px solid var(--color-border); border-radius: var(--radius);
+    display: flex; align-items: center; gap: 12px; color: inherit; font: inherit; font-size: 14px;
+    text-align: left; background: var(--color-surface); cursor: pointer;
+    &[aria-current=step] { color: var(--color-accent); border-color: currentColor; background: var(--color-accent-soft); }
+    &[aria-current=step] b { background: var(--color-accent); color: white; }
+    b { display: grid; flex: none; place-items: center; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--color-border); }
+    small { display: block; color: var(--color-text-muted); }
+  }
+  &__body { display: grid; grid-template-columns: minmax(0, 920fr) minmax(0, 400fr); gap: 24px; align-items: start; }
+  &__panels, &__body > * { min-width: 0; }
+  &__panel, &__preview {
+    display: grid; gap: 16px; padding: 24px; border: 1px solid var(--color-border);
+    border-radius: var(--radius); background: var(--color-surface);
+  }
+  &__panel:focus { outline: 0; }
+  .field__counter { text-align: right; }
+  &__preview { overflow-wrap: anywhere; }
+  &__preview p { margin: 0; color: var(--color-text-muted); white-space: pre-line; }
+  &__preview [data-value] { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  &__preview small, &__hint { font-size: 13px; color: var(--color-text-muted); }
+  &__actions {
+    position: sticky; z-index: 2; bottom: 0; gap: 12px; padding: 22px 24px;
+    margin-top: auto; background: var(--color-bg); box-shadow: 0 -4px 12px rgb(45 35 36 / 5%);
+    .button { width: auto; }
+  }
+  &__review { display: grid; gap: 12px; margin: 0; }
+  &__review div { display: grid; grid-template-columns: 1fr 1.5fr; gap: 12px; }
+  &__review dt { color: var(--color-text-muted); }
+  &__review dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+  .field__input:disabled { color: var(--color-text-muted); background: var(--color-surface); }
+  @include mobile {
+    &__steps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    &__steps button { gap: 6px; padding: 8px; font-size: 12px; }
+    &__body { grid-template-columns: minmax(0, 1fr); }
+    &__panel, &__preview, &__actions { padding: 16px; }
+    &__actions { position: static; }
+  }
+}
+.unavailable-options {
+  display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; border: 0;
+  legend { margin-bottom: 8px; }
+  .chip { font-size: 14px; color: var(--color-text-muted); }
+}
+
+.editor__import {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 16px; justify-content: space-between;
+  padding: 16px; border-radius: var(--radius); background: var(--color-accent-soft);
+  p { margin: 4px 0 0; color: var(--color-text-muted); font-size: 14px; }
+}

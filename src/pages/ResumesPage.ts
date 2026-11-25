@@ -1,3 +1,4 @@
+import { ListFilters } from '../components/ListFilters';
 import { deleteResume, getSeekerResumes, type Resume } from '../api';
 import { confirmAction } from '../components/Modal';
 import { renderPagination } from '../components/pagination';
@@ -7,8 +8,8 @@ import { getCurrentUser } from '../session';
 import template from './ResumesPage.hbs';
 import resultsTemplate from './ResumesResults.hbs';
 
-const SKELETON_COUNT = 3;
-const PAGE_SIZE = 12;
+const SKELETON_COUNT = 6;
+const PAGE_SIZE = 5;
 
 /**
  * Страница «Мои резюме»: резюме вошедшего соискателя с поиском по названию.
@@ -16,6 +17,7 @@ const PAGE_SIZE = 12;
 export default class ResumesPage implements Page {
   #abortController = new AbortController();
   #resumes: Resume[] | null = null;
+  #listFilters = new ListFilters();
   #query = '';
   #page = 1;
   #isDeleting = false;
@@ -51,12 +53,17 @@ export default class ResumesPage implements Page {
       } else if (actionElement?.dataset.action === 'delete') {
         this.#confirmDelete(Number(actionElement.dataset.id));
       } else if (actionElement?.dataset.action === 'reset') {
+        this.#listFilters.reset();
         this.#setQuery('');
       } else if (actionElement?.dataset.action === 'retry') {
         this.#load();
       }
     });
 
+    this.#listFilters.mount(container, 'resumes', () => {
+      this.#page = 1;
+      if (this.#resumes) { this.#renderList(); }
+    });
     this.#load();
   }
 
@@ -75,7 +82,6 @@ export default class ResumesPage implements Page {
     const userId = getCurrentUser()?.id ?? null;
 
     this.#resumes = null;
-    this.#search.hidden = true;
     this.#content.innerHTML = resultsTemplate({ isLoading: true, skeletons: Array.from({ length: SKELETON_COUNT }) });
 
     try {
@@ -103,7 +109,7 @@ export default class ResumesPage implements Page {
     this.#query = query.trim();
     this.#page = 1;
     this.#input.value = this.#query;
-    this.#renderList();
+    if (this.#resumes) { this.#renderList(); }
   }
 
   /**
@@ -112,18 +118,15 @@ export default class ResumesPage implements Page {
   #renderList(): void {
     const allResumes = this.#resumes ?? [];
     const query = this.#query.toLowerCase();
-    const found = allResumes.filter(({ title }) => title.toLowerCase().includes(query));
+    const found = this.#listFilters.apply(allResumes.filter(({ title }) => title.toLowerCase().includes(query)), true);
     const pageCount = Math.ceil(found.length / PAGE_SIZE);
 
     // После удаления последнего резюме на странице возвращаемся на предыдущую.
     this.#page = Math.min(this.#page, Math.max(pageCount, 1));
 
-    // Поиск не нужен, пока резюме нет совсем.
-    this.#search.hidden = allResumes.length === 0;
-
     this.#content.innerHTML = resultsTemplate({
       resumes: found.slice((this.#page - 1) * PAGE_SIZE, this.#page * PAGE_SIZE),
-      hasQuery: Boolean(query),
+      hasQuery: Boolean(query) || this.#listFilters.active,
       pagination: renderPagination(this.#page, pageCount),
     });
   }

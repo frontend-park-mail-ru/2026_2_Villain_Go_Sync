@@ -7,14 +7,11 @@ import ApplicantsPage from './pages/ApplicantsPage';
 import LoginPage from './pages/LoginPage';
 import MyVacanciesPage from './pages/MyVacanciesPage';
 import NotFoundPage from './pages/NotFoundPage';
-import ProfileFormPage from './pages/ProfileFormPage';
 import ProfilePage from './pages/ProfilePage';
 import RegisterPage from './pages/RegisterPage';
-import ResumeFormPage from './pages/ResumeFormPage';
 import ResumePage from './pages/ResumePage';
 import ResumesPage from './pages/ResumesPage';
 import VacanciesPage from './pages/VacanciesPage';
-import VacancyFormPage from './pages/VacancyFormPage';
 import VacancyPage from './pages/VacancyPage';
 import Router from './router';
 import { isAuthorized, onSessionChange } from './session';
@@ -64,17 +61,17 @@ async function startApplication(): Promise<void> {
 
   router
     .register('/', { title: 'Вакансии', page: VacanciesPage })
-    .register('/vacancies/new', { title: 'Создание вакансии', page: VacancyFormPage, redirect: redirectGuest })
+    .register('/vacancies/new', { title: 'Создание вакансии', loadPage: () => import('./pages/VacancyFormPage'), redirect: redirectGuest })
     .register('/vacancies/:id', { title: 'Вакансия', page: VacancyPage })
-    .register('/vacancies/:id/edit', { title: 'Редактирование вакансии', page: VacancyFormPage, redirect: redirectGuest })
-    .register('/applicants', { title: 'Соискатели', page: ApplicantsPage, redirect: redirectGuest })
+    .register('/vacancies/:id/edit', { title: 'Редактирование вакансии', loadPage: () => import('./pages/VacancyFormPage'), redirect: redirectGuest })
+    .register('/applicants', { title: 'Отклики', page: ApplicantsPage, redirect: redirectGuest })
     .register('/my/vacancies', { title: 'Мои вакансии', page: MyVacanciesPage, redirect: redirectGuest })
     .register('/resumes', { title: 'Мои резюме', page: ResumesPage, redirect: redirectGuest })
-    .register('/resumes/new', { title: 'Создание резюме', page: ResumeFormPage, redirect: redirectGuest })
+    .register('/resumes/new', { title: 'Создание резюме', loadPage: () => import('./pages/ResumeFormPage'), redirect: redirectGuest })
     .register('/resumes/:id', { title: 'Резюме', page: ResumePage })
-    .register('/resumes/:id/edit', { title: 'Редактирование резюме', page: ResumeFormPage, redirect: redirectGuest })
+    .register('/resumes/:id/edit', { title: 'Редактирование резюме', loadPage: () => import('./pages/ResumeFormPage'), redirect: redirectGuest })
     .register('/profile', { title: 'Профиль', page: ProfilePage, redirect: redirectGuest })
-    .register('/profile/edit', { title: 'Редактирование профиля', page: ProfileFormPage, redirect: redirectGuest })
+    .register('/profile/edit', { title: 'Редактирование профиля', loadPage: () => import('./pages/ProfileFormPage'), redirect: redirectGuest })
     .register('/login', { title: 'Вход', page: LoginPage, layout: 'auth', redirect: redirectAuthorized })
     .register('/register', { title: 'Регистрация', page: RegisterPage, layout: 'auth', redirect: redirectAuthorized })
     .setNotFound({ title: 'Страница не найдена', page: NotFoundPage })

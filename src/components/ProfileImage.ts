@@ -13,7 +13,7 @@ import { getProfileImageError } from '@hirenoon/validation';
  * @param signal Сигнал ухода со страницы.
  */
 export function mountProfileImage(container: HTMLElement, user: { id: number; role: UserRole }, path: string | null | undefined, signal: AbortSignal): void {
-  container.innerHTML = template({ label: user.role === 'employer' ? 'Логотип компании' : 'Фотография', url: profileImageURL(path) });
+  container.innerHTML = template({ isCompany: user.role === 'employer', label: user.role === 'employer' ? 'Логотип компании' : 'Фотография', url: profileImageURL(path) });
   const input = container.querySelector<HTMLInputElement>('input')!;
   const remove = container.querySelector<HTMLButtonElement>('button')!;
   const image = container.querySelector<HTMLImageElement>('img')!;

@@ -1,3 +1,6 @@
+import { isFavorite, toggleFavorite } from '../components/favorites';
+import { getCurrentUser } from '../session';
+import { ListFilters } from '../components/ListFilters';
 import { mountCardImages } from '../components/profile-images';
 import { getVacancies, type Vacancy } from '../api';
 import { renderPagination } from '../components/pagination';
@@ -8,7 +11,7 @@ import resultsTemplate from './VacanciesResults.hbs';
 
 const FILTERS = ['Продажи', 'Офис', 'Маркетинг', 'Финансы', 'Кадры', 'ИТ'];
 const SKELETON_COUNT = 6;
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 6;
 
 /**
  * Главная страница — лента вакансий.
@@ -16,6 +19,7 @@ const PAGE_SIZE = 12;
 export default class VacanciesPage implements Page {
   #abortController = new AbortController();
   #vacancies: Vacancy[] | null = null;
+  #listFilters = new ListFilters();
   #query = '';
   #page = 1;
   #input!: HTMLInputElement;
@@ -48,6 +52,12 @@ export default class VacanciesPage implements Page {
     });
 
     this.#results.addEventListener('click', (event) => {
+      const favorite = (event.target as Element).closest<HTMLButtonElement>('[data-favorite]');
+      if (favorite) {
+        const vacancy = this.#vacancies?.find((item) => item.id === Number(favorite.dataset.favorite));
+        if (vacancy) { toggleFavorite(vacancy, favorite); }
+        return;
+      }
       const action = (event.target as Element).closest<HTMLElement>('[data-action]')?.dataset.action;
       const page = (event.target as Element).closest<HTMLElement>('[data-page]')?.dataset.page;
 
@@ -59,12 +69,17 @@ export default class VacanciesPage implements Page {
       }
 
       if (action === 'reset') {
+        this.#listFilters.reset();
         this.#search('');
       } else if (action === 'retry') {
         this.#load();
       }
     });
 
+    this.#listFilters.mount(container, 'catalog', () => {
+      this.#page = 1;
+      if (this.#vacancies) { this.#renderList(this.#vacancies); }
+    });
     this.#load();
   }
 
@@ -124,13 +139,14 @@ export default class VacanciesPage implements Page {
    */
   #renderList(allVacancies: Vacancy[]): void {
     const query = this.#query.toLowerCase();
-    const found = allVacancies.filter(({ title, description }) =>
-      `${title} ${description}`.toLowerCase().includes(query),
-    );
+    const found = this.#listFilters.apply(allVacancies.filter(({ title, description, company_name }) =>
+      `${title} ${description} ${company_name || ''}`.toLowerCase().includes(query),
+    ));
     const pageCount = Math.ceil(found.length / PAGE_SIZE);
     const vacancies = found
       .slice((this.#page - 1) * PAGE_SIZE, this.#page * PAGE_SIZE)
       .map(({ id, title, salary_from: from, salary_to: to, currency, created_at: createdAt, company_name: company, logo_url: logoUrl }) => ({
+        favorite: isFavorite(id),
         company,
         logoUrl,
         id,
@@ -142,7 +158,8 @@ export default class VacanciesPage implements Page {
 
     this.#results.innerHTML = resultsTemplate({
       vacancies,
-      hasQuery: Boolean(query),
+      showFavorites: getCurrentUser()?.role !== 'employer',
+      hasQuery: Boolean(query) || this.#listFilters.active,
       pagination: renderPagination(this.#page, pageCount),
     });
     mountCardImages(this.#results);

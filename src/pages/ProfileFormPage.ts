@@ -1,3 +1,4 @@
+import { mountFormSteps } from '../components/form-steps';
 import { mountProfileImage } from '../components/ProfileImage';
 import { mountPendingProfileImage, type PendingProfileImage } from '../components/PendingProfileImage';
 import { isProfileForUser, profileReturnPath } from '../profile-required';
@@ -133,7 +134,7 @@ export default class ProfileFormPage implements Page {
 
     this.#isCompany = user?.role === 'employer';
 
-    const heading = this.#isCompany ? 'Профиль компании' : 'Профиль';
+    const heading = this.#isCompany ? 'Редактирование компании' : 'Редактирование профиля';
 
     if (!user || user.id === null || user.role === null) {
       this.#form = null;
@@ -175,8 +176,19 @@ export default class ProfileFormPage implements Page {
       const field = (this.#form!.elements as ProfileFormElements)[name];
       if (field) { setFieldError(field, getProfileFieldError(name, field.value)); }
     }
-    const container = document.createElement('div');
-    this.#form!.prepend(container);
+    const container = this.#form!.querySelector<HTMLElement>('[data-image-editor]')!;
+    if (this.#isCompany) {
+      const preview = (): void => {
+        for (const display of this.#form!.querySelectorAll<HTMLElement>('[data-value]')) {
+          const field = this.#form!.elements.namedItem(display.dataset.value!) as HTMLInputElement;
+          display.textContent = field.value;
+        }
+      };
+      preview();
+      this.#form!.addEventListener('input', preview);
+    } else {
+      mountFormSteps(this.#form!, (field) => getProfileFieldError(field.name as keyof typeof PROFILE_FIELD_LIMITS | 'phone', field.value));
+    }
     if (profile) {
       mountProfileImage(container, { id: user.id, role: user.role }, this.#isCompany ? (profile as Employer).logo_url : (profile as Seeker).avatar_url, signal);
     } else {
@@ -189,7 +201,7 @@ export default class ProfileFormPage implements Page {
    * @returns Значения полей без пробелов по краям.
    */
   #snapshot(): string {
-    const fields = [...this.#form!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input:not([type="file"]), textarea')];
+    const fields = [...this.#form!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[name]:not([type="file"]), textarea[name]')];
 
     return JSON.stringify(fields.map((field) => field.value.trim()));
   }
@@ -222,7 +234,7 @@ export default class ProfileFormPage implements Page {
     const elements = this.#form!.elements as ProfileFormElements;
     const value = (field?: HTMLInputElement | HTMLTextAreaElement): string => field?.value.trim() ?? '';
     let firstInvalid: HTMLInputElement | HTMLTextAreaElement | null = null;
-    for (const field of this.#form!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input:not([type="file"]), textarea')) {
+    for (const field of this.#form!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[name]:not([type="file"]), textarea[name]')) {
       const error = getProfileFieldError(field.name as keyof typeof PROFILE_FIELD_LIMITS | 'phone' | 'website', field.value);
       setFieldError(field, error);
       if (error) { firstInvalid ??= field; }
@@ -276,7 +288,14 @@ export default class ProfileFormPage implements Page {
       await save();
       if (this.#isDestroyed) { return; }
       this.#initialValues = this.#snapshot();
-      if (this.#pendingImage && !(await this.#pendingImage.save())) { return; }
+      if (this.#pendingImage && !(await this.#pendingImage.save())) {
+        queueMicrotask(() => {
+          if (this.#isDestroyed) { return; }
+          this.#form?.querySelector<HTMLButtonElement>('[data-step]')?.click();
+          this.#form?.querySelector<HTMLInputElement>('#profile-image')?.focus();
+        });
+        return;
+      }
     } catch {
       if (!this.#isDestroyed) { showToast('Не удалось сохранить профиль. Попробуйте ещё раз', 'error'); }
       return;

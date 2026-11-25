@@ -34,70 +34,50 @@
     </div>
   </section>
 {{else}}
-  <section class="detail{{#if isOwner}} detail_owner{{/if}}">
-    {{#if isOwner}}
-      <nav class="detail__heading detail__breadcrumbs" aria-label="Навигация">
-        <a class="detail__breadcrumb" href="/my/vacancies">Вакансии</a>
-        <span aria-hidden="true">/</span>
-        <span class="detail__breadcrumb-current">{{vacancy.title}}</span>
-      </nav>
-    {{else}}
-      <div class="detail__heading">
-        <h1 class="detail__title">Вакансия</h1>
-        {{#if isGuest}}
-          <a class="button button_secondary detail__heading-button" href="/login">Откликнуться</a>
-        {{else if canApply}}
-          <button class="button button_secondary detail__heading-button" type="button" data-action="apply">
-            Откликнуться
-          </button>
-        {{/if}}
-      </div>
-    {{/if}}
-
-    <article class="detail__card">
-      <div class="detail__header">
-        <div class="detail__summary">
-          {{#if isOwner}}
-            <h1 class="detail__name detail__name_large">{{vacancy.title}}</h1>
-          {{else}}
-            <h2 class="detail__name">{{vacancy.title}}</h2>
-          {{/if}}
-          <div class="detail__meta">
-            {{#if company}}
-              <div class="vacancy-card__company"><span class="vacancy-card__logo" data-image-url="{{vacancy.logo_url}}" aria-hidden="true">{{company}}</span><span class="detail__subtitle">{{company}}</span></div>
-            {{/if}}
-            <p class="detail__salary{{#unless hasSalary}} detail__salary_empty{{/unless}}">{{salary}}</p>
-          </div>
-        </div>
-        {{#if isOwner}}
-          <div class="detail__actions">
-            <a
-              class="icon-button icon-button_edit"
-              href="/vacancies/{{vacancy.id}}/edit"
-              aria-label="Редактировать вакансию"
-            ></a>
-            <button
-              class="icon-button icon-button_delete"
-              type="button"
-              data-action="delete"
-              aria-label="Удалить вакансию"
-            ></button>
-          </div>
-        {{/if}}
-      </div>
-
-      {{#if categories.length}}
-        <div class="chips">
-          {{#each categories}}
-            <span class="chip">{{this}}</span>
-          {{/each}}
-        </div>
+  <section class="detail">
+    <nav class="detail__breadcrumbs" aria-label="Навигация">
+      {{#if isOwner}}
+        <a href="/my/vacancies">Мои вакансии</a>{{else}}
+        <a href="/">Вакансии</a>
       {{/if}}
-
-      <section class="detail__section">
-        <h2 class="detail__section-title">Описание</h2>
-        <p class="detail__text">{{vacancy.description}}</p>
-      </section>
-    </article>
+      <span aria-hidden="true">›</span>
+      <span class="detail__breadcrumb-current">{{vacancy.title}}</span>
+    </nav>
+    <div class="detail__layout">
+      <div class="detail__column">
+        <article class="detail__card">
+          <h1 class="detail__name detail__name_large">{{vacancy.title}}</h1>
+          {{#if company}}
+            <p class="detail__subtitle">{{company}}</p>
+          {{/if}}
+          <p class="detail__salary">{{salary}}</p>
+        </article>
+        <section class="detail__card">
+          <h2 class="detail__section-title">О вакансии</h2>
+          <p class="detail__text">{{vacancy.description}}</p>
+        </section>
+      </div>
+      {{#if showActions}}
+        <aside class="detail__card detail__aside">
+          <h2 class="detail__section-title">{{#if isOwner}}Отклики и кандидаты{{else}}Отклик на вакансию{{/if}}</h2>
+          {{#if published}}
+            <p class="detail__subtitle">Опубликована · {{published}}</p>
+          {{/if}}
+          {{#if isOwner}}
+            <a class="button button_secondary" href="/vacancies/{{vacancy.id}}/edit">Редактировать вакансию</a>
+            <a class="button button_outline" href="/applicants?vacancy={{vacancy.id}}">Посмотреть отклики</a>
+            <button class="button button_ghost" type="button" data-action="delete">Удалить вакансию</button>
+          {{else}}
+            {{#if isGuest}}
+              <a class="button button_secondary" href="/login">Откликнуться</a>
+            {{else}}
+              <button class="button button_secondary" type="button" data-action="apply" {{#if applied}}disabled{{/if}}>{{#if applied}}Вы уже откликнулись{{else}}Откликнуться{{/if}}</button>
+            {{/if}}
+            <button class="button button_outline" type="button" data-favorite aria-pressed="{{favorite}}">{{#if favorite}}♥ В избранном{{else}}♡ Сохранить в избранное{{/if}}</button>
+            <p class="detail__subtitle">Выберите своё резюме и при желании добавьте сопроводительное письмо.</p>
+          {{/if}}
+        </aside>
+      {{/if}}
+    </div>
   </section>
 {{/if}}

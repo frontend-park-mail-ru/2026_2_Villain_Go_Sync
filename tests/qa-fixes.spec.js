@@ -1,3 +1,4 @@
+import { saveEditor } from './editor-steps.js';
 import { test, expect } from '@playwright/test';
 
 /**
@@ -142,7 +143,7 @@ test('ошибка сервера при refresh не уничтожает со�
   await page.locator('[name=firstName]').fill('Новое имя');
   state.refreshStatus = 500;
   await page.route('**/api/profile/seeker', (route) => route.fulfill({ status: 401, json: { error: 'unauthorized' } }));
-  await page.locator('button[type=submit]').click();
+  await saveEditor(page);
   await expect(page.getByText('Не удалось сохранить профиль. Попробуйте ещё раз')).toBeVisible();
   await expect(page).toHaveURL('/profile/edit');
   await expect(page.locator('[name=firstName]')).toHaveValue('Новое имя');
@@ -168,6 +169,7 @@ test('декодирование текста не превращает его �
   state.letter = '&amp; — исходный текст письма';
   await page.goto('/applicants');
   await expect(page.locator('.applicant-card__detail').first()).toHaveText('Вакансия: <img src=x onerror="window.qaXSS=1">');
+  await page.getByRole('button', { name: 'Карточки' }).click();
   await page.locator('summary').click();
   await expect(page.locator('.applicant-card__letter p')).toHaveText(state.letter);
   expect(await page.evaluate(() => window.qaXSS)).toBeUndefined();
@@ -198,7 +200,7 @@ for (const width of [320, 375, 768, 1440]) {
     state.company = 'ОченьДлинноеНазваниеКомпанииБезПробелов'.repeat(30);
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/vacancies/1');
-    await expect(page.locator('.detail__subtitle')).toBeVisible();
+    await expect(page.locator('.detail__subtitle').first()).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   });
 }

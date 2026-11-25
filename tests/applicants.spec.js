@@ -22,6 +22,8 @@ test('отклики открывают приложенное резюме бе
     await route.fulfill({ json: { data } });
   });
   await page.goto('/applicants');
+  await expect(page.locator('.pipeline_new h2 span')).toHaveText('13');
+  await page.getByRole('button', { name: 'Карточки' }).click();
   await expect(page.getByRole('link', { name: 'Смотреть резюме' })).toHaveCount(12);
   await page.locator('[data-page="2"]').first().click();
   await expect(page.getByRole('link', { name: 'Смотреть резюме' })).toHaveCount(1);

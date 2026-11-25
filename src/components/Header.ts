@@ -8,11 +8,11 @@ import { confirmAction } from './Modal';
 import { showToast } from './toast';
 
 const LINKS = [{ title: 'Вакансии', href: '/' }];
-const SEEKER_LINKS = [...LINKS, { title: 'Мои резюме', href: '/resumes' }];
+const SEEKER_LINKS = [...LINKS, { title: 'Мои резюме', href: '/resumes' }, { title: 'Избранное' }, { title: 'Мои отклики' }];
 const EMPLOYER_LINKS = [
   ...LINKS,
   { title: 'Мои вакансии', href: '/my/vacancies' },
-  { title: 'Соискатели', href: '/applicants' },
+  { title: 'Отклики', href: '/applicants' },
 ];
 
 /**

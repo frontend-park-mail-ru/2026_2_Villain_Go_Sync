@@ -1,3 +1,4 @@
+import { saveEditor } from './editor-steps.js';
 import { test, expect } from '@playwright/test';
 
 for (const [role, missingStatus] of [['seeker', 404], ['seeker', 200], ['employer', 404], ['employer', 200]]) {
@@ -32,25 +33,27 @@ for (const [role, missingStatus] of [['seeker', 404], ['seeker', 200], ['employe
     });
     await page.goto(destination);
     await page.locator('[name="title"]').fill('Название черновика');
-    await page.locator('[name="description"]').fill('Первый абзац\nВторой <без HTML>');
+    await page.locator('[data-step]').nth(1).click();
     if (role === 'employer') {
       await page.locator('[name="salaryFrom"]').fill('100000');
       await page.locator('[name="currency"]').selectOption('EUR');
     } else {
       await page.locator('[name="experience"]').fill('Опыт работы');
     }
-    await page.locator('button[type="submit"]').click();
+    await page.locator('[data-step]').nth(2).click();
+    await page.locator('[name="description"]').fill('Первый абзац\nВторой <без HTML>');
+    await saveEditor(page);
     await expect(page.getByRole('heading', { name: 'Сначала заполните профиль' })).toBeVisible();
     await expect(page.locator('[name="title"]')).toHaveValue('Название черновика');
     await page.getByRole('button', { name: 'Заполнить профиль' }).click();
     await page.reload();
     await page.locator(role === 'seeker' ? '[name="firstName"]' : '[name="companyName"]').fill('Тест');
-    await page.locator('button[type="submit"]').click();
+    await saveEditor(page);
     await expect(page).toHaveURL(destination);
     await expect(page.locator('[name="title"]')).toHaveValue('Название черновика');
     await expect(page.locator('[name="description"]')).toHaveValue('Первый абзац\nВторой <без HTML>');
     if (role === 'employer') { await expect(page.locator('[name="currency"]')).toHaveValue('EUR'); }
-    await page.locator('button[type="submit"]').click();
+    await saveEditor(page);
     await expect(page).toHaveURL(`/${resource}/9`);
     expect(posts).toBe(2);
     expect(await page.evaluate(() => Object.keys(sessionStorage).filter((key) => key.startsWith('hirenoon:creation:')))).toEqual([]);
@@ -61,6 +64,6 @@ test('внешний next не перенаправляет после сохр�
   await page.route('**/api/**', (route) => route.fulfill({ json: { data: route.request().url().endsWith('/me')
     ? { id: 5, role: 'seeker' } : { user_id: 5, first_name: 'Иван', last_name: '', phone: '', description: '' } } }));
   await page.goto('/profile/edit?next=//example.com');
-  await page.locator('button[type="submit"]').click();
+  await saveEditor(page);
   await expect(page).toHaveURL('/profile');
 });

@@ -1,20 +1,7 @@
 {{#if isLoading}}
   <div class="card-grid">
     {{#each skeletons}}
-      <div class="vacancy-card vacancy-card_skeleton" aria-hidden="true">
-        <div class="skeleton vacancy-card__skeleton-title"></div>
-        <div class="skeleton vacancy-card__skeleton-company"></div>
-        <div class="skeleton vacancy-card__skeleton-date"></div>
-        <div class="vacancy-card__tags">
-          <div class="skeleton vacancy-card__skeleton-tag"></div>
-          <div class="skeleton vacancy-card__skeleton-tag"></div>
-          <div class="skeleton vacancy-card__skeleton-tag"></div>
-        </div>
-        <div class="vacancy-card__footer">
-          <div class="skeleton vacancy-card__skeleton-salary"></div>
-          <div class="skeleton vacancy-card__skeleton-button"></div>
-        </div>
-      </div>
+      <img class="catalog-loading skeleton" src="/images/vacancy-loading.svg" width="432" height="318" alt="">
     {{/each}}
   </div>
 {{else if error}}
@@ -29,14 +16,15 @@
   <div class="card-grid">
     {{#each vacancies}}
       <article class="vacancy-card">
+        {{#if ../showFavorites}}<button type="button" class="favorite-toggle" data-favorite="{{id}}" aria-label="Сохранить в избранное" aria-pressed="{{favorite}}">{{#if favorite}}♥{{else}}♡{{/if}}</button>{{/if}}
         {{#if company}}
           <div class="vacancy-card__company">
             <span class="vacancy-card__logo" data-image-url="{{logoUrl}}" aria-hidden="true">{{company}}</span>
             <span class="vacancy-card__company-name">{{company}}</span>
           </div>
         {{/if}}
-        <h2 class="vacancy-card__title">{{title}}</h2>
-        <p class="vacancy-card__date">{{published}}</p>
+        <h2 class="vacancy-card__title"><a class="card-link" href="/vacancies/{{id}}">{{title}}</a></h2>
+        <p class="vacancy-card__salary">{{salary}}</p>
         {{#if tags.length}}
           <div class="vacancy-card__tags">
             {{#each tags}}
@@ -45,8 +33,7 @@
           </div>
         {{/if}}
         <div class="vacancy-card__footer">
-          <p class="vacancy-card__salary{{#unless hasSalary}} vacancy-card__salary_empty{{/unless}}">{{salary}}</p>
-          <a class="button button_secondary vacancy-card__button" href="/vacancies/{{id}}">Смотреть вакансию</a>
+          <p class="vacancy-card__date">{{published}}</p>
         </div>
       </article>
     {{/each}}
