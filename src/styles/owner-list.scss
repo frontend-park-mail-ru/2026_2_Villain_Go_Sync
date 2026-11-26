@@ -14,6 +14,20 @@
     gap: 32px;
   }
 
+  &_vacancies &__heading {
+    min-height: 48px;
+  }
+
+  &_vacancies .list-filter-trigger {
+    min-width: 128px;
+    margin-inline-start: 8px;
+
+    @include mobile {
+      min-width: 0;
+      margin-inline-start: 0;
+    }
+  }
+
   &__title {
     margin: 0;
     font-size: 32px;

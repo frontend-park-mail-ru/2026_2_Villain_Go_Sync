@@ -2,18 +2,21 @@
   <div class="card-grid" aria-hidden="true">
     {{#each skeletons}}
       <div class="vacancy-card vacancy-card_skeleton">
-        <div class="skeleton vacancy-card__skeleton-title"></div>
-        <div class="skeleton vacancy-card__skeleton-company"></div>
-        <div class="skeleton vacancy-card__skeleton-date"></div>
+        <div class="vacancy-card__skeleton-title">
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+        </div>
+        <div class="vacancy-card__skeleton-description">
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+        </div>
         <div class="vacancy-card__tags">
           <div class="skeleton vacancy-card__skeleton-tag"></div>
           <div class="skeleton vacancy-card__skeleton-tag"></div>
           <div class="skeleton vacancy-card__skeleton-tag"></div>
         </div>
-        <div class="vacancy-card__footer">
-          <div class="skeleton vacancy-card__skeleton-salary"></div>
-          <div class="skeleton vacancy-card__skeleton-button"></div>
-        </div>
+        <div class="skeleton vacancy-card__skeleton-salary"></div>
+        <div class="skeleton vacancy-card__skeleton-delete"></div>
       </div>
     {{/each}}
   </div>
