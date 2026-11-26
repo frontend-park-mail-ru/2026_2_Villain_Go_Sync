@@ -1,5 +1,6 @@
-import { mountCardImages } from '../components/profile-images';
-import { ApiError, deleteVacancy, getSeekerResumes, getVacancy, type Vacancy } from '../api';
+import { conditions, workLabel } from '../components/work-options';
+import { isFavorite, toggleFavorite } from '../components/favorites';
+import { getMyApplications, ApiError, deleteVacancy, getSeekerResumes, getVacancy, type Vacancy } from '../api';
 import { openApplicationDialog } from '../components/ApplicationDialog';
 import { setLoading } from '../components/form';
 import { confirmAction } from '../components/Modal';
@@ -107,16 +108,29 @@ export default class VacancyPage implements Page {
     const isOwner = user?.id !== null && user?.id === vacancy.employer_id;
 
     this.#container.innerHTML = template({
-      vacancy,
+      vacancy, conditions: conditions(vacancy), level: workLabel('experience_level', vacancy.experience_level),
       company: vacancy.company_name,
       isOwner,
       // Гостя кнопка отклика ведёт на вход, работодателю отклик не нужен.
       isGuest: !isAuthorized(),
-      canApply: isAuthorized() && !isOwner && user?.role !== 'employer',
+      showActions: isOwner || user?.role !== 'employer',
+      published: Number.isNaN(Date.parse(vacancy.created_at)) ? '' : new Intl.DateTimeFormat('ru', { day: 'numeric', month: 'long' }).format(new Date(vacancy.created_at)),
+      favorite: isFavorite(vacancy.id),
       salary: formatSalary(vacancy.salary_from, vacancy.salary_to, vacancy.currency),
       hasSalary: (vacancy.salary_from !== null && vacancy.salary_from !== undefined) || (vacancy.salary_to !== null && vacancy.salary_to !== undefined),
     });
-    mountCardImages(this.#container.querySelector<HTMLElement>('.detail__card')!);
+    const favorite = this.#container.querySelector<HTMLButtonElement>('[data-favorite]');
+    favorite?.addEventListener('click', () => toggleFavorite(vacancy, favorite));
+    if (user?.role === 'seeker') {
+      try {
+        const mine = await getMyApplications(signal);
+        const button = this.#container.querySelector<HTMLButtonElement>('[data-action="apply"]');
+        if (!signal.aborted && button && mine.some((item) => item.vacancy_id === vacancy.id)) {
+          button.disabled = true;
+          button.textContent = button.dataset.label = 'Вы уже откликнулись';
+        }
+      } catch { /* API отклонит дубликат, даже если список временно недоступен. */ }
+    }
   }
 
   /**
@@ -143,7 +157,11 @@ export default class VacancyPage implements Page {
       const resumes = await getSeekerResumes(userId, { signal: this.#abortController.signal });
 
       setLoading(button, false);
-      await openApplicationDialog(this.#id, resumes);
+      if (this.#abortController.signal.aborted) { return; }
+      if (await openApplicationDialog(this.#id, resumes, this.#abortController.signal)) {
+        button.disabled = true;
+        button.dataset.label = 'Вы уже откликнулись';
+      }
     } catch (error) {
       if (!this.#abortController.signal.aborted) {
         showToast((error as Error).message, 'error');

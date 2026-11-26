@@ -1,3 +1,4 @@
+import { saveEditor } from './editor-steps.js';
 import { test, expect } from '@playwright/test';
 
 /**
@@ -44,24 +45,28 @@ for (const edit of [false, true]) {
       const state = await setup(page);
       await page.goto(edit ? '/resumes/9/edit' : '/resumes/new');
       await page.locator('[name=title]').fill('Разработчик');
+      await page.locator('[name=target_position]').fill('Разработчик');
+      if (name !== 'title') { await page.locator('[data-step]').nth(name === 'description' ? 2 : 1).click(); }
       const field = page.locator(`[name=${name}]`);
       const group = field.locator('..');
       await field.fill('Я'.repeat(limit - 1));
       await expect(field).toHaveAttribute('aria-invalid', 'false');
       await expect(group.locator('.field__counter')).toHaveText(`${limit - 1} / ${limit} символов`);
       await field.fill('Я'.repeat(limit + 1));
-      await page.locator('button[type=submit]').click();
+      await saveEditor(page);
       await expect(field).toHaveAttribute('aria-invalid', 'true');
       await expect(group.locator('.field__message')).toBeVisible();
       expect(await group.locator('.field__message').textContent()).not.toMatch(/\.$/);
       expect(state.writes).toEqual([]);
       await expect(field).toHaveValue('Я'.repeat(limit + 1));
-      await page.locator(`[name=${name === 'title' ? 'experience' : 'title'}]`).fill('Другой текст');
+      if (name === 'education' || name === 'experience') {
+        await page.locator(name === 'education' ? '[name=experience]' : '[name=education]').fill('Другой текст');
+      }
       await expect(field).toHaveAttribute('aria-invalid', 'true');
       await field.fill('Я'.repeat(limit));
       await expect(field).toHaveAttribute('aria-invalid', 'false');
       await expect(group.locator('.field__message')).toBeEmpty();
-      await page.locator('button[type=submit]').click();
+      await saveEditor(page);
       await expect(page).toHaveURL('/resumes/9');
       expect(state.writes).toHaveLength(1);
       expect(state.writes[0].method).toBe(edit ? 'PUT' : 'POST');
@@ -87,7 +92,7 @@ for (const emptyProfile of [true, false]) {
       await expect(field).toHaveAttribute('aria-invalid', 'false');
       await field.fill(value(limit + 1));
       await expect(group.locator('.field__counter')).toHaveText(`${limit + 1} / ${limit} символов`);
-      await page.locator('button[type=submit]').click();
+      await saveEditor(page);
       await expect(field).toHaveAttribute('aria-invalid', 'true');
       await expect(field).toBeFocused();
       expect(await group.locator('.field__message').textContent()).not.toMatch(/\.$/);
@@ -96,7 +101,7 @@ for (const emptyProfile of [true, false]) {
       await field.fill(value(limit));
       await expect(field).toHaveAttribute('aria-invalid', 'false');
       await expect(group.locator('.field__message')).toBeEmpty();
-      await page.locator('button[type=submit]').click();
+      await saveEditor(page);
       await expect(page).toHaveURL('/profile');
       expect(state.writes).toHaveLength(1);
       expect(state.writes[0].fields[apiName]).toBe(value(limit));
@@ -109,32 +114,32 @@ test('резюме: обязательность, пустые необязат�
   await page.goto('/resumes/new');
   const title = page.locator('[name=title]');
   await title.fill(' \u200B ');
-  await page.locator('button[type=submit]').click();
+  await saveEditor(page);
   await expect(page.locator('#resume-title-message')).toHaveText('Введите название резюме');
-  await page.locator('[name=description]').fill('Другой текст');
+  await page.locator('[data-step]').nth(2).click();
+  await expect(title).toBeFocused();
   await expect(title).toHaveAttribute('aria-invalid', 'true');
-  await page.locator('[name=description]').fill('');
   await title.fill('🚀'.repeat(101));
   await expect(page.locator('#resume-title-counter')).toHaveText('101 / 100 символов');
   await expect(title).toHaveAttribute('aria-invalid', 'true');
   await title.fill('🚀'.repeat(100));
-  await page.locator('button[type=submit]').click();
+  await saveEditor(page);
   await expect(page).toHaveURL('/resumes/9');
-  expect(state.writes[0].fields).toEqual({ title: '🚀'.repeat(100), description: '', experience: '', education: '' });
+  expect(state.writes[0].fields).toMatchObject({ target_position: 'Разработчик', title: '🚀'.repeat(100), description: '', experience: '', education: '' });
 });
 
 test('профиль: обязательность имени, неверный телефон и очистка необязательных полей', async ({ page }) => {
   const state = await setup(page, 'seeker', true);
   await page.goto('/profile/edit');
   await page.locator('[name=phone]').fill('не телефон');
-  await page.locator('button[type=submit]').click();
+  await saveEditor(page);
   await expect(page.locator('#profile-first-name-message')).toHaveText('Введите имя');
   await expect(page.locator('#profile-phone-message')).toHaveText('Введите корректный номер телефона');
   await page.locator('[name=firstName]').fill('🚀'.repeat(100));
   await page.locator('[name=phone]').fill('');
-  await page.locator('button[type=submit]').click();
+  await saveEditor(page);
   await expect(page).toHaveURL('/profile');
-  expect(state.writes[0].fields).toEqual({ first_name: '🚀'.repeat(100), last_name: '', phone: '', description: '' });
+  expect(state.writes[0].fields).toMatchObject({ first_name: '🚀'.repeat(100), last_name: 'Петров', phone: '', description: '' });
 });
 
 for (const emptyProfile of [true, false]) {
@@ -153,7 +158,7 @@ for (const emptyProfile of [true, false]) {
       await phone.fill(value);
       await expect(phone).toHaveAttribute('aria-invalid', 'true');
       await expect(page.locator('#profile-phone-message')).toHaveText('Введите корректный номер телефона');
-      await page.locator('button[type=submit]').click();
+      await saveEditor(page);
       expect(state.writes).toEqual([]);
     }
     for (const value of ['', '1234567890', '+123456789012345', '+7 (999) 123-45-67']) {
@@ -163,7 +168,7 @@ for (const emptyProfile of [true, false]) {
     }
     const formatted = `+7${' '.repeat(15)}1234567890123`;
     await phone.fill(formatted);
-    await page.locator('button[type=submit]').click();
+    await saveEditor(page);
     await expect(page).toHaveURL('/profile');
     expect(state.writes).toHaveLength(1);
     expect(state.writes[0].fields.phone).toBe(formatted);
@@ -189,7 +194,7 @@ for (const emptyProfile of [true, false]) {
       await website.fill(value);
       await expect(website).toHaveAttribute('aria-invalid', 'true');
       await expect(message).toHaveText('Введите корректный адрес сайта');
-      await page.locator('button[type=submit]').click();
+      await saveEditor(page);
       expect(state.writes).toEqual([]);
       await expect(website).toHaveValue(value);
     }
@@ -201,7 +206,7 @@ for (const emptyProfile of [true, false]) {
     }
     const valid = prefix + 'a'.repeat(255 - prefix.length);
     await website.fill(valid);
-    await page.locator('button[type=submit]').click();
+    await saveEditor(page);
     await expect(page).toHaveURL('/profile');
     expect(state.writes).toHaveLength(1);
     expect(state.writes[0].fields.website).toBe(valid);
@@ -217,7 +222,7 @@ for (const resource of ['profile', 'resume']) {
     const description = page.locator('[name=description]');
     await expect(description).toHaveValue('Я'.repeat(10001));
     await expect(description).toHaveAttribute('aria-invalid', 'true');
-    await page.locator('button[type=submit]').click();
+    await saveEditor(page);
     expect(state.writes).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
   });

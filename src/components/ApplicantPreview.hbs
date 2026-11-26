@@ -1,0 +1,48 @@
+<dialog class="modal candidate-preview" aria-labelledby="candidate-name">
+  <div class="modal__content">
+    <p class="candidate-preview__label">Быстрый просмотр</p>
+    <button class="modal__close" type="button" aria-label="Закрыть">×</button>
+    <header class="candidate-preview__heading">
+      <span class="applicant-card__avatar" data-image-url="{{avatar_url}}" aria-hidden="true">{{initials}}</span>
+      <h2 class="modal__title" id="candidate-name">{{first_name}} {{last_name}}</h2>
+    </header>
+    <p class="candidate-preview__label">Отклик на {{vacancy_title}}{{#if date}} · {{date}}{{/if}}</p>
+    <section>
+      <h3>Резюме</h3>
+      {{#if resume_id}}<a href="/resumes/{{resume_id}}">{{resume_title}}</a>{{else}}<p>{{resume_title}}</p>{{/if}}
+      <p class="detail__text" data-resume-summary></p>
+    </section>
+    {{#if cover_letter}}
+      <section class="candidate-preview__letter">
+        <h3>Сопроводительное письмо</h3>
+        <p class="detail__text">{{cover_letter}}</p>
+      </section>
+    {{/if}}
+    <section>
+      <h3>История отклика</h3>
+      <p>{{#if date}}{{date}} · {{/if}}Отклик получен</p>
+      <p>Текущий этап · {{status}}</p>
+    </section>
+    {{#if status_comment}}<p class="detail__text">{{status_comment}}</p>{{/if}}
+    <form class="candidate-preview__form">
+      <label class="field">Изменить этап
+        <select name="status" class="field__input" required>
+          <option value="">Выберите этап</option><option value="reviewing">Рассмотрение</option>
+          <option value="interview">Собеседование</option><option value="offer">Предложение</option>
+          <option value="rejected">Отказ</option>
+        </select>
+      </label>
+      <label class="field" data-rejection hidden>Причина отказа
+        <select name="reason" class="field__input">
+          <option value="">Выберите причину</option><option value="insufficient_experience">Недостаточный опыт</option>
+          <option value="skills_mismatch">Не подходят навыки</option><option value="salary_mismatch">Зарплатные ожидания</option>
+          <option value="work_format_mismatch">Формат работы</option><option value="location_mismatch">Местоположение</option>
+          <option value="candidate_declined">Отказ кандидата</option><option value="other">Другая причина</option>
+        </select>
+      </label>
+      <label class="field">Комментарий к этапу<textarea name="comment" class="field__input"></textarea></label>
+      <p role="alert" class="field__message"></p>
+      <button type="submit" class="button button_secondary">Сохранить этап</button>
+    </form>
+  </div>
+</dialog>

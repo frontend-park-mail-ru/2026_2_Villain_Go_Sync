@@ -43,7 +43,7 @@ export function setFieldError(control: Element, message: string): void {
   messageElement.textContent = message || messageElement.dataset.hint;
   field.classList.toggle('field_invalid', Boolean(message));
 
-  if (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) {
+  if (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement || control instanceof HTMLSelectElement) {
     control.setAttribute('aria-invalid', String(Boolean(message)));
   }
 }

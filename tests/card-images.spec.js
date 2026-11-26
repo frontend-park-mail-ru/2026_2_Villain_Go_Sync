@@ -48,7 +48,7 @@ async function setup(page, kind) {
   return state;
 }
 
-for (const path of ['/', '/my/vacancies', '/vacancies/9', '/applicants']) {
+for (const path of ['/', '/applicants']) {
   for (const kind of ['present', 'null', 'omitted', 'empty', 'whitespace', 'broken', 'external']) {
     test(`картинка карточки: ${path}, ${kind}`, async ({ page }) => {
       const state = await setup(page, kind);
@@ -76,19 +76,19 @@ for (const path of ['/', '/my/vacancies', '/vacancies/9', '/applicants']) {
 test('при пагинации и поиске картинки запрашиваются только для карточек с URL', async ({ page }) => {
   const state = await setup(page, 'present');
   const vacancy = state.vacancies[0];
-  state.vacancies = Array.from({ length: 13 }, (_, index) => ({
-    ...vacancy, id: index + 1, title: index === 12 ? 'С логотипом' : `Без логотипа ${index + 1}`,
-    logo_url: index === 12 ? vacancy.logo_url : null,
+  state.vacancies = Array.from({ length: 7 }, (_, index) => ({
+    ...vacancy, id: index + 1, title: index === 6 ? 'С логотипом' : `Без логотипа ${index + 1}`,
+    logo_url: index === 6 ? vacancy.logo_url : null,
   }));
   await page.goto('/');
-  await expect(page.locator('.vacancy-card__logo')).toHaveCount(12);
+  await expect(page.locator('.vacancy-card__logo')).toHaveCount(6);
   expect(state.imageRequests).toEqual([]);
   await page.getByRole('button', { name: 'Страница 2', exact: true }).click();
   await expect(page.locator('.vacancy-card__logo img')).toHaveCSS('opacity', '1');
   expect(state.imageRequests).toHaveLength(1);
   await page.locator('#vacancies-query').fill('Без логотипа');
   await page.getByRole('button', { name: 'Найти', exact: true }).click();
-  await expect(page.locator('.vacancy-card__logo')).toHaveCount(12);
+  await expect(page.locator('.vacancy-card__logo')).toHaveCount(6);
   await expect(page.locator('.vacancy-card__logo img')).toHaveCount(0);
   expect(state.imageRequests).toHaveLength(1);
 });

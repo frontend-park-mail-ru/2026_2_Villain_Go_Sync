@@ -59,6 +59,7 @@ async function searchImmediately(page, value) {
 test('поиск и возврат на страницу сохраняют загруженные аватарки без мигания', async ({ page }) => {
   const state = await setup(page);
   await page.goto('/applicants');
+  await page.getByRole('button', { name: 'Карточки' }).click();
   await expect(page.locator('.applicant-card__avatar img')).toHaveCount(12);
   await expect.poll(() => page.locator('.applicant-card__avatar img').evaluateAll((images) =>
     images.every((image) => image.complete && image.naturalWidth > 0 && getComputedStyle(image).opacity === '1'))).toBe(true);
@@ -92,7 +93,7 @@ for (const broken of [false, true]) {
       await expect(avatar).toHaveClass(/image-frame_loading/);
       await expect(avatar.locator('span')).toBeHidden();
       await page.locator('#applicants-query').fill('Иван');
-      await page.getByRole('button', { name: 'Найти', exact: true }).click();
+      await page.locator('#applicants-query').press('Enter');
       await expect(avatar).toHaveClass(/image-frame_loading/);
       await expect(avatar.locator('span')).toBeHidden();
       expect(state.requests).toHaveLength(1);

@@ -28,39 +28,60 @@
     </button>
   </div>
 {{else if applicants}}
-  <div class="applicants__list">
-    <div class="card-grid">
-      {{#each applicants}}
-        <article class="applicant-card">
-          <div class="applicant-card__summary">
-            <div class="applicant-card__meta">
-              <span class="applicant-card__status applicant-card__status_{{status.type}}">{{status.label}}</span>
-              {{#if date}}
-                <span class="applicant-card__date">Отклик: {{date}}</span>
-              {{/if}}
-            </div>
-            <div class="applicant-card__identity">
-              <span class="applicant-card__avatar" data-image-url="{{avatarUrl}}" aria-hidden="true">{{initials}}</span>
-              <h2 class="applicant-card__name">{{name}}</h2>
-            </div>
-            <div class="applicant-card__details">
-              <p class="applicant-card__detail">Вакансия: {{vacancy}}</p>
-              <p class="applicant-card__detail">Резюме: {{resume}}</p>
-            </div>
+  <p class="applicants__count">Откликов по выбранным вакансиям: {{total}}</p>
+  {{#if board}}
+    <div class="applicants__board">
+      {{#each columns}}
+        <section class="pipeline pipeline_{{type}}" {{#if stage}}data-stage="{{stage}}"{{/if}}>
+          <h2>{{title}} <span>{{count}}</span></h2>
+          <div class="pipeline__cards">
+            {{#each cards}}
+              {{> "../components/ApplicantCard" board=true}}
+            {{/each}}
           </div>
-          {{#if coverLetter}}
-            <details class="applicant-card__letter">
-              <summary>Сопроводительное письмо</summary>
-              <p>{{coverLetter}}</p>
-            </details>
-          {{/if}}
-          <a class="button button_secondary applicant-card__button" href="/resumes/{{resumeId}}">Смотреть резюме</a>
-        </article>
+        </section>
       {{/each}}
     </div>
-    {{! Разметку пагинации собирает компонент из номеров страниц, поэтому вставка без экранирования безопасна. }}
-    {{{pagination}}}
-  </div>
+  {{else if table}}
+    <div class="applicants__table-wrap">
+      <table class="applicants__table">
+        <thead>
+          <tr>
+            <th>Кандидат</th>
+            <th>Вакансия</th>
+            <th>Резюме</th>
+            <th>Статус</th>
+            <th>Дата</th>
+            <th>Действие</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each applicants}}
+            <tr>
+              <td>
+                <div class="applicant-card__identity">
+                  <span class="applicant-card__avatar" data-image-url="{{avatarUrl}}">{{initials}}</span>{{name}}</div>
+              </td>
+              <td>{{vacancy}}</td>
+              <td>{{resume}}</td>
+              <td>{{status.label}}</td>
+              <td>{{date}}</td>
+              <td>
+                <button type="button" class="button button_ghost" data-preview="{{id}}">Подробнее</button>
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+  {{else}}
+    <div class="card-grid">
+      {{#each applicants}}
+        {{> "../components/ApplicantCard"}}
+      {{/each}}
+    </div>
+  {{/if}}
+  {{{pagination}}}
 {{else if hasQuery}}
   <div class="empty-state">
     <h2 class="empty-state__title">По вашему запросу ничего не найдено</h2>

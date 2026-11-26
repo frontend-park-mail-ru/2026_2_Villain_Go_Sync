@@ -1,15 +1,9 @@
-<section class="owner-list">
+<section class="owner-list owner-list_vacancies">
   <div class="owner-list__heading">
     <h1 class="owner-list__title">Мои вакансии</h1>
-    <a
-      class="button button_secondary button_icon owner-list__create"
-      href="/vacancies/new"
-      aria-label="Создать вакансию"
-      title="Создать вакансию"
-    ></a>
   </div>
 
-  <form class="owner-list__search" role="search" novalidate hidden>
+  <form class="owner-list__search" role="search" novalidate>
     <input
       class="field__input owner-list__search-input"
       name="query"
@@ -22,6 +16,7 @@
       type="submit"
       aria-label="Найти"
     ></button>
+    <button class="button button_outline list-filter-trigger" type="button" data-filters>Фильтры</button>
   </form>
 
   <div class="owner-list__content" aria-live="polite"></div>

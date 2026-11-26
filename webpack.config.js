@@ -61,6 +61,13 @@ export default (env, { mode }) => {
       port: PORT,
       historyApiFallback: true,
       static: false,
+      ...(isProduction ? {
+        hot: false,
+        liveReload: false,
+        client: false,
+        webSocketServer: false,
+        devMiddleware: { etag: 'strong' },
+      } : {}),
     },
   };
 };

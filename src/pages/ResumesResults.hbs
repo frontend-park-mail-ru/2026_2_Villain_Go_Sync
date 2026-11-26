@@ -1,5 +1,4 @@
 {{#if isLoading}}
-  <div class="skeleton owner-list__search-skeleton" aria-hidden="true"></div>
   <div class="card-grid" aria-hidden="true">
     {{#each skeletons}}
       <div class="resume-card resume-card_skeleton">
@@ -22,16 +21,23 @@
 {{else if resumes}}
   <div class="owner-list__list">
     <div class="card-grid">
+      <a class="create-card" aria-label="Создать резюме" href="/resumes/new">
+        <span class="create-card__plus" aria-hidden="true">+</span>
+        <strong>Создать резюме</strong>
+        <span>Расскажите о навыках и опыте, чтобы откликаться на вакансии</span>
+      </a>
       {{#each resumes}}
         <article class="resume-card">
           <div class="resume-card__summary">
-            <h2 class="resume-card__title">{{title}}</h2>
+            <h2 class="resume-card__title">
+              <a class="card-link" href="/resumes/{{id}}">{{title}}</a>
+            </h2>
             {{#if description}}
               <p class="resume-card__description">{{description}}</p>
             {{/if}}
           </div>
+          {{#if skills}}<div class="chips">{{#each skills}}<span class="chip">{{name}}</span>{{/each}}</div>{{/if}}
           <div class="resume-card__footer">
-            <a class="button button_secondary resume-card__button" href="/resumes/{{id}}">Смотреть резюме</a>
             <button
               class="icon-button icon-button_delete"
               type="button"
@@ -55,11 +61,11 @@
     </button>
   </div>
 {{else}}
-  <div class="empty-state owner-list__empty">
-    <div class="owner-list__empty-copy">
-      <h2 class="empty-state__title">У вас пока нет резюме</h2>
-      <p class="empty-state__text">Создайте резюме, чтобы откликаться на вакансии.</p>
-    </div>
-    <a class="button button_secondary owner-list__empty-button" href="/resumes/new">Создать резюме</a>
+  <div class="card-grid">
+    <a class="create-card" aria-label="Создать резюме" href="/resumes/new">
+      <span class="create-card__plus" aria-hidden="true">+</span>
+      <strong>Создать резюме</strong>
+      <span>Расскажите о навыках и опыте, чтобы откликаться на вакансии</span>
+    </a>
   </div>
 {{/if}}

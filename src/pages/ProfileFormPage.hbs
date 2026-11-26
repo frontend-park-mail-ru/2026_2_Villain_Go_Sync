@@ -25,123 +25,253 @@
   </section>
 {{else}}
   <section class="form-page">
+    {{#unless isCompany}}
+      <nav class="detail__breadcrumbs">
+        <a href="/profile">Мой профиль</a> › Редактирование</nav>
+    {{/unless}}
     <h1 class="form-page__title">{{heading}}</h1>
 
-    <form class="edit-form" novalidate>
-      {{#if isCompany}}
-        <div class="field">
-          <label class="field__label" for="profile-company">Название компании</label>
-          <input
-            class="field__input"
-            id="profile-company"
-            name="companyName"
-            type="text"
-            placeholder="Введите название компании"
-            value="{{profile.company_name}}"
-            autocomplete="organization"
-            aria-describedby="profile-company-counter profile-company-message"
-          />
-          <p class="field__counter" id="profile-company-counter"></p>
-          <p class="field__message" id="profile-company-message"></p>
-        </div>
+    <form class="edit-form editor" novalidate>
+      <p class="editor__instructions" data-instructions>{{#if isCompany}}Информация, которой доверяют кандидаты при выборе работодателя{{/if}}</p>
+      {{#unless isCompany}}
+        <nav class="editor__steps" aria-label="Этапы профиля">
+          <button type="button" data-step>
+            <b></b>
+            <span>Основное и контакты<small></small></span>
+          </button>
+          <button type="button" data-step>
+            <b></b>
+            <span>Опыт работы<small></small></span>
+          </button>
+          <button type="button" data-step>
+            <b></b>
+            <span>Образование и навыки<small></small></span>
+          </button>
+          <button type="button" data-step>
+            <b></b>
+            <span>Проекты и проверка<small></small></span>
+          </button>
+        </nav>
+      {{/unless}}
+      <div class="editor__body">
+        <div class="editor__panels">
+          {{#if isCompany}}
+            <section class="editor__panel">
+              <h2>Основная информация</h2>
+              <div data-image-editor></div>
+              <div class="field">
+                <label class="field__label" for="profile-company">Название компании *</label>
+                <input
+                  class="field__input"
+                  id="profile-company"
+                  name="companyName"
+                  type="text"
+                  placeholder="Введите название компании"
+                  value="{{profile.company_name}}"
+                  autocomplete="organization"
+                  aria-describedby="profile-company-counter profile-company-message"
+                />
+                <p class="field__counter" id="profile-company-counter"></p>
+                <p class="field__message" id="profile-company-message"></p>
+              </div>
 
-        <div class="field">
-          <label class="field__label" for="profile-description">О компании</label>
-          <textarea
-            class="field__input field__textarea"
-            id="profile-description"
-            name="description"
-            placeholder="Расскажите о компании"
-            aria-describedby="profile-description-counter profile-description-message"
-          >{{profile.description}}</textarea>
-          <p class="field__counter" id="profile-description-counter"></p>
-          <p class="field__message" id="profile-description-message"></p>
-        </div>
+              <div class="field">
+                <label class="field__label" for="profile-description">О компании</label>
+                <textarea
+                  class="field__input field__textarea"
+                  id="profile-description"
+                  name="description"
+                  placeholder="Расскажите о компании"
+                  aria-describedby="profile-description-counter profile-description-message"
+                >{{profile.description}}</textarea>
+                <p class="field__counter" id="profile-description-counter"></p>
+                <p class="field__message" id="profile-description-message"></p>
+              </div>
 
-        <div class="field">
-          <label class="field__label" for="profile-website">Сайт</label>
-          <input
-            class="field__input"
-            id="profile-website"
-            name="website"
-            type="text"
-            inputmode="url"
-            placeholder="Введите адрес сайта"
-            value="{{profile.website}}"
-            autocomplete="url"
-            aria-describedby="profile-website-message"
-          />
-          <p class="field__message" id="profile-website-message"></p>
-        </div>
-      {{else}}
-        <div class="edit-form__row">
-          <div class="field">
-            <label class="field__label" for="profile-first-name">Имя</label>
-            <input
-              class="field__input"
-              id="profile-first-name"
-              name="firstName"
-              type="text"
-              placeholder="Введите имя"
-              value="{{profile.first_name}}"
-              autocomplete="given-name"
-              aria-describedby="profile-first-name-counter profile-first-name-message"
-            />
-            <p class="field__counter" id="profile-first-name-counter"></p>
-            <p class="field__message" id="profile-first-name-message"></p>
-          </div>
+              <div class="field">
+                <label class="field__label" for="profile-website">Сайт</label>
+                <input
+                  class="field__input"
+                  id="profile-website"
+                  name="website"
+                  type="text"
+                  inputmode="url"
+                  placeholder="Введите адрес сайта"
+                  value="{{profile.website}}"
+                  autocomplete="url"
+                  aria-describedby="profile-website-message"
+                />
+                <p class="field__message" id="profile-website-message"></p>
+              </div>
+              <div class="edit-form__row">
+                <label class="field">Отрасль
+                  <input class="field__input" name="industry" data-extra type="text">
+                  <span class="field__message" aria-live="polite"></span>
+                </label>
+                <label class="field">Размер команды
+                  <input class="field__input" name="team_size" data-extra type="text">
+                  <span class="field__message" aria-live="polite"></span>
+                </label>
+              </div>
+              <div class="edit-form__row">
+                <label class="field">Основной город
+                  <input class="field__input" name="main_city" data-extra type="text">
+                  <span class="field__message" aria-live="polite"></span>
+                </label>
+                <label class="field">Рабочая почта
+                  <input class="field__input" name="hiring_email" data-extra type="email">
+                  <span class="field__message" aria-live="polite"></span>
+                </label>
+              </div>
+              <label class="field">Условия и преимущества
+                <textarea class="field__input" name="benefits" data-extra></textarea>
+                <span class="field__message" aria-live="polite"></span>
+              </label>
+              <label class="field">Адрес офиса
+                <input class="field__input" name="office_address" data-extra type="text">
+                <span class="field__message" aria-live="polite"></span>
+              </label>
+              <label class="field">Направления и технологии
+                <input class="field__input" name="technologies" data-extra="names" type="text" placeholder="Через запятую">
+                <span class="field__message" aria-live="polite"></span>
+              </label>
+              {{> "../components/EditorRecords" group="culture" label="Добавить запись о команде"}}
+            </section>
+          {{else}}
+            <section class="editor__panel" tabindex="-1" data-panel data-instructions="Шаг 1 из 4 · Личные данные.">
+              <h2>Личные данные</h2>
+              <div data-image-editor></div>
+              <div class="edit-form__row">
+                <div class="field">
+                  <label class="field__label" for="profile-first-name">Имя *</label>
+                  <input
+                    class="field__input"
+                    id="profile-first-name"
+                    name="firstName"
+                    type="text"
+                    placeholder="Введите имя"
+                    value="{{profile.first_name}}"
+                    autocomplete="given-name"
+                    aria-describedby="profile-first-name-counter profile-first-name-message"
+                  />
+                  <p class="field__counter" id="profile-first-name-counter"></p>
+                  <p class="field__message" id="profile-first-name-message"></p>
+                </div>
 
-          <div class="field">
-            <label class="field__label" for="profile-last-name">Фамилия</label>
-            <input
-              class="field__input"
-              id="profile-last-name"
-              name="lastName"
-              type="text"
-              placeholder="Введите фамилию"
-              value="{{profile.last_name}}"
-              autocomplete="family-name"
-              aria-describedby="profile-last-name-counter profile-last-name-message"
-            />
-            <p class="field__counter" id="profile-last-name-counter"></p>
-            <p class="field__message" id="profile-last-name-message"></p>
-          </div>
-        </div>
+                <div class="field">
+                  <label class="field__label" for="profile-last-name">Фамилия *</label>
+                  <input
+                    class="field__input"
+                    id="profile-last-name"
+                    name="lastName"
+                    type="text"
+                    placeholder="Введите фамилию"
+                    value="{{profile.last_name}}"
+                    autocomplete="family-name"
+                    aria-describedby="profile-last-name-counter profile-last-name-message"
+                  />
+                  <p class="field__counter" id="profile-last-name-counter"></p>
+                  <p class="field__message" id="profile-last-name-message"></p>
+                </div>
+              </div>
 
-        <div class="field">
-          <label class="field__label" for="profile-phone">Телефон</label>
-          <input
-            class="field__input"
-            id="profile-phone"
-            name="phone"
-            type="tel"
-            placeholder="Введите номер телефона"
-            value="{{profile.phone}}"
-            autocomplete="tel"
-            aria-describedby="profile-phone-message"
-          />
-          <p class="field__message" id="profile-phone-message"></p>
+              <div class="edit-form__row">
+                <div class="field">
+                  <label class="field__label" for="profile-phone">Телефон</label>
+                  <input
+                    class="field__input"
+                    id="profile-phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="Введите номер телефона"
+                    value="{{profile.phone}}"
+                    autocomplete="tel"
+                    aria-describedby="profile-phone-message"
+                  />
+                  <p class="field__message" id="profile-phone-message"></p>
+                </div>
+                <label class="field">Контактная почта
+                  <input class="field__input" name="contact_email" data-extra type="email">
+                  <span class="field__message" aria-live="polite"></span>
+                </label>
+              </div>
+              <div class="edit-form__row">
+                <label class="field">Город
+                  <input class="field__input" name="city" data-extra type="text">
+                  <span class="field__message" aria-live="polite"></span>
+                </label>
+                <label class="field">Мессенджер
+                  <input class="field__input" name="messenger" data-extra type="text">
+                  <span class="field__message" aria-live="polite"></span>
+                </label>
+              </div>
+              <div class="field">
+                <label class="field__label" for="profile-description">О себе</label>
+                <textarea
+                  class="field__input field__textarea"
+                  id="profile-description"
+                  name="description"
+                  placeholder="Расскажите о себе"
+                  aria-describedby="profile-description-counter profile-description-message"
+                >{{profile.description}}</textarea>
+                <p class="field__counter" id="profile-description-counter"></p>
+                <p class="field__message" id="profile-description-message"></p>
+              </div>
+              <label class="field">Желаемая должность
+                <input class="field__input" name="preferred_position" data-extra type="text">
+                <span class="field__message" aria-live="polite"></span>
+              </label>
+              <label class="field">Желаемые города
+                <input class="field__input" name="preferred_cities" data-extra type="text">
+                <span class="field__message" aria-live="polite"></span>
+              </label>
+              <label class="field">Формат работы
+                <select class="field__input" name="work_format" data-extra><option value="">Не указано</option></select>
+                <span class="field__message" aria-live="polite"></span>
+              </label>
+            </section>
+            <section class="editor__panel" tabindex="-1" data-panel data-instructions="Шаг 2 из 4 · Опыт работы.">
+              <h2>Опыт работы</h2>
+              {{> "../components/EditorRecords" group="experience_items" label="Добавить место работы" seeker=true}}
+            </section>
+            <section class="editor__panel" tabindex="-1" data-panel data-instructions="Шаг 3 из 4 · Образование и навыки.">
+              <h2>Образование и навыки</h2>
+              {{> "../components/EditorRecords" group="education_items" label="Добавить образование"}}
+              <label class="field">Навыки
+                <input class="field__input" name="skills" data-extra="names" type="text" placeholder="Через запятую">
+                <span class="field__message" aria-live="polite"></span>
+              </label>
+            </section>
+            <section class="editor__panel" tabindex="-1" data-panel data-instructions="Шаг 4 из 4 · Проекты и проверка.">
+              <h2>Проекты и проверка</h2>
+              {{> "../components/EditorRecords" group="projects" label="Добавить проект"}}
+              <h2>Проверка данных профиля</h2>
+              <p>
+                <span data-value="firstName"></span> <span data-value="lastName"></span>
+              </p>
+              <p data-value="phone"></p>
+            </section>
+          {{/if}}
         </div>
-
-        <div class="field">
-          <label class="field__label" for="profile-description">О себе</label>
-          <textarea
-            class="field__input field__textarea"
-            id="profile-description"
-            name="description"
-            placeholder="Расскажите о себе"
-            aria-describedby="profile-description-counter profile-description-message"
-          >{{profile.description}}</textarea>
-          <p class="field__counter" id="profile-description-counter"></p>
-          <p class="field__message" id="profile-description-message"></p>
-        </div>
-      {{/if}}
-
-      <div class="edit-form__actions">
-        <button class="button button_secondary edit-form__submit edit-form__submit_compact" type="submit">
-          Сохранить
-        </button>
-        <button class="button button_ghost edit-form__cancel" type="button" data-action="cancel">Отмена</button>
+        <aside class="editor__preview">
+          {{#if isCompany}}
+            <h2>Как видят соискатели</h2>
+            <small>Страница работодателя</small>
+            <h3 data-value="companyName"></h3>
+            <p data-value="description"></p>
+          {{else}}
+            <h2>Профиль и резюме</h2>
+            <small>Как устроены данные</small>
+            <p>Данные профиля можно использовать при создании нескольких резюме.</p>
+          {{/if}}
+        </aside>
+      </div>
+      <div class="edit-form__actions editor__actions">
+        {{#unless isCompany}}
+          <button type="button" class="button button_outline" data-back>← Назад</button>
+        {{/unless}}
+        <button type="submit" class="button button_secondary edit-form__submit">{{#if isCompany}}Сохранить компанию{{else}}Сохранить профиль{{/if}}</button>
+        <button type="button" class="button button_ghost" data-action="cancel">Отмена</button>
       </div>
     </form>
   </section>

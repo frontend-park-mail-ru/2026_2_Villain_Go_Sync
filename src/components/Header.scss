@@ -140,3 +140,13 @@
     }
   }
 }
+
+.header__bell { display: grid; width: 40px; height: 40px; place-items: center; }
+.header__bell img { display: block; max-width: 24px; }
+
+@include mobile {
+  .header { column-gap: 12px; }
+  .header__actions { gap: 6px; }
+  .header__logo { gap: 8px; font-size: 21px; }
+  .header__logo-icon { width: 40px; height: 40px; }
+}

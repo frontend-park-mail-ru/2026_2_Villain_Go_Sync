@@ -1,7 +1,9 @@
+import { mountEditorDetails, readEditorDetails, validateEditorDetails } from '../components/editor-details';
+import { mountFormSteps } from '../components/form-steps';
 import { RESUME_FIELD_LIMITS, getResumeFieldError } from '@hirenoon/validation';
 import { saveCreationDraft, restoreCreationDraft, clearCreationDraft } from '../components/creation-draft';
-import { hasRequiredProfile, showMissingProfile } from '../profile-required';
-import { ApiError, createResume, getResume, updateResume, type ResumeFields } from '../api';
+import { getRequiredProfile, showMissingProfile } from '../profile-required';
+import { ApiError, createResume, getResume, updateResume, type ResumeFields, type Seeker } from '../api';
 import { setFieldError, setLoading, updateTextFields } from '../components/form';
 import { confirmAction } from '../components/Modal';
 import { hideToast, showToast } from '../components/toast';
@@ -31,6 +33,9 @@ interface ResumeFormElements extends HTMLFormControlsCollection {
  */
 export default class ResumeFormPage implements Page {
   #router: Router;
+  #profileData: Seeker | null = null;
+  #copy = new URLSearchParams(location.search).get('copy');
+  #draftPath = this.#copy === null ? '/resumes/new' : '/resumes/new?copy=' + encodeURIComponent(this.#copy);
   /** Идентификатор редактируемого резюме; `null` при создании. */
   #id: number | null;
   #abortController = new AbortController();
@@ -123,14 +128,18 @@ export default class ResumeFormPage implements Page {
    * Показывает пустую форму или загружает резюме для редактирования.
    */
   async #load(): Promise<void> {
-    if (this.#id === null) {
+    const sourceId = this.#id ?? (this.#copy === null ? null : Number(this.#copy));
+    if (sourceId === null) {
       this.#form = null;
       this.#container.innerHTML = template({ isLoading: true, heading: this.#heading });
       try {
-        if (!(await hasRequiredProfile('seeker', this.#abortController.signal))) {
+        const profile = await getRequiredProfile('seeker', this.#abortController.signal);
+        if (this.#abortController.signal.aborted) { return; }
+        if (!profile) {
           this.#container.innerHTML = template({ profileRequired: true, profilePath: '/profile/edit?next=/resumes/new' });
           return;
         }
+        if ('first_name' in profile) { this.#profileData = profile; }
       } catch (error) {
         if (!this.#abortController.signal.aborted) {
           this.#container.innerHTML = template({ error: { title: 'Не удалось проверить профиль', text: (error as Error).message, canRetry: true } });
@@ -150,13 +159,13 @@ export default class ResumeFormPage implements Page {
       skeletonFields: Array.from({ length: SKELETON_FIELDS }),
     });
 
-    if (!Number.isInteger(this.#id) || this.#id <= 0) {
+    if (!Number.isInteger(sourceId) || sourceId <= 0) {
       this.#renderNotFound();
       return;
     }
 
     try {
-      const resume = await getResume(this.#id, { signal });
+      const resume = await getResume(sourceId, { signal });
 
       // Чужое резюме бэкенд всё равно не даст сохранить, поэтому для формы оно как будто не существует.
       if (resume.seeker_id !== getCurrentUser()?.id) {
@@ -186,15 +195,40 @@ export default class ResumeFormPage implements Page {
    */
   #renderForm(resume: ResumeFields): void {
     this.#container.innerHTML = template({
-      resume,
+      resume, canImport: Boolean(this.#profileData),
       heading: this.#heading,
-      submitLabel: this.#id === null ? 'Создать резюме' : 'Сохранить изменения',
+      isEdit: this.#id !== null,
+      submitLabel: this.#id === null ? 'Опубликовать резюме' : 'Сохранить изменения',
     });
 
     this.#form = this.#container.querySelector<HTMLFormElement>('.edit-form');
+    mountEditorDetails(this.#form!, resume);
     this.#initialValues = JSON.stringify(this.#readFields());
-    if (this.#id === null) { restoreCreationDraft('/resumes/new', this.#form!); }
+    this.#form!.querySelector('[data-from-profile]')?.addEventListener('click', async () => {
+      const field = (this.#form!.elements as ResumeFormElements).description;
+      const profile = this.#profileData;
+      if (!profile) { return; }
+      const groupNames = ['skills', 'experience_items', 'education_items', 'projects'] as const;
+      const extras = readEditorDetails(this.#form!);
+      const replaceExisting = Boolean(profile.description && field.value && field.value !== profile.description)
+        || groupNames.some((name) => profile[name]?.length && Array.isArray(extras[name]) && extras[name].length > 0);
+      if (replaceExisting && !(await confirmAction({ title: 'Заполнить из профиля?', text: 'Разделы, заполненные в профиле, заменят соответствующие данные резюме.',
+        confirmLabel: 'Заполнить', cancelLabel: 'Отмена' }))) { return; }
+      if (this.#isDestroyed) { return; }
+      if (profile.description) { field.value = profile.description; }
+      for (const name of groupNames) {
+        if (!profile[name]?.length) { continue; }
+        const control = this.#form!.elements.namedItem(name) as HTMLInputElement;
+        control.value = name === 'skills' ? profile.skills!.map((item) => item.name).join(', ') : JSON.stringify(profile[name]);
+        control.dispatchEvent(new Event('change'));
+      }
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+      showToast('Данные скопированы из профиля');
+    });
+    if (this.#id === null) { restoreCreationDraft(this.#draftPath, this.#form!); }
     updateTextFields(this.#form!, RESUME_FIELD_LIMITS, getResumeFieldError);
+    mountFormSteps(this.#form!, (field) => getResumeFieldError(field.name as keyof typeof RESUME_FIELD_LIMITS, field.value),
+      this.#id === null ? this.#draftPath : undefined);
   }
 
   /**
@@ -215,6 +249,7 @@ export default class ResumeFormPage implements Page {
     const { title, description, experience, education } = this.#form!.elements as ResumeFormElements;
 
     return {
+      ...readEditorDetails(this.#form!),
       title: title.value.trim(),
       description: description.value.trim(),
       experience: experience.value.trim(),
@@ -250,7 +285,7 @@ export default class ResumeFormPage implements Page {
       }
     }
 
-    if (this.#id === null) { clearCreationDraft('/resumes/new'); }
+    if (this.#id === null) { clearCreationDraft(this.#draftPath); }
     this.#router.navigate(this.#backPath(this.#id), { force: true });
   }
 
@@ -259,11 +294,11 @@ export default class ResumeFormPage implements Page {
    */
   #completeProfile(): void {
     if (!this.#form || this.#isSubmitting) { return; }
-    if (!saveCreationDraft('/resumes/new', this.#form)) {
+    if (!saveCreationDraft(this.#draftPath, this.#form)) {
       showToast('Не удалось сохранить черновик. Скопируйте текст перед переходом к профилю', 'error');
       return;
     }
-    this.#router.navigate('/profile/edit?next=/resumes/new', { force: true });
+    this.#router.navigate('/profile/edit?next=' + (this.#copy === null ? '/resumes/new' : encodeURIComponent(this.#draftPath)), { force: true });
   }
 
   /**
@@ -276,6 +311,7 @@ export default class ResumeFormPage implements Page {
 
     hideToast();
 
+    if (!validateEditorDetails(this.#form)) { return; }
     const fields = this.#readFields();
     let firstInvalid: HTMLInputElement | HTMLTextAreaElement | null = null;
     for (const name of Object.keys(RESUME_FIELD_LIMITS) as (keyof typeof RESUME_FIELD_LIMITS)[]) {
@@ -313,7 +349,7 @@ export default class ResumeFormPage implements Page {
     }
 
     if (!this.#isDestroyed) {
-      if (this.#id === null) { clearCreationDraft('/resumes/new'); }
+      if (this.#id === null) { clearCreationDraft(this.#draftPath); }
       this.#router.navigate(this.#backPath(id), { force: true });
     }
   }

@@ -1,3 +1,4 @@
+import { saveEditor } from './editor-steps.js';
 import { test, expect } from '@playwright/test';
 
 /**
@@ -7,7 +8,7 @@ import { test, expect } from '@playwright/test';
  * @returns {Promise<object>} Состояние запросов.
  */
 async function mockAPI(page, role) {
-  const state = { documents: [], applications: [], writes: [] };
+  const state = { documents: [], applications: [], applicants: [], appliedVacancies: [], writes: [] };
   await page.route('**/api/**', async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
@@ -19,6 +20,7 @@ async function mockAPI(page, role) {
       data = { user_id: 5, first_name: 'Иван', last_name: 'Петров', company_name: 'Компания', phone: '+79990000000', website: 'https://example.com', description: 'Описание профиля' };
     } else if (path.endsWith('/applications') && method === 'POST') {
       state.applications.push(request.postDataJSON());
+      state.appliedVacancies.push({ vacancy_id: Number(path.split('/')[3]) });
     } else if (/\/api\/(vacancies|resumes)/.test(path)) {
       const id = Number(path.split('/')[3]);
       if (method === 'POST') {
@@ -30,7 +32,14 @@ async function mockAPI(page, role) {
       } else if (method === 'DELETE') { state.documents = []; }
       else if (id) { data = state.documents.find((item) => item.id === id); }
       else { data = state.documents; }
-    } else if (path === '/api/employer/vacancies') { data = state.documents; }
+    } else if (path === '/api/vacancy-categories') { data = [{ id: 12, name: 'Разработка' }]; }
+    else if (path === '/api/employer/applications/1/status' && method === 'PATCH') {
+      const { status, reason_code, comment } = request.postDataJSON();
+      data = { status, reason_code, status_comment: comment };
+      Object.assign(state.applicants[0], data);
+    } else if (path === '/api/seeker/applications') { data = state.appliedVacancies; }
+    else if (path === '/api/employer/applications') { data = state.applicants; }
+    else if (path === '/api/employer/vacancies') { data = state.documents; }
     if (method !== 'GET') { state.writes.push({ path, method }); }
     return route.fulfill({ json: { data } });
   });
@@ -42,16 +51,17 @@ for (const role of ['seeker', 'employer']) {
     const resource = role === 'seeker' ? 'resumes' : 'vacancies';
     const state = await mockAPI(page, role);
     await page.goto(`/${resource}/new`);
-    await page.locator('button[type="submit"]').click();
+    await saveEditor(page);
     await expect(page.getByText(role === 'seeker' ? 'Введите название резюме' : 'Введите название вакансии')).toBeVisible();
     expect(state.writes).toHaveLength(0);
     await page.locator('[name="title"]').fill('Первое название');
+    await page.locator('[data-step]').nth(2).click();
     await page.locator('[name="description"]').fill('Описание документа');
-    await page.locator('button[type="submit"]').click();
+    await saveEditor(page);
     await expect(page).toHaveURL(`/${resource}/9`);
     await page.getByRole('link', { name: role === 'seeker' ? 'Редактировать резюме' : 'Редактировать вакансию' }).click();
     await page.locator('[name="title"]').fill('Обновлённое название');
-    await page.locator('button[type="submit"]').click();
+    await saveEditor(page);
     await expect(page.getByRole('heading', { name: 'Обновлённое название', exact: true })).toBeVisible();
     await page.getByRole('button', { name: role === 'seeker' ? 'Удалить резюме' : 'Удалить вакансию', exact: true }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Отмена' }).click();
@@ -73,6 +83,8 @@ test('РК2: отправка отклика с выбранным резюме'
   await page.getByRole('dialog').getByRole('button', { name: 'Откликнуться', exact: true }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   expect(state.applications).toEqual([{ resume_id: 9, cover_letter: 'Здравствуйте!' }]);
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Вы уже откликнулись' })).toBeDisabled();
 });
 
 for (const width of [320, 360, 1440]) {
@@ -91,3 +103,152 @@ for (const width of [320, 360, 1440]) {
     }
   });
 }
+
+
+test('каталог фильтрует зарплату, сбрасывает фильтр и запоминает избранное', async ({ page }) => {
+  const state = await mockAPI(page, 'seeker');
+  state.documents = [
+    { id: 1, title: 'Аналитик', company_name: 'Команда', salary_from: 90000, salary_to: 120000, currency: 'RUB' },
+    { id: 2, title: 'Разработчик', company_name: 'Команда', salary_from: 190000, salary_to: null, currency: 'RUB' },
+  ];
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Фильтры', exact: true }).click();
+  await page.getByLabel('От, ₽').fill('150000');
+  await page.getByRole('button', { name: 'Показать вакансии' }).click();
+  await expect(page.locator('.vacancy-card')).toHaveCount(1);
+  await expect(page.getByRole('link', { name: 'Разработчик' })).toBeVisible();
+  await page.getByRole('button', { name: 'Фильтры', exact: true }).click();
+  await page.getByRole('button', { name: 'Сбросить', exact: true }).click();
+  await expect(page.locator('.vacancy-card')).toHaveCount(2);
+  await page.locator('[data-favorite="2"]').click();
+  await page.reload();
+  await expect(page.locator('[data-favorite="2"]')).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('копия резюме восстанавливает свой черновик отдельно от нового резюме', async ({ page }) => {
+  const state = await mockAPI(page, 'seeker');
+  state.documents = [{ id: 4, seeker_id: 5, title: 'Исходное резюме', description: 'О себе' }];
+  await page.goto('/resumes/4');
+  await page.getByRole('link', { name: 'Дублировать' }).click();
+  await expect(page.locator('[name=title]')).toHaveValue('Исходное резюме');
+  await page.locator('[name=title]').fill('Новая версия');
+  await page.getByRole('button', { name: 'Сохранить черновик' }).click();
+  await page.reload();
+  await expect(page.locator('[name=title]')).toHaveValue('Новая версия');
+  await page.goto('/resumes/new');
+  await expect(page.locator('[name=title]')).toBeEmpty();
+  await page.getByRole('button', { name: 'Заполнить из профиля' }).click();
+  await expect(page.locator('[name=description]')).toHaveValue('Описание профиля');
+  expect(state.writes).toEqual([]);
+});
+
+test('отклики переключаются между видами и открывают соответствующее письмо', async ({ page }) => {
+  const state = await mockAPI(page, 'employer');
+  state.documents = [{ id: 4, seeker_id: 7, title: 'Резюме разработчика', experience: 'Опыт разработки' }];
+  state.applicants = [
+    { application_id: 1, vacancy_id: 9, vacancy_title: 'Разработчик', resume_id: 4, resume_title: 'Резюме разработчика',
+      first_name: 'Анна', last_name: 'Иванова', status: 'created', cover_letter: 'Интересует вакансия', applied_at: '2026-11-20' },
+    { application_id: 2, vacancy_id: 8, vacancy_title: 'Аналитик', resume_id: 4, resume_title: 'Резюме аналитика',
+      first_name: 'Иван', last_name: 'Петров', status: 'interview', cover_letter: null, applied_at: '2026-11-19' },
+  ];
+  await page.goto('/applicants');
+  await expect(page.locator('.pipeline_new')).toContainText('Анна Иванова');
+  await page.locator('.pipeline_new [data-preview]').click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toContainText('Интересует вакансия');
+  await expect(dialog).toContainText('Опыт разработки');
+  await dialog.getByRole('button', { name: 'Закрыть' }).click();
+  await page.getByRole('button', { name: 'Список', exact: true }).click();
+  await page.getByLabel('Вакансия', { exact: true }).selectOption('8');
+  await expect(page.getByRole('table').getByRole('row')).toHaveCount(2);
+  await page.getByRole('button', { name: 'Подробнее' }).click();
+  await expect(dialog).toContainText('Иван Петров');
+  await expect(dialog.getByRole('heading', { name: 'Сопроводительное письмо' })).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Карточки' }).click();
+  await expect(page.locator('.applicant-card')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Сбросить' }).click();
+  await expect(page.locator('.applicant-card')).toHaveCount(2);
+});
+
+test('резюме сохраняет должность, условия и проекты из черновика', async ({ page }) => {
+  const state = await mockAPI(page, 'seeker');
+  await page.goto('/resumes/new');
+  await page.locator('[name=title]').fill('Моё резюме');
+  const step = page.locator('[data-step]');
+  await step.nth(2).click();
+  await expect(page.locator('[name=target_position]')).toBeFocused();
+  await page.locator('[name=target_position]').fill('Разработчик');
+  await page.locator('[name=work_format]').selectOption('remote');
+  await page.locator('[name=city]').fill('Казань');
+  await step.nth(2).click();
+  await page.locator('[name=skills]').fill('Go, TypeScript');
+  await page.getByRole('button', { name: 'Добавить проект' }).click();
+  await page.locator('[data-record-field=title]').fill('Каталог');
+  await page.getByRole('button', { name: 'Сохранить черновик' }).click();
+  await page.reload();
+  await step.nth(2).click();
+  await expect(page.locator('[data-record-field=title]')).toHaveValue('Каталог');
+  await step.last().click();
+  await page.locator('.edit-form button[type=submit]').click();
+  await expect(page).toHaveURL('/resumes/9');
+  expect(state.documents[0]).toMatchObject({ city: 'Казань', work_format: 'remote', target_position: 'Разработчик',
+    skills: [{ name: 'Go' }, { name: 'TypeScript' }], projects: [{ title: 'Каталог' }] });
+  await expect(page.locator('#page')).toContainText('Каталог');
+});
+
+test('вакансия сохраняет направления и обязательные условия', async ({ page }) => {
+  const state = await mockAPI(page, 'employer');
+  await page.goto('/vacancies/new');
+  await page.locator('[name=title]').fill('Разработчик');
+  await page.locator('[data-category-select]').selectOption('12');
+  const step = page.locator('[data-step]');
+  await step.last().click();
+  await expect(page.locator('[name=responsibilities]')).toBeFocused();
+  await page.locator('[name=responsibilities]').fill('Писать код');
+  await page.locator('[name=requirements]').fill('Знание Go');
+  await step.last().click();
+  await page.locator('.edit-form button[type=submit]').click();
+  await expect(page).toHaveURL('/vacancies/9');
+  expect(state.documents[0]).toMatchObject({ category_ids: [12], responsibilities: 'Писать код', requirements: 'Знание Go' });
+});
+
+test('причина отказа сохраняется и карточка переходит в другой этап', async ({ page }) => {
+  const state = await mockAPI(page, 'employer');
+  state.applicants = [{ application_id: 1, vacancy_id: 7, vacancy_title: 'Разработчик', resume_id: null, resume_title: 'Архивное резюме',
+    first_name: 'Анна', last_name: 'Иванова', status: 'reviewing', applied_at: '2026-11-20' }];
+  await page.goto('/applicants');
+  await page.locator('.pipeline_viewed [data-candidate]').dragTo(page.locator('.pipeline_rejected'));
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('link', { name: 'Архивное резюме' })).toHaveCount(0);
+  await expect(dialog.locator('[name=status]')).toHaveValue('rejected');
+  await dialog.getByRole('button', { name: 'Сохранить этап' }).click();
+  expect(state.writes).toEqual([]);
+  await dialog.locator('[name=reason]').selectOption('skills_mismatch');
+  await dialog.locator('[name=comment]').fill('Требуется опыт с Go');
+  await dialog.getByRole('button', { name: 'Сохранить этап' }).click();
+  await expect(page.locator('.pipeline_rejected')).toContainText('Анна Иванова');
+  await page.reload();
+  await page.locator('.pipeline_rejected [data-preview]').click();
+  await expect(dialog.locator('[name=reason]')).toHaveValue('skills_mismatch');
+  await expect(dialog.locator('[name=comment]')).toHaveValue('Требуется опыт с Go');
+});
+
+test('поиск по городу и формату включает вакансии со следующей страницы API', async ({ page }) => {
+  await mockAPI(page, 'seeker');
+  const cursor = 'next+/=';
+  await page.route('**/api/vacancies*', (route) => {
+    const next = new URL(route.request().url()).searchParams.get('cursor');
+    const item = next === cursor ? { id: 2, title: 'Аналитик', city: 'Казань', work_format: 'remote' }
+      : { id: 1, title: 'Инженер', city: 'Москва', work_format: 'office' };
+    return route.fulfill({ json: { data: { items: [item], pagination: { next_cursor: next ? null : cursor, total: 2, limit: 1 } } } });
+  });
+  await page.goto('/');
+  await expect(page.locator('.vacancy-card')).toHaveCount(2);
+  await page.getByRole('button', { name: 'Фильтры', exact: true }).click();
+  await page.getByLabel('Удалённо').check();
+  await page.getByLabel('Город').fill('каз');
+  await page.getByRole('button', { name: 'Показать вакансии' }).click();
+  await expect(page.locator('.vacancy-card')).toHaveCount(1);
+  await expect(page.locator('.vacancy-card')).toContainText('Аналитик');
+});

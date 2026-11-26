@@ -6,13 +6,12 @@
 
   <form class="vacancies__search" novalidate>
     <div class="field vacancies__search-field">
-      <label class="field__label" for="vacancies-query">Поиск вакансий</label>
       <input
         class="field__input"
         id="vacancies-query"
         name="query"
-        type="search"
-        placeholder="Название или описание вакансии"
+        type="search" aria-label="Поиск вакансий"
+        placeholder="Должность, профессия или компания"
       />
     </div>
     <button
@@ -20,6 +19,7 @@
       type="submit"
       aria-label="Найти"
     ></button>
+    <button class="button button_outline list-filter-trigger" type="button" data-filters>Фильтры</button>
   </form>
 
   <div class="chips vacancies__filters">

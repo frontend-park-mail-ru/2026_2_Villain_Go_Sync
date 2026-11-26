@@ -1,5 +1,5 @@
-import { mountCardImages } from '../components/profile-images';
-import { deleteVacancy, getEmployerVacancies, type Vacancy } from '../api';
+import { ListFilters } from '../components/ListFilters';
+import { getEmployerApplicants, deleteVacancy, getEmployerVacancies, type Vacancy } from '../api';
 import { confirmAction } from '../components/Modal';
 import { renderPagination } from '../components/pagination';
 import { showToast } from '../components/toast';
@@ -8,8 +8,8 @@ import type { Page } from '../router';
 import template from './MyVacanciesPage.hbs';
 import resultsTemplate from './MyVacanciesResults.hbs';
 
-const SKELETON_COUNT = 3;
-const PAGE_SIZE = 12;
+const SKELETON_COUNT = 6;
+const PAGE_SIZE = 5;
 
 /**
  * Страница «Мои вакансии»: вакансии вошедшего работодателя с поиском по названию.
@@ -17,6 +17,7 @@ const PAGE_SIZE = 12;
 export default class MyVacanciesPage implements Page {
   #abortController = new AbortController();
   #vacancies: Vacancy[] | null = null;
+  #listFilters = new ListFilters();
   #query = '';
   #page = 1;
   #isDeleting = false;
@@ -52,12 +53,17 @@ export default class MyVacanciesPage implements Page {
       } else if (actionElement?.dataset.action === 'delete') {
         this.#confirmDelete(Number(actionElement.dataset.id));
       } else if (actionElement?.dataset.action === 'reset') {
+        this.#listFilters.reset();
         this.#setQuery('');
       } else if (actionElement?.dataset.action === 'retry') {
         this.#load();
       }
     });
 
+    this.#listFilters.mount(container, 'vacancies', () => {
+      this.#page = 1;
+      if (this.#vacancies) { this.#renderList(); }
+    });
     this.#load();
   }
 
@@ -75,7 +81,6 @@ export default class MyVacanciesPage implements Page {
     const { signal } = this.#abortController;
 
     this.#vacancies = null;
-    this.#search.hidden = true;
     this.#content.innerHTML = resultsTemplate({ isLoading: true, skeletons: Array.from({ length: SKELETON_COUNT }) });
 
     try {
@@ -89,6 +94,19 @@ export default class MyVacanciesPage implements Page {
     }
 
     this.#renderList();
+    try {
+      const applications = await getEmployerApplicants({ signal });
+      if (signal.aborted) { return; }
+      const counts = new Map<number, { total: number; fresh: number }>();
+      for (const item of applications) {
+        if (!item.vacancy_id) { continue; }
+        const count = counts.get(item.vacancy_id) ?? { total: 0, fresh: 0 };
+        count.total++;
+        if (item.status === 'created' || item.status === 'pending') { count.fresh++; }
+        counts.set(item.vacancy_id, count);
+      }
+      this.#listFilters.setApplicationCounts(counts);
+    } catch { /* Список документов доступен независимо от списка откликов. */ }
   }
 
   /**
@@ -99,7 +117,7 @@ export default class MyVacanciesPage implements Page {
     this.#query = query.trim();
     this.#page = 1;
     this.#input.value = this.#query;
-    this.#renderList();
+    if (this.#vacancies) { this.#renderList(); }
   }
 
   /**
@@ -108,31 +126,25 @@ export default class MyVacanciesPage implements Page {
   #renderList(): void {
     const allVacancies = this.#vacancies ?? [];
     const query = this.#query.toLowerCase();
-    const found = allVacancies.filter(({ title }) => title.toLowerCase().includes(query));
+    const found = this.#listFilters.apply(allVacancies.filter(({ title }) => title.toLowerCase().includes(query)), true);
     const pageCount = Math.ceil(found.length / PAGE_SIZE);
 
     // После удаления последней вакансии на странице возвращаемся на предыдущую.
     this.#page = Math.min(this.#page, Math.max(pageCount, 1));
 
-    // Поиск не нужен, пока вакансий нет совсем.
-    this.#search.hidden = allVacancies.length === 0;
-
     this.#content.innerHTML = resultsTemplate({
       vacancies: found
         .slice((this.#page - 1) * PAGE_SIZE, this.#page * PAGE_SIZE)
-        .map(({ id, title, description, salary_from: from, salary_to: to, currency, company_name: company, logo_url: logoUrl }) => ({
-          company,
-          logoUrl,
+        .map(({ id, title, description, categories, salary_from: from, salary_to: to, currency }) => ({
           id,
           title,
-          description,
+          description, categories,
           salary: formatSalary(from, to, currency),
           hasSalary: (from !== null && from !== undefined) || (to !== null && to !== undefined),
         })),
-      hasQuery: Boolean(query),
+      hasQuery: Boolean(query) || this.#listFilters.active,
       pagination: renderPagination(this.#page, pageCount),
     });
-    mountCardImages(this.#content);
   }
 
   /**

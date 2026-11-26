@@ -1,0 +1,14 @@
+<dialog class="modal modal_wide" aria-labelledby="favorite-login">
+  <div class="modal__content">
+    <h2 class="modal__title" id="favorite-login">Войдите в аккаунт</h2>
+    <p class="modal__text">Чтобы добавить вакансию в избранное, сначала войдите или создайте аккаунт.</p>
+    <div class="favorite-summary"><strong>{{title}}{{#if company_name}} · {{company_name}}{{/if}}</strong><small>Ещё не добавлено в избранное</small></div>
+    <form class="auth__form">
+      <label class="field">Электронная почта<input class="field__input" type="email" name="email" placeholder="example@mail.ru" autocomplete="username" required></label>
+      <label class="field">Пароль<input class="field__input" type="password" name="password" placeholder="Введите пароль" autocomplete="current-password" required></label>
+      <p class="field__message" role="alert"></p>
+      <div class="modal__actions"><button class="button button_secondary" type="submit">Войти</button><a class="button button_ghost" href="/register">Зарегистрироваться</a></div>
+    </form>
+  </div>
+  <button type="button" class="modal__close" aria-label="Закрыть">×</button>
+</dialog>

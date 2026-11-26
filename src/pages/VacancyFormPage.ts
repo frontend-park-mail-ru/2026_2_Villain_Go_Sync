@@ -1,3 +1,6 @@
+import { mountEditorDetails, readEditorDetails, validateEditorDetails } from '../components/editor-details';
+import { mountCardImages } from '../components/profile-images';
+import { mountFormSteps } from '../components/form-steps';
 import {
   getVacancyTitleError,
   getVacancyDescriptionError,
@@ -5,8 +8,8 @@ import {
   MAX_VACANCY_DESCRIPTION_LENGTH,
 } from '@hirenoon/validation';
 import { saveCreationDraft, restoreCreationDraft, clearCreationDraft } from '../components/creation-draft';
-import { hasRequiredProfile, showMissingProfile } from '../profile-required';
-import { ApiError, createVacancy, getVacancy, updateVacancy, type Currency, type VacancyFields } from '../api';
+import { getRequiredProfile, showMissingProfile } from '../profile-required';
+import { getVacancyCategories, ApiError, createVacancy, getVacancy, updateVacancy, type Currency, type VacancyFields } from '../api';
 import { setFieldError, setLoading, updateTextFields } from '../components/form';
 import { confirmAction } from '../components/Modal';
 import { hideToast, showToast } from '../components/toast';
@@ -71,6 +74,8 @@ function parseSalary(value: string): number | null | { error: string } {
  */
 export default class VacancyFormPage implements Page {
   #router: Router;
+  #company = '';
+  #logo?: string | null;
   /** Идентификатор редактируемой вакансии; `null` при создании. */
   #id: number | null;
   #abortController = new AbortController();
@@ -184,10 +189,13 @@ export default class VacancyFormPage implements Page {
       this.#form = null;
       this.#container.innerHTML = template({ isLoading: true, heading: this.#heading });
       try {
-        if (!(await hasRequiredProfile('employer', this.#abortController.signal))) {
+        const profile = await getRequiredProfile('employer', this.#abortController.signal);
+        if (this.#abortController.signal.aborted) { return; }
+        if (!profile) {
           this.#container.innerHTML = template({ profileRequired: true, profilePath: '/profile/edit?next=/vacancies/new' });
           return;
         }
+        if ('company_name' in profile) { this.#company = profile.company_name; this.#logo = profile.logo_url; }
       } catch (error) {
         if (!this.#abortController.signal.aborted) {
           this.#container.innerHTML = template({ error: { title: 'Не удалось проверить профиль', text: (error as Error).message, canRetry: true } });
@@ -221,6 +229,8 @@ export default class VacancyFormPage implements Page {
         return;
       }
 
+      this.#company = vacancy.company_name;
+      this.#logo = vacancy.logo_url;
       this.#renderForm(vacancy);
     } catch (error) {
       if (signal.aborted) {
@@ -245,19 +255,56 @@ export default class VacancyFormPage implements Page {
     const formatOptional = (salary: number | null): string => (salary === null ? '' : salaryFormat.format(salary));
 
     this.#container.innerHTML = template({
-      vacancy,
+      vacancy, company: this.#company, logo: this.#logo,
       heading: this.#heading,
       isEdit: this.#id !== null,
-      submitLabel: this.#id === null ? 'Создать вакансию' : 'Сохранить',
+      submitLabel: this.#id === null ? 'Опубликовать вакансию' : 'Сохранить',
       salaryFrom: formatOptional(vacancy.salary_from),
       salaryTo: formatOptional(vacancy.salary_to),
       currencies: CURRENCIES.map((currency) => ({ ...currency, selected: currency.code === vacancy.currency })),
     });
 
     this.#form = this.#container.querySelector<HTMLFormElement>('.edit-form');
+    mountEditorDetails(this.#form!, vacancy);
     this.#initialValues = this.#snapshot();
     if (this.#id === null) { restoreCreationDraft('/vacancies/new', this.#form!); }
+    void this.#loadCategories(vacancy);
     this.#updateTextFields();
+    mountCardImages(this.#form!);
+    mountFormSteps(this.#form!, (field) => this.#fieldError(field), this.#id === null ? '/vacancies/new' : undefined);
+  }
+
+  /**
+   * Загружает названия и ID тегов, сохраняя выбор при редактировании или восстановлении черновика.
+   * @param vacancy Исходная вакансия.
+   */
+  async #loadCategories(vacancy: VacancyFields): Promise<void> {
+    const form = this.#form!;
+    const select = form.querySelector<HTMLSelectElement>('[data-category-select]')!;
+    const hidden = form.elements.namedItem('category_ids') as HTMLInputElement;
+    const hint = form.querySelector<HTMLElement>('[data-category-hint]')!;
+    try {
+      const categories = await getVacancyCategories(this.#abortController.signal);
+      if (this.#isDestroyed || form !== this.#form) { return; }
+      const original = 'categories' in vacancy && Array.isArray(vacancy.categories) ? vacancy.categories : [];
+      const draft: number[] | null = hidden.value ? JSON.parse(hidden.value) : null;
+      for (const { id, name } of categories) { select.add(new Option(name, String(id), false, draft ? draft.includes(id) : original.includes(name))); }
+      if (select.selectedOptions.length >= 5) {
+        for (const option of select.options) { option.disabled = !option.selected; }
+      }
+      select.disabled = !categories.length;
+      if (draft && categories.length) { hidden.disabled = false; }
+      hint.textContent = categories.length ? 'Можно выбрать до пяти направлений' : 'Справочник пока пуст';
+      select.addEventListener('change', () => {
+        const ids = [...select.selectedOptions].map((option) => Number(option.value));
+        hidden.value = JSON.stringify(ids);
+        hidden.disabled = false;
+        for (const option of select.options) { option.disabled = ids.length >= 5 && !option.selected; }
+        hint.textContent = ids.length >= 5 ? 'Выбрано пять направлений' : 'Можно выбрать до пяти направлений';
+      });
+    } catch {
+      if (!this.#isDestroyed) { hint.textContent = 'Не удалось загрузить направления'; }
+    }
   }
 
   /**
@@ -285,7 +332,7 @@ export default class VacancyFormPage implements Page {
   #snapshot(): string {
     const { title, description, salaryFrom, salaryTo, currency } = this.#form!.elements as VacancyFormElements;
 
-    return JSON.stringify([title, description, salaryFrom, salaryTo, currency].map((field) => field.value.trim()));
+    return JSON.stringify([title, description, salaryFrom, salaryTo, currency].map((field) => field.value.trim()).concat(JSON.stringify(readEditorDetails(this.#form!))));
   }
 
   /**
@@ -331,6 +378,22 @@ export default class VacancyFormPage implements Page {
   }
 
   /**
+   * Проверяет поле и границы диапазона зарплаты.
+   * @param field Поле текущего шага.
+   * @returns Ошибка или пустая строка.
+   */
+  #fieldError(field: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement): string {
+    if (field.name === 'title') { return getVacancyTitleError(field.value); }
+    if (field.name === 'description') { return getVacancyDescriptionError(field.value); }
+    if (field.name !== 'salaryFrom' && field.name !== 'salaryTo') { return ''; }
+    const value = parseSalary(field.value);
+    if (value && typeof value === 'object') { return value.error; }
+    const from = parseSalary((this.#form!.elements as VacancyFormElements).salaryFrom.value);
+    return field.name === 'salaryTo' && typeof from === 'number' && typeof value === 'number' && value < from
+      ? 'Зарплата до не может быть меньше зарплаты от' : '';
+  }
+
+  /**
    * Проверяет поля и показывает ошибки под ними.
    * @returns Поля вакансии или `null`, если есть ошибки.
    */
@@ -340,19 +403,9 @@ export default class VacancyFormPage implements Page {
     const to = parseSalary(salaryTo.value);
     const errors = new Map<HTMLInputElement | HTMLTextAreaElement, string>();
 
-    const titleError = getVacancyTitleError(title.value);
-    const descriptionError = getVacancyDescriptionError(description.value);
-    if (titleError) { errors.set(title, titleError); }
-    if (descriptionError) { errors.set(description, descriptionError); }
-
-    if (typeof from === 'object' && from !== null) {
-      errors.set(salaryFrom, from.error);
-    }
-
-    if (typeof to === 'object' && to !== null) {
-      errors.set(salaryTo, to.error);
-    } else if (typeof from === 'number' && typeof to === 'number' && to < from) {
-      errors.set(salaryTo, 'Зарплата до не может быть меньше зарплаты от');
+    for (const field of [title, description, salaryFrom, salaryTo]) {
+      const error = this.#fieldError(field);
+      if (error) { errors.set(field, error); }
     }
 
     for (const field of [title, description, salaryFrom, salaryTo]) {
@@ -364,7 +417,9 @@ export default class VacancyFormPage implements Page {
       return null;
     }
 
+    if (!validateEditorDetails(this.#form!)) { return null; }
     return {
+      ...readEditorDetails(this.#form!),
       title: title.value.trim(),
       description: description.value.trim(),
       salary_from: from as number | null,

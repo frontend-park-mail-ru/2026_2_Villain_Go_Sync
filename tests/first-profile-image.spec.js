@@ -1,3 +1,4 @@
+import { saveEditor } from './editor-steps.js';
 import { test, expect } from '@playwright/test';
 
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64');
@@ -55,11 +56,11 @@ for (const role of ['seeker', 'employer']) {
     await expect(page.locator('.profile-image img')).toBeVisible();
     await expect(page.locator('.profile-image img')).toHaveAttribute('src', /^blob:/);
     expect(state.writes).toEqual([]);
-    await page.locator('button[type=submit]').click();
+    await saveEditor(page);
     await expect(page.locator(`[name=${required}]`)).toHaveAttribute('aria-invalid', 'true');
     expect(state.writes).toEqual([]);
     await page.locator(`[name=${required}]`).fill('Тест');
-    await page.locator('button[type=submit]').click();
+    await saveEditor(page);
     await expect(page).toHaveURL('/profile');
     expect(state.writes).toEqual(['profile', 'image']);
     await expect(page.locator('.profile__avatar img')).toHaveCSS('opacity', '1');
@@ -72,13 +73,13 @@ for (const role of ['seeker', 'employer']) {
     await page.goto('/profile/edit');
     await page.locator(`[name=${required}]`).fill('Тест');
     await page.locator('input[type=file]').setInputFiles({ name: 'first.png', mimeType: 'image/png', buffer: png });
-    await page.locator('button[type=submit]').click();
+    await saveEditor(page);
     await expect(page.locator('#profile-image-message')).toContainText('Профиль сохранён, но изображение загрузить не удалось');
     await expect(page).toHaveURL('/profile/edit');
     await expect(page.locator(`[name=${required}]`)).toHaveValue('Тест');
     await expect(page.locator('.profile-image img')).toHaveAttribute('src', /^blob:/);
     state.failImage = false;
-    await page.locator('button[type=submit]').click();
+    await saveEditor(page);
     await expect(page).toHaveURL('/profile');
     expect(state.writes).toEqual(['profile', 'image', 'profile', 'image']);
   });
@@ -89,11 +90,11 @@ for (const role of ['seeker', 'employer']) {
     await page.goto('/profile/edit');
     await page.locator(`[name=${required}]`).fill('Тест');
     await page.locator('input[type=file]').setInputFiles({ name: 'first.png', mimeType: 'image/png', buffer: png });
-    await page.locator('button[type=submit]').click();
+    await saveEditor(page);
     await expect(page.getByText('Не удалось сохранить профиль. Попробуйте ещё раз')).toBeVisible();
     expect(state.writes).toEqual(['profile']);
     state.failProfile = false;
-    await page.locator('button[type=submit]').click();
+    await saveEditor(page);
     await expect(page).toHaveURL('/profile');
     expect(state.writes).toEqual(['profile', 'profile', 'image']);
   });
@@ -122,7 +123,7 @@ for (const role of ['seeker', 'employer']) {
     await expect(page.locator('#profile-image-message')).toContainText('Выберите PNG');
     await expect(page.locator('.profile-image img')).toBeHidden();
     await page.locator(`[name=${required}]`).fill('Тест');
-    await page.locator('button[type=submit]').click();
+    await saveEditor(page);
     await expect(page).toHaveURL('/profile');
     expect(state.writes).toEqual(['profile']);
   });

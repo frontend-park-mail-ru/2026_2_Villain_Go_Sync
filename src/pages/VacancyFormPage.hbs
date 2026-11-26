@@ -36,82 +36,202 @@
   <section class="form-page">
     <h1 class="form-page__title">{{heading}}</h1>
 
-    <form class="edit-form vacancy-form" novalidate>
-      <div class="field">
-        <label class="field__label" for="vacancy-title">Название</label>
-        <input
-          class="field__input"
-          id="vacancy-title"
-          name="title"
-          type="text"
-          placeholder="Введите название вакансии"
-          value="{{vacancy.title}}"
-          aria-describedby="vacancy-title-counter vacancy-title-message"
-        />
-        <p class="field__counter" id="vacancy-title-counter"></p>
-        <p class="field__message" id="vacancy-title-message"></p>
-      </div>
+    <form class="edit-form editor" novalidate>
+      <p class="editor__instructions" data-instructions></p>
+      <nav class="editor__steps" aria-label="Этапы заполнения">
+        <button type="button" data-step>
+          <b>1</b>
+          <span>Основное<small>Предстоит</small></span>
+        </button>
+        <button type="button" data-step>
+          <b>2</b>
+          <span>Условия<small>Предстоит</small></span>
+        </button>
+        <button type="button" data-step>
+          <b>3</b>
+          <span>Описание и навыки<small>Предстоит</small></span>
+        </button>
+        <button type="button" data-step>
+          <b>4</b>
+          <span>Проверка<small>Предстоит</small></span>
+        </button>
+      </nav>
+      <div class="editor__body">
+        <div class="editor__panels">
+          <section class="editor__panel" tabindex="-1" data-panel data-instructions="Укажите название и специализацию. Логотип относится к профилю компании." hidden>
+            <h2>Основная информация</h2>
+            <div class="field">
+              <label class="field__label" for="vacancy-title">Название вакансии *</label>
+              <input
+                class="field__input"
+                id="vacancy-title"
+                name="title"
+                type="text"
+                placeholder="Введите название вакансии"
+                value="{{vacancy.title}}"
+                aria-describedby="vacancy-title-counter vacancy-title-message"
+              />
+              <p class="field__counter" id="vacancy-title-counter"></p>
+              <p class="field__message" id="vacancy-title-message"></p>
+            </div>
 
-      <div class="field">
-        <label class="field__label" for="vacancy-description">Описание</label>
-        <textarea
-          class="field__input field__textarea"
-          id="vacancy-description"
-          name="description"
-          placeholder="Опишите задачи и требования"
-          aria-describedby="vacancy-description-counter vacancy-description-message"
-        >{{vacancy.description}}</textarea>
-        <p class="field__counter" id="vacancy-description-counter"></p>
-        <p class="field__message" id="vacancy-description-message"></p>
-      </div>
+            <label class="field">Направления и теги вакансии (до пяти)
+              <select class="field__input" data-category-select multiple disabled></select>
+              <span class="field__message" data-category-hint></span>
+            </label>
+            <input type="hidden" data-extra="ids" name="category_ids" disabled>
+            <p class="editor__hint">Компания и логотип подставляются из профиля работодателя.</p>
+          </section>
+          <section class="editor__panel" tabindex="-1" data-panel data-instructions="Настройте зарплату, опыт, занятость, место и график работы." hidden>
+            <h2>Зарплата и опыт</h2>
+            <div class="vacancy-form__salary">
+              <div class="field">
+                <label class="field__label" for="vacancy-salary-from">Зарплата от</label>
+                <input
+                  class="field__input"
+                  id="vacancy-salary-from"
+                  name="salaryFrom"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="Введите сумму"
+                  value="{{salaryFrom}}"
+                  aria-describedby="vacancy-salary-from-message"
+                />
+                <p class="field__message" id="vacancy-salary-from-message"></p>
+              </div>
 
-      <div class="vacancy-form__salary">
-        <div class="field">
-          <label class="field__label" for="vacancy-salary-from">Зарплата от</label>
-          <input
-            class="field__input"
-            id="vacancy-salary-from"
-            name="salaryFrom"
-            type="text"
-            inputmode="numeric"
-            placeholder="Введите сумму"
-            value="{{salaryFrom}}"
-            aria-describedby="vacancy-salary-from-message"
-          />
-          <p class="field__message" id="vacancy-salary-from-message"></p>
+              <div class="field">
+                <label class="field__label" for="vacancy-salary-to">Зарплата до</label>
+                <input
+                  class="field__input"
+                  id="vacancy-salary-to"
+                  name="salaryTo"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="Введите сумму"
+                  value="{{salaryTo}}"
+                  aria-describedby="vacancy-salary-to-message"
+                />
+                <p class="field__message" id="vacancy-salary-to-message"></p>
+              </div>
+
+              <div class="field">
+                <label class="field__label" for="vacancy-currency">Валюта</label>
+                <select class="field__input field__select" id="vacancy-currency" name="currency">
+                  {{#each currencies}}
+                    <option value="{{code}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+                  {{/each}}
+                </select>
+              </div>
+            </div>
+
+            <label class="field">Опыт работы
+              <select class="field__input" name="experience_level" data-extra><option value="">Не указано</option></select>
+              <span class="field__message" aria-live="polite"></span>
+            </label>
+            <label class="field">Тип занятости
+              <select class="field__input" name="employment_type" data-extra><option value="">Не указано</option></select>
+              <span class="field__message" aria-live="polite"></span>
+            </label>
+            <label class="field">Формат работы
+              <select class="field__input" name="work_format" data-extra><option value="">Не указано</option></select>
+              <span class="field__message" aria-live="polite"></span>
+            </label>
+            <label class="field">График
+              <select class="field__input" name="work_schedule" data-extra><option value="">Не указано</option></select>
+              <span class="field__message" aria-live="polite"></span>
+            </label>
+            <label class="field">Рабочие часы
+              <input class="field__input" name="work_hours" data-extra type="text">
+              <span class="field__message" aria-live="polite"></span>
+            </label>
+            <label class="field">Адрес офиса
+              <input class="field__input" name="office_address" data-extra type="text">
+              <span class="field__message" aria-live="polite"></span>
+            </label>
+            <label class="field">Город
+              <input class="field__input" name="city" data-extra type="text">
+              <span class="field__message" aria-live="polite"></span>
+            </label>
+          </section>
+          <section class="editor__panel" tabindex="-1" data-panel data-instructions="Расскажите о вакансии, обязанностях, требованиях, преимуществах и навыках." hidden>
+            <h2>Описание и требования</h2>
+            <div class="field">
+              <label class="field__label" for="vacancy-description">О вакансии</label>
+              <textarea
+                class="field__input field__textarea"
+                id="vacancy-description"
+                name="description"
+                placeholder="Опишите задачи и требования"
+                aria-describedby="vacancy-description-counter vacancy-description-message"
+              >{{vacancy.description}}</textarea>
+              <p class="field__counter" id="vacancy-description-counter"></p>
+              <p class="field__message" id="vacancy-description-message"></p>
+            </div>
+
+            <label class="field">Обязанности *
+              <textarea class="field__input" name="responsibilities" data-extra required></textarea>
+              <span class="field__message" aria-live="polite"></span>
+            </label>
+            <label class="field">Требования *
+              <textarea class="field__input" name="requirements" data-extra required></textarea>
+              <span class="field__message" aria-live="polite"></span>
+            </label>
+            <label class="field">Условия и преимущества
+              <textarea class="field__input" name="offer" data-extra></textarea>
+              <span class="field__message" aria-live="polite"></span>
+            </label>
+          </section>
+          <section class="editor__panel" tabindex="-1" data-panel data-instructions="Проверьте данные перед публикацией." hidden>
+            <h2>Проверка вакансии</h2>
+            <dl class="editor__review">
+              <div>
+                <dt>Название</dt>
+                <dd data-value="title"></dd>
+              </div>
+              <div>
+                <dt>Зарплата от</dt>
+                <dd data-value="salaryFrom"></dd>
+              </div>
+              <div>
+                <dt>Зарплата до</dt>
+                <dd data-value="salaryTo"></dd>
+              </div>
+              <div>
+                <dt>Валюта</dt>
+                <dd data-value="currency"></dd>
+              </div>
+              <div>
+                <dt>О вакансии</dt>
+                <dd data-value="description"></dd>
+              </div>
+              <div><dt>Обязанности</dt><dd data-value="responsibilities"></dd></div>
+              <div><dt>Требования</dt><dd data-value="requirements"></dd></div>
+              <div><dt>Город</dt><dd data-value="city"></dd></div>
+              <div><dt>График</dt><dd data-value="work_schedule"></dd></div>
+              <div><dt>Формат работы</dt><dd data-value="work_format"></dd></div>
+            </dl>
+          </section>
         </div>
-
-        <div class="field">
-          <label class="field__label" for="vacancy-salary-to">Зарплата до</label>
-          <input
-            class="field__input"
-            id="vacancy-salary-to"
-            name="salaryTo"
-            type="text"
-            inputmode="numeric"
-            placeholder="Введите сумму"
-            value="{{salaryTo}}"
-            aria-describedby="vacancy-salary-to-message"
-          />
-          <p class="field__message" id="vacancy-salary-to-message"></p>
-        </div>
-
-        <div class="field">
-          <label class="field__label" for="vacancy-currency">Валюта</label>
-          <select class="field__input field__select" id="vacancy-currency" name="currency">
-            {{#each currencies}}
-              <option value="{{code}}" {{#if selected}}selected{{/if}}>{{label}}</option>
-            {{/each}}
-          </select>
-        </div>
+        <aside class="editor__preview">
+          <small>ПРЕДПРОСМОТР</small>
+          {{#if company}}
+            <div class="vacancy-card__company">
+              <span class="vacancy-card__logo" data-image-url="{{logo}}" aria-hidden="true">{{company}}</span>
+              <span>{{company}}</span>
+            </div>
+          {{/if}}
+          <h2 data-value="title" data-empty="Название вакансии"></h2>
+          <p data-value="description" data-empty=""></p>
+        </aside>
       </div>
-
-      <div class="edit-form__actions">
-        <button
-          class="button button_secondary edit-form__submit{{#if isEdit}} edit-form__submit_compact{{/if}}"
-          type="submit"
-        >{{submitLabel}}</button>
-        <button class="button button_ghost edit-form__cancel" type="button" data-action="cancel">Отмена</button>
+      <div class="edit-form__actions editor__actions">
+        <button type="button" class="button button_outline" data-back>← Назад</button>
+        <button type="submit" class="button button_secondary edit-form__submit">{{submitLabel}}</button>
+        {{#unless isEdit}}
+          <button type="button" class="button button_outline" data-draft>Сохранить черновик</button>
+        {{/unless}}
+        <button type="button" class="button button_ghost" data-action="cancel">Отмена</button>
       </div>
     </form>
   </section>

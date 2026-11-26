@@ -21,7 +21,7 @@ export interface PendingProfileImage {
  * @returns Управление отложенной загрузкой.
  */
 export function mountPendingProfileImage(container: HTMLElement, user: { id: number; role: UserRole }, signal: AbortSignal): PendingProfileImage {
-  container.innerHTML = template({ label: user.role === 'employer' ? 'Логотип компании' : 'Фотография', deferred: true });
+  container.innerHTML = template({ isCompany: user.role === 'employer', label: user.role === 'employer' ? 'Логотип компании' : 'Фотография', deferred: true });
   const input = container.querySelector<HTMLInputElement>('input')!;
   const image = container.querySelector<HTMLImageElement>('img')!;
   const remove = container.querySelector<HTMLButtonElement>('button')!;

@@ -27,11 +27,11 @@ export interface PageProps {
 /**
  * Маршрут: какую страницу показать и как оформить вкладку.
  */
-export interface Route {
+type PageConstructor = new (props: PageProps) => Page;
+
+export type Route = ({ page: PageConstructor } | { loadPage: () => Promise<{ default: PageConstructor }> }) & {
   /** Заголовок вкладки. */
   title: string;
-  /** Класс страницы. */
-  page: new (props: PageProps) => Page;
   /** Вариант оформления шапки, например `auth`. */
   layout?: string;
   /**
@@ -91,6 +91,7 @@ export default class Router {
   #routes: CompiledRoute[] = [];
   #notFound: Route | null = null;
   #currentPage: Page | null = null;
+  #renderVersion = 0;
   #container: HTMLElement;
   #appName: string;
   #historyIndex = 0;
@@ -289,7 +290,8 @@ export default class Router {
   /**
    * Рисует страницу для текущего адреса.
    */
-  #render(): void {
+  async #render(): Promise<void> {
+    const version = ++this.#renderVersion;
     const path = normalizePath(window.location.pathname);
     const { route, params } = this.#match(path);
     const redirectUrl = route.redirect?.();
@@ -307,10 +309,31 @@ export default class Router {
     }
 
     this.#currentPage?.destroy?.();
-    this.#currentPage = new route.page({ router: this, params });
+    this.#currentPage = null;
 
     document.title = `${route.title} — ${this.#appName}`;
     document.body.dataset.layout = route.layout ?? 'default';
+    let PageClass: PageConstructor;
+    if ('loadPage' in route) {
+      this.#container.replaceChildren();
+      this.#container.setAttribute('aria-busy', 'true');
+      try {
+        PageClass = (await route.loadPage()).default;
+      } catch {
+        if (version === this.#renderVersion) {
+          this.#container.innerHTML = '<section class="empty-state"><h1 class="empty-state__title">Не удалось загрузить страницу</h1><button type="button" class="button button_secondary">Повторить</button></section>';
+          this.#container.querySelector('button')!.addEventListener('click', () => { void this.#render(); }, { once: true });
+        }
+        return;
+      } finally {
+        if (version === this.#renderVersion) { this.#container.removeAttribute('aria-busy'); }
+      }
+      if (version !== this.#renderVersion) { return; }
+    } else {
+      this.#container.removeAttribute('aria-busy');
+      PageClass = route.page;
+    }
+    this.#currentPage = new PageClass({ router: this, params });
     this.#currentPage.render(this.#container);
   }
 }

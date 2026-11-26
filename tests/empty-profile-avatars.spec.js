@@ -34,13 +34,10 @@ for (const role of ['seeker', 'employer']) {
       if (status === 404) {
         const profileAvatar = page.locator('.profile__avatar');
         await expect(page.getByRole('link', { name: 'Заполнить профиль' })).toBeVisible();
-        await expect(profileAvatar).toHaveCSS('width', '80px');
-        await expect(profileAvatar).toHaveCSS('height', '80px');
-        await expect(profileAvatar).toHaveCSS('border-radius', radius);
-        await expect(profileAvatar.locator('span')).toHaveCSS('mask-image', new RegExp(icon.replace('.', '\\.')));
+        await expect(profileAvatar).toHaveCount(0);
         await page.screenshot({ path: testInfo.outputPath(`${role}-desktop.png`), fullPage: true });
         await page.setViewportSize({ width: 320, height: 900 });
-        await expect(profileAvatar).toBeVisible();
+        await expect(page.getByRole('link', { name: 'Заполнить профиль' })).toBeVisible();
         expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
       } else {
         await expect(page.getByRole('heading', { name: 'Не удалось загрузить профиль' })).toBeVisible();

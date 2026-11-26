@@ -39,6 +39,7 @@ export function restoreCreationDraft(path: string, form: HTMLFormElement): void 
       if (typeof value === 'string' && (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement)) {
         if (field instanceof HTMLInputElement && field.type === 'file') { continue; }
         field.value = value;
+        if (field.dataset.extra) { field.dispatchEvent(new Event('change')); }
       }
     }
   } catch { /* Недоступное хранилище не мешает заполнить новую форму. */ }

@@ -1,3 +1,4 @@
+import { openApplicantPreview } from '../components/ApplicantPreview';
 import { mountCardImages } from '../components/profile-images';
 import { getEmployerApplicants, type Applicant } from '../api';
 import { renderPagination } from '../components/pagination';
@@ -10,10 +11,12 @@ const PAGE_SIZE = 12;
 
 const dateFormat = new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-// Новый отклик бэкенд отдаёт как pending, хотя в базе такого статуса нет; оба значения — «Новый».
+// Старые записи и текущий API используют разные названия некоторых этапов.
 const STATUSES: Record<string, { type: string; label: string }> = {
   pending: { type: 'new', label: 'Новый' },
   created: { type: 'new', label: 'Новый' },
+  reviewing: { type: 'viewed', label: 'Рассмотрение' },
+  offer: { type: 'accepted', label: 'Предложение' },
   viewed: { type: 'viewed', label: 'Просмотрен' },
   interview: { type: 'interview', label: 'Собеседование' },
   accepted: { type: 'accepted', label: 'Принят' },
@@ -21,12 +24,13 @@ const STATUSES: Record<string, { type: string; label: string }> = {
 };
 
 /**
- * Страница «Соискатели»: отклики на все вакансии вошедшего работодателя.
+ * Страница «Отклики»: отклики на все вакансии вошедшего работодателя.
  */
 export default class ApplicantsPage implements Page {
   #abortController = new AbortController();
   #applicants: Applicant[] | null = null;
   #query = '';
+  #view = 'board';
   #page = 1;
   #search!: HTMLFormElement;
   #input!: HTMLInputElement;
@@ -48,17 +52,66 @@ export default class ApplicantsPage implements Page {
       this.#setQuery(this.#input.value);
     });
 
+    this.#search.addEventListener('input', () => this.#setQuery(this.#input.value));
+    this.#search.addEventListener('reset', (event) => {
+      event.preventDefault();
+      this.#input.value = '';
+      for (const select of this.#search.querySelectorAll('select')) { select.selectedIndex = 0; }
+      this.#setQuery('');
+    });
+    for (const button of container.querySelectorAll<HTMLButtonElement>('[data-view]')) {
+      button.addEventListener('click', () => {
+        this.#view = button.dataset.view!;
+        container.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+        if (this.#applicants) { this.#renderList(); }
+      });
+    }
+
+    const openPreview = (id: number, nextStage?: string): void => {
+      const applicant = this.#applicants?.find((item) => item.application_id === id);
+      if (!applicant) { return; }
+      const date = new Date(applicant.applied_at);
+      openApplicantPreview(container, applicant, {
+        date: Number.isNaN(date.getTime()) ? '' : dateFormat.format(date),
+        status: STATUSES[applicant.status]?.label ?? 'Неизвестный статус',
+      }, this.#abortController.signal, () => this.#renderList(), nextStage);
+    };
+
+    let dragged: HTMLElement | null = null;
+    this.#content.addEventListener('dragstart', (event) => {
+      dragged = (event.target as Element).closest<HTMLElement>('[data-candidate][draggable]');
+      if (dragged && event.dataTransfer) {
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', dragged.dataset.candidate!);
+      }
+    });
+    this.#content.addEventListener('dragend', () => { dragged = null; });
+    this.#content.addEventListener('dragover', (event) => {
+      const column = (event.target as Element).closest<HTMLElement>('[data-stage]');
+      if (dragged && column?.dataset.stage && !column.contains(dragged)) { event.preventDefault(); }
+    });
+    this.#content.addEventListener('drop', (event) => {
+      const column = (event.target as Element).closest<HTMLElement>('[data-stage]');
+      if (!dragged || !column?.dataset.stage || column.contains(dragged)) { return; }
+      event.preventDefault();
+      openPreview(Number(dragged.dataset.candidate), column.dataset.stage);
+      dragged = null;
+    });
+
     this.#content.addEventListener('click', (event) => {
       const target = event.target as Element;
       const page = target.closest<HTMLElement>('[data-page]')?.dataset.page;
       const action = target.closest<HTMLElement>('[data-action]')?.dataset.action;
 
-      if (page) {
+      const preview = target.closest<HTMLElement>('[data-preview]');
+      if (preview) {
+        openPreview(Number(preview.dataset.preview));
+      } else if (page) {
         this.#page = Number(page);
         this.#renderList();
         window.scrollTo(0, 0);
       } else if (action === 'reset') {
-        this.#setQuery('');
+        this.#search.reset();
       } else if (action === 'retry') {
         this.#load();
       }
@@ -95,6 +148,11 @@ export default class ApplicantsPage implements Page {
       return;
     }
 
+    const select = this.#search.elements.namedItem('vacancy') as HTMLSelectElement;
+    const vacancies = new Map(this.#applicants.map((item) => [item.vacancy_id, item.vacancy_title]));
+    for (const [id, title] of vacancies) { select.add(new Option(title, String(id))); }
+    const initialVacancy = Number(new URLSearchParams(location.search).get('vacancy'));
+    if (vacancies.has(initialVacancy)) { select.value = String(initialVacancy); }
     this.#renderList();
   }
 
@@ -105,7 +163,7 @@ export default class ApplicantsPage implements Page {
   #setQuery(query: string): void {
     this.#query = query.trim();
     this.#page = 1;
-    this.#input.value = this.#query;
+
     this.#renderList();
   }
 
@@ -115,7 +173,12 @@ export default class ApplicantsPage implements Page {
   #renderList(): void {
     const allApplicants = this.#applicants ?? [];
     const query = this.#query.toLowerCase();
+    const data = new FormData(this.#search);
+    const vacancy = Number(data.get('vacancy'));
+    const days = Number(data.get('days'));
     const found = allApplicants.filter((applicant) =>
+      (!vacancy || applicant.vacancy_id === vacancy) &&
+      (!days || Date.parse(applicant.applied_at) >= Date.now() - days * 86400000) &&
       [applicant.first_name, applicant.last_name, applicant.resume_title, applicant.vacancy_title]
         .join(' ')
         .toLowerCase()
@@ -127,26 +190,40 @@ export default class ApplicantsPage implements Page {
 
     this.#search.hidden = false;
 
-    this.#content.innerHTML = resultsTemplate({
-      applicants: found.slice((this.#page - 1) * PAGE_SIZE, this.#page * PAGE_SIZE).map((applicant) => {
-        const date = new Date(applicant.applied_at);
+    const records = this.#view === 'board' ? found : found.slice((this.#page - 1) * PAGE_SIZE, this.#page * PAGE_SIZE);
+    const applicants = records.map((applicant) => {
+      const date = new Date(applicant.applied_at);
 
-        return {
-          name: `${applicant.first_name} ${applicant.last_name}`.trim(),
-          initials: [applicant.first_name, applicant.last_name]
-            .map((word) => word.trim().charAt(0).toUpperCase())
-            .join(''),
-          status: STATUSES[applicant.status] ?? { type: 'unknown', label: 'Неизвестный статус' },
-          date: Number.isNaN(date.getTime()) ? '' : dateFormat.format(date),
-          vacancy: applicant.vacancy_title,
-          resume: applicant.resume_title,
-          resumeId: applicant.resume_id,
-          avatarUrl: applicant.avatar_url,
-          coverLetter: applicant.cover_letter,
-        };
+      return {
+        id: applicant.application_id,
+        name: `${applicant.first_name} ${applicant.last_name}`.trim(),
+        initials: [applicant.first_name, applicant.last_name]
+          .map((word) => word.trim().charAt(0).toUpperCase())
+          .join(''),
+        status: STATUSES[applicant.status] ?? { type: 'unknown', label: 'Неизвестный статус' },
+        date: Number.isNaN(date.getTime()) ? '' : dateFormat.format(date),
+        vacancy: applicant.vacancy_title,
+        resume: applicant.resume_title,
+        resumeId: applicant.resume_id,
+        avatarUrl: applicant.avatar_url,
+        coverLetter: applicant.cover_letter,
+      };
+    });
+    const stages = [
+      ['new', 'Новые'], ['viewed', 'Рассмотрение'], ['interview', 'Собеседование'],
+      ['accepted', 'Предложение'], ['rejected', 'Отказ'],
+    ];
+    if (applicants.some((item) => item.status.type === 'unknown')) { stages.push(['unknown', 'Другой статус']); }
+    this.#content.innerHTML = resultsTemplate({
+      applicants, total: found.length,
+      board: this.#view === 'board', table: this.#view === 'table',
+      columns: stages.map(([type, title]) => {
+        const cards = applicants.filter((item) => item.status.type === type);
+        const stage = ({ viewed: 'reviewing', interview: 'interview', accepted: 'offer', rejected: 'rejected' } as Record<string, string>)[type];
+        return { type, title, stage, count: cards.length, cards };
       }),
-      hasQuery: Boolean(query),
-      pagination: renderPagination(this.#page, pageCount),
+      hasQuery: Boolean(query || vacancy || days),
+      pagination: this.#view === 'board' ? '' : renderPagination(this.#page, pageCount),
     });
     mountCardImages(this.#content);
   }
