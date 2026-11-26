@@ -1,7 +1,30 @@
 {{#if isLoading}}
-  <div class="card-grid">
+  <div class="card-grid" aria-hidden="true">
     {{#each skeletons}}
-      <img class="catalog-loading skeleton" src="/images/vacancy-loading.svg" width="432" height="318" alt="">
+      <div class="vacancy-card catalog-loading">
+        <div class="vacancy-card__company">
+          <div class="skeleton catalog-loading__logo"></div>
+          <div class="skeleton catalog-loading__company-name"></div>
+          <div class="skeleton catalog-loading__favorite"></div>
+        </div>
+        <div class="catalog-loading__title">
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+        </div>
+        <div class="skeleton catalog-loading__salary"></div>
+        <div class="catalog-loading__details">
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+        </div>
+        <div class="vacancy-card__tags catalog-loading__tags">
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+        </div>
+        <div class="catalog-loading__footer">
+          <div class="skeleton catalog-loading__date"></div>
+        </div>
+      </div>
     {{/each}}
   </div>
 {{else if error}}
