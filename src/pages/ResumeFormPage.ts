@@ -1,8 +1,9 @@
+import { mountEditorDetails, readEditorDetails, validateEditorDetails } from '../components/editor-details';
 import { mountFormSteps } from '../components/form-steps';
 import { RESUME_FIELD_LIMITS, getResumeFieldError } from '@hirenoon/validation';
 import { saveCreationDraft, restoreCreationDraft, clearCreationDraft } from '../components/creation-draft';
 import { getRequiredProfile, showMissingProfile } from '../profile-required';
-import { ApiError, createResume, getResume, updateResume, type ResumeFields } from '../api';
+import { ApiError, createResume, getResume, updateResume, type ResumeFields, type Seeker } from '../api';
 import { setFieldError, setLoading, updateTextFields } from '../components/form';
 import { confirmAction } from '../components/Modal';
 import { hideToast, showToast } from '../components/toast';
@@ -32,7 +33,7 @@ interface ResumeFormElements extends HTMLFormControlsCollection {
  */
 export default class ResumeFormPage implements Page {
   #router: Router;
-  #profileSummary = '';
+  #profileData: Seeker | null = null;
   #copy = new URLSearchParams(location.search).get('copy');
   #draftPath = this.#copy === null ? '/resumes/new' : '/resumes/new?copy=' + encodeURIComponent(this.#copy);
   /** Идентификатор редактируемого резюме; `null` при создании. */
@@ -138,7 +139,7 @@ export default class ResumeFormPage implements Page {
           this.#container.innerHTML = template({ profileRequired: true, profilePath: '/profile/edit?next=/resumes/new' });
           return;
         }
-        this.#profileSummary = profile.description;
+        if ('first_name' in profile) { this.#profileData = profile; }
       } catch (error) {
         if (!this.#abortController.signal.aborted) {
           this.#container.innerHTML = template({ error: { title: 'Не удалось проверить профиль', text: (error as Error).message, canRetry: true } });
@@ -194,24 +195,35 @@ export default class ResumeFormPage implements Page {
    */
   #renderForm(resume: ResumeFields): void {
     this.#container.innerHTML = template({
-      resume, canImport: Boolean(this.#profileSummary),
+      resume, canImport: Boolean(this.#profileData),
       heading: this.#heading,
       isEdit: this.#id !== null,
       submitLabel: this.#id === null ? 'Опубликовать резюме' : 'Сохранить изменения',
     });
 
     this.#form = this.#container.querySelector<HTMLFormElement>('.edit-form');
+    mountEditorDetails(this.#form!, resume);
     this.#initialValues = JSON.stringify(this.#readFields());
     this.#form!.querySelector('[data-from-profile]')?.addEventListener('click', async () => {
       const field = (this.#form!.elements as ResumeFormElements).description;
-      if (field.value && field.value !== this.#profileSummary) {
-        const replace = await confirmAction({ title: 'Заменить текст о себе?', text: 'В резюме будет скопирован текст из профиля.',
-          confirmLabel: 'Заменить', cancelLabel: 'Отмена' });
-        if (!replace || this.#isDestroyed) { return; }
+      const profile = this.#profileData;
+      if (!profile) { return; }
+      const groupNames = ['skills', 'experience_items', 'education_items', 'projects'] as const;
+      const extras = readEditorDetails(this.#form!);
+      const replaceExisting = Boolean(profile.description && field.value && field.value !== profile.description)
+        || groupNames.some((name) => profile[name]?.length && Array.isArray(extras[name]) && extras[name].length > 0);
+      if (replaceExisting && !(await confirmAction({ title: 'Заполнить из профиля?', text: 'Разделы, заполненные в профиле, заменят соответствующие данные резюме.',
+        confirmLabel: 'Заполнить', cancelLabel: 'Отмена' }))) { return; }
+      if (this.#isDestroyed) { return; }
+      if (profile.description) { field.value = profile.description; }
+      for (const name of groupNames) {
+        if (!profile[name]?.length) { continue; }
+        const control = this.#form!.elements.namedItem(name) as HTMLInputElement;
+        control.value = name === 'skills' ? profile.skills!.map((item) => item.name).join(', ') : JSON.stringify(profile[name]);
+        control.dispatchEvent(new Event('change'));
       }
-      field.value = this.#profileSummary;
       field.dispatchEvent(new Event('input', { bubbles: true }));
-      showToast('Раздел «О себе» заполнен из профиля');
+      showToast('Данные скопированы из профиля');
     });
     if (this.#id === null) { restoreCreationDraft(this.#draftPath, this.#form!); }
     updateTextFields(this.#form!, RESUME_FIELD_LIMITS, getResumeFieldError);
@@ -237,6 +249,7 @@ export default class ResumeFormPage implements Page {
     const { title, description, experience, education } = this.#form!.elements as ResumeFormElements;
 
     return {
+      ...readEditorDetails(this.#form!),
       title: title.value.trim(),
       description: description.value.trim(),
       experience: experience.value.trim(),
@@ -298,6 +311,7 @@ export default class ResumeFormPage implements Page {
 
     hideToast();
 
+    if (!validateEditorDetails(this.#form)) { return; }
     const fields = this.#readFields();
     let firstInvalid: HTMLInputElement | HTMLTextAreaElement | null = null;
     for (const name of Object.keys(RESUME_FIELD_LIMITS) as (keyof typeof RESUME_FIELD_LIMITS)[]) {

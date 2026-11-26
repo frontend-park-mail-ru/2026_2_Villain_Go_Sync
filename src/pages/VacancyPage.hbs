@@ -51,11 +51,20 @@
             <p class="detail__subtitle">{{company}}</p>
           {{/if}}
           <p class="detail__salary">{{salary}}</p>
+          {{#if conditions}}<p class="detail__subtitle">{{conditions}}</p>{{/if}}
+          {{#if level}}<p class="detail__subtitle">Опыт: {{level}}</p>{{/if}}
+          {{#if vacancy.categories}}<div class="chips">{{#each vacancy.categories}}<span class="chip">{{this}}</span>{{/each}}</div>{{/if}}
         </article>
         <section class="detail__card">
           <h2 class="detail__section-title">О вакансии</h2>
           <p class="detail__text">{{vacancy.description}}</p>
         </section>
+        {{#if vacancy.responsibilities}}<section class="detail__card"><h2>Обязанности</h2><p class="detail__text">{{vacancy.responsibilities}}</p></section>{{/if}}
+        {{#if vacancy.requirements}}<section class="detail__card"><h2>Требования</h2><p class="detail__text">{{vacancy.requirements}}</p></section>{{/if}}
+        {{#if vacancy.offer}}<section class="detail__card"><h2>Условия</h2><p class="detail__text">{{vacancy.offer}}</p></section>{{/if}}
+        {{#if vacancy.work_hours}}<p>Рабочие часы · {{vacancy.work_hours}}</p>{{/if}}
+        {{#if vacancy.office_address}}<p>Адрес офиса · {{vacancy.office_address}}</p>{{/if}}
+        {{#if vacancy.apply_until}}<p>Приём откликов до {{vacancy.apply_until}}</p>{{/if}}
       </div>
       {{#if showActions}}
         <aside class="detail__card detail__aside">
@@ -71,7 +80,7 @@
             {{#if isGuest}}
               <a class="button button_secondary" href="/login">Откликнуться</a>
             {{else}}
-              <button class="button button_secondary" type="button" data-action="apply" {{#if applied}}disabled{{/if}}>{{#if applied}}Вы уже откликнулись{{else}}Откликнуться{{/if}}</button>
+              <button class="button button_secondary" type="button" data-action="apply">Откликнуться</button>
             {{/if}}
             <button class="button button_outline" type="button" data-favorite aria-pressed="{{favorite}}">{{#if favorite}}♥ В избранном{{else}}♡ Сохранить в избранное{{/if}}</button>
             <p class="detail__subtitle">Выберите своё резюме и при желании добавьте сопроводительное письмо.</p>

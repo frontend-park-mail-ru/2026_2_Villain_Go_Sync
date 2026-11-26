@@ -1,3 +1,4 @@
+import { recordText, conditions } from '../components/work-options';
 import { ApiError, deleteResume, getResume, type Resume } from '../api';
 import { confirmAction } from '../components/Modal';
 import { showToast } from '../components/toast';
@@ -101,8 +102,12 @@ export default class ResumePage implements Page {
     const user = getCurrentUser();
     const sections = [
       { title: 'О себе', text: resume.description },
-      { title: 'Опыт работы', text: resume.experience },
-      { title: 'Образование', text: resume.education },
+      { title: 'Желаемая работа', text: [resume.target_position, conditions(resume), typeof resume.salary_from === 'number' ? 'от ' + resume.salary_from.toLocaleString('ru-RU') + ' ₽' : ''].filter(Boolean).join(' · ') },
+      { title: 'Опыт работы', text: [resume.experience, recordText(resume.experience_items)].filter(Boolean).join('\n') },
+      { title: 'Образование', text: [resume.education, recordText(resume.education_items)].filter(Boolean).join('\n') },
+      { title: 'Навыки', text: resume.skills?.map((v) => v.name).join(' · ') },
+      { title: 'Портфолио и проекты', text: [resume.portfolio_url, recordText(resume.projects)].filter(Boolean).join('\n') },
+      { title: 'Языки', text: resume.languages },
     ].filter(({ text }) => text?.trim());
 
     this.#container.innerHTML = template({

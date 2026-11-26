@@ -36,6 +36,7 @@
               <p class="resume-card__description">{{description}}</p>
             {{/if}}
           </div>
+          {{#if skills}}<div class="chips">{{#each skills}}<span class="chip">{{name}}</span>{{/each}}</div>{{/if}}
           <div class="resume-card__footer">
             <button
               class="icon-button icon-button_delete"

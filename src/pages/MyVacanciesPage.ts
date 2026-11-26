@@ -1,5 +1,5 @@
 import { ListFilters } from '../components/ListFilters';
-import { deleteVacancy, getEmployerVacancies, type Vacancy } from '../api';
+import { getEmployerApplicants, deleteVacancy, getEmployerVacancies, type Vacancy } from '../api';
 import { confirmAction } from '../components/Modal';
 import { renderPagination } from '../components/pagination';
 import { showToast } from '../components/toast';
@@ -94,6 +94,19 @@ export default class MyVacanciesPage implements Page {
     }
 
     this.#renderList();
+    try {
+      const applications = await getEmployerApplicants({ signal });
+      if (signal.aborted) { return; }
+      const counts = new Map<number, { total: number; fresh: number }>();
+      for (const item of applications) {
+        if (!item.vacancy_id) { continue; }
+        const count = counts.get(item.vacancy_id) ?? { total: 0, fresh: 0 };
+        count.total++;
+        if (item.status === 'created' || item.status === 'pending') { count.fresh++; }
+        counts.set(item.vacancy_id, count);
+      }
+      this.#listFilters.setApplicationCounts(counts);
+    } catch { /* Список документов доступен независимо от списка откликов. */ }
   }
 
   /**
@@ -122,10 +135,10 @@ export default class MyVacanciesPage implements Page {
     this.#content.innerHTML = resultsTemplate({
       vacancies: found
         .slice((this.#page - 1) * PAGE_SIZE, this.#page * PAGE_SIZE)
-        .map(({ id, title, description, salary_from: from, salary_to: to, currency }) => ({
+        .map(({ id, title, description, categories, salary_from: from, salary_to: to, currency }) => ({
           id,
           title,
-          description,
+          description, categories,
           salary: formatSalary(from, to, currency),
           hasSalary: (from !== null && from !== undefined) || (to !== null && to !== undefined),
         })),

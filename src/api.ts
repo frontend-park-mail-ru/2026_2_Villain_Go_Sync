@@ -16,10 +16,31 @@ export type UserRole = 'seeker' | 'employer';
 
 export type Currency = 'RUB' | 'USD' | 'EUR';
 
+/** Запись опыта, образования, проекта или культуры в порядке отображения. */
+export type DetailRecord = Record<string, string | number | boolean | null>;
+export interface CareerDetails {
+  experience_items?: DetailRecord[];
+  education_items?: DetailRecord[];
+  skills?: { name: string }[];
+  projects?: DetailRecord[];
+}
+export interface WorkPreferences {
+  city?: string | null;
+  work_format?: string | null;
+  employment_type?: string | null;
+  work_schedule?: string | null;
+}
 /**
  * Поля вакансии, которые заполняет работодатель.
  */
-export interface VacancyFields {
+export interface VacancyFields extends WorkPreferences {
+  responsibilities?: string;
+  requirements?: string;
+  offer?: string | null;
+  experience_level?: string | null;
+  work_hours?: string | null;
+  office_address?: string | null;
+  category_ids?: number[];
   /** Название. */
   title: string;
   /** Описание. */
@@ -36,6 +57,9 @@ export interface VacancyFields {
  * Вакансия в том виде, в котором её отдаёт бэкенд.
  */
 export interface Vacancy extends VacancyFields {
+  categories?: string[];
+  apply_until?: string | null;
+  updated_at?: string;
   /** Идентификатор вакансии. */
   id: number;
   /** Идентификатор работодателя. */
@@ -51,7 +75,11 @@ export interface Vacancy extends VacancyFields {
 /**
  * Текстовые поля резюме, которые заполняет соискатель.
  */
-export interface ResumeFields {
+export interface ResumeFields extends CareerDetails, WorkPreferences {
+  target_position?: string | null;
+  salary_from?: number | null;
+  portfolio_url?: string | null;
+  languages?: string | null;
   /** Название, например желаемая должность. */
   title: string;
   /** Описание навыков и интересов. */
@@ -80,6 +108,14 @@ export interface Resume extends ResumeFields {
  * Профиль компании.
  */
 export interface Employer {
+  industry?: string | null;
+  team_size?: string | null;
+  main_city?: string | null;
+  benefits?: string | null;
+  hiring_email?: string | null;
+  office_address?: string | null;
+  technologies?: { name: string }[];
+  culture?: DetailRecord[];
   /** Путь логотипа относительно адреса API. */
   logo_url?: string | null;
   /** Название компании. */
@@ -93,7 +129,13 @@ export interface Employer {
 /**
  * Профиль соискателя.
  */
-export interface Seeker {
+export interface Seeker extends CareerDetails {
+  city?: string | null;
+  messenger?: string | null;
+  contact_email?: string | null;
+  preferred_position?: string | null;
+  preferred_cities?: string | null;
+  work_format?: string | null;
   /** Путь фотографии относительно адреса API. */
   avatar_url?: string | null;
   /** Имя. */
@@ -418,6 +460,46 @@ export async function restoreSession(): Promise<void> {
 }
 
 /**
+ * Получает страницы по непрозрачному курсору до конца выдачи для локального поиска и фильтрации.
+ * @param path Путь списка, включая фильтры API.
+ * @param signal Сигнал ухода со страницы.
+ * @returns Записи в порядке API.
+ */
+async function getList<T>(path: string, signal?: AbortSignal): Promise<T[]> {
+  const records: T[] = [];
+  const seen = new Set<string>();
+  let url = path;
+  for (;;) {
+    const data = await request('GET', url, { signal });
+    if (data === null || Array.isArray(data)) { return records.concat(data ?? []); }
+    const items = getField(data, 'items');
+    const next = getField(getField(data, 'pagination'), 'next_cursor');
+    if (!Array.isArray(items)) { throw new ApiError(500, data); }
+    records.push(...items);
+    if (next === null) { return records; }
+    if (typeof next !== 'string' || !next || seen.has(next)) { throw new ApiError(500, data); }
+    seen.add(next);
+    url = path + (path.includes('?') ? '&' : '?') + new URLSearchParams({ cursor: next, limit: '100' });
+  }
+}
+
+/**
+ * @param signal Сигнал отмены загрузки.
+ * @returns Справочник направлений вакансий.
+ */
+export async function getVacancyCategories(signal?: AbortSignal): Promise<{ id: number; name: string }[]> {
+  return getList('/vacancy-categories', signal);
+}
+
+/**
+ * @param signal Сигнал отмены загрузки.
+ * @returns Отклики текущего соискателя с исходными идентификаторами вакансий и резюме.
+ */
+export async function getMyApplications(signal?: AbortSignal): Promise<{ vacancy_id: number; resume_id: number | null }[]> {
+  return getList('/seeker/applications', signal);
+}
+
+/**
  * Загружает ленту вакансий.
  * @param options Настройки запроса.
  * @param options.signal Сигнал для отмены запроса.
@@ -425,13 +507,7 @@ export async function restoreSession(): Promise<void> {
  * @throws {ApiError} Сервер недоступен, ответил ошибкой или прислал не список.
  */
 export async function getVacancies({ signal }: { signal?: AbortSignal } = {}): Promise<Vacancy[]> {
-  const vacancies = (await request('GET', '/vacancies', { signal })) ?? [];
-
-  if (!Array.isArray(vacancies)) {
-    throw new ApiError(500, vacancies);
-  }
-
-  return vacancies;
+  return getList('/vacancies', signal);
 }
 
 /**
@@ -468,13 +544,7 @@ function toVacancy(data: unknown): Vacancy {
  * @throws {ApiError} 403 — пользователь не работодатель; сервер недоступен или ответил ошибкой.
  */
 export async function getEmployerVacancies({ signal }: { signal?: AbortSignal } = {}): Promise<Vacancy[]> {
-  const vacancies = (await request('GET', '/employer/vacancies', { signal })) ?? [];
-
-  if (!Array.isArray(vacancies)) {
-    throw new ApiError(500, vacancies);
-  }
-
-  return vacancies as Vacancy[];
+  return getList('/employer/vacancies', signal);
 }
 
 /**
@@ -554,18 +624,7 @@ export async function getResume(id: number, { signal }: { signal?: AbortSignal }
  * @throws {ApiError} Сервер недоступен или ответил ошибкой.
  */
 export async function getSeekerResumes(seekerId: number, { signal }: { signal?: AbortSignal } = {}): Promise<Resume[]> {
-  const resumes = await request('GET', `/resumes?seeker_id=${seekerId}`, { signal });
-
-  // Если резюме нет, бэкенд присылает null вместо пустого массива.
-  if (resumes === null) {
-    return [];
-  }
-
-  if (!Array.isArray(resumes)) {
-    throw new ApiError(500, resumes);
-  }
-
-  return resumes as Resume[];
+  return getList('/resumes?seeker_id=' + seekerId, signal);
 }
 
 /**
@@ -658,7 +717,10 @@ export interface Applicant {
   /** Идентификатор соискателя. */
   seeker_id: number;
   /** Идентификатор приложенного резюме. */
-  resume_id: number;
+  resume_id: number | null;
+  status_comment?: string | null;
+  reason_code?: string | null;
+  status_changed_at?: string | null;
   /** Адрес фотографии соискателя; пустой или отсутствующий, если изображения нет. */
   avatar_url?: string | null;
   /** Сопроводительное письмо. */
@@ -667,7 +729,7 @@ export interface Applicant {
   first_name: string;
   /** Фамилия соискателя. */
   last_name: string;
-  /** Статус отклика: `pending`, `created`, `viewed`, `interview`, `accepted` или `rejected`. */
+  /** Текущий этап отклика. */
   status: string;
   /** Дата отклика в формате ISO 8601. */
   applied_at: string;
@@ -685,12 +747,19 @@ export interface Applicant {
 export async function getEmployerApplicants(
   { signal }: { signal?: AbortSignal } = {},
 ): Promise<Applicant[]> {
-  // Если откликов нет, бэкенд присылает null вместо пустого массива.
-  const applicants = (await request('GET', '/employer/applications', { signal })) ?? [];
+  return getList('/employer/applications', signal);
+}
 
-  if (!Array.isArray(applicants)) {
-    throw new ApiError(500, applicants);
-  }
-
-  return applicants as Applicant[];
+/**
+ * Сохраняет этап отклика, комментарий и причину отказа.
+ * @param id Отклик работодателя.
+ * @param fields Выбранный этап и комментарий.
+ * @param fields.status Новый этап.
+ * @param fields.reason_code Причина отказа.
+ * @param fields.comment Комментарий работодателя.
+ * @returns Сохранённый этап и время изменения.
+ */
+export async function changeApplicationStatus(id: number, fields: { status: string; reason_code?: string; comment?: string }):
+Promise<Pick<Applicant, 'status' | 'reason_code' | 'status_comment' | 'status_changed_at'>> {
+  return await request('PATCH', '/employer/applications/' + id + '/status', { body: fields }) as Applicant;
 }

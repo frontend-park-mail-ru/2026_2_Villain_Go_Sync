@@ -1,5 +1,5 @@
 import { ListFilters } from '../components/ListFilters';
-import { deleteResume, getSeekerResumes, type Resume } from '../api';
+import { getMyApplications, deleteResume, getSeekerResumes, type Resume } from '../api';
 import { confirmAction } from '../components/Modal';
 import { renderPagination } from '../components/pagination';
 import { showToast } from '../components/toast';
@@ -99,6 +99,19 @@ export default class ResumesPage implements Page {
     }
 
     this.#renderList();
+    try {
+      const applications = await getMyApplications(signal);
+      if (signal.aborted) { return; }
+      const counts = new Map<number, { total: number; fresh: number }>();
+      for (const item of applications) {
+        if (!item.resume_id) { continue; }
+        const count = counts.get(item.resume_id) ?? { total: 0, fresh: 0 };
+        count.total++;
+        count.fresh = count.total;
+        counts.set(item.resume_id, count);
+      }
+      this.#listFilters.setApplicationCounts(counts);
+    } catch { /* Список документов доступен независимо от списка откликов. */ }
   }
 
   /**

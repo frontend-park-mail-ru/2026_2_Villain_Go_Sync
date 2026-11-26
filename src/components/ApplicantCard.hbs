@@ -1,4 +1,4 @@
-<article class="applicant-card">
+<article class="applicant-card" {{#if board}}draggable="true" data-candidate="{{id}}"{{/if}}>
   <div class="applicant-card__summary">
     <div class="applicant-card__identity">
       <span class="applicant-card__avatar" data-image-url="{{avatarUrl}}" aria-hidden="true">{{initials}}</span>
@@ -17,5 +17,5 @@
     </details>
   {{/if}}
   <footer class="applicant-card__bottom"><small>{{date}}</small><button type="button" class="icon-button" aria-label="Быстрый просмотр" data-preview="{{id}}">⋮</button></footer>
-  <a class="applicant-card__button" href="/resumes/{{resumeId}}">Смотреть резюме</a>
+  {{#if resumeId}}<a class="applicant-card__button" href="/resumes/{{resumeId}}">Смотреть резюме</a>{{/if}}
 </article>

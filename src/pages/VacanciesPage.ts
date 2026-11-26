@@ -1,3 +1,4 @@
+import { conditions, workLabel } from '../components/work-options';
 import { isFavorite, toggleFavorite } from '../components/favorites';
 import { getCurrentUser } from '../session';
 import { ListFilters } from '../components/ListFilters';
@@ -139,13 +140,16 @@ export default class VacanciesPage implements Page {
    */
   #renderList(allVacancies: Vacancy[]): void {
     const query = this.#query.toLowerCase();
-    const found = this.#listFilters.apply(allVacancies.filter(({ title, description, company_name }) =>
-      `${title} ${description} ${company_name || ''}`.toLowerCase().includes(query),
+    const found = this.#listFilters.apply(allVacancies.filter(({ title, description, company_name, categories, city }) =>
+      `${title} ${description} ${company_name || ''} ${categories?.join(' ') ?? ''} ${city ?? ''}`.toLowerCase().includes(query),
     ));
     const pageCount = Math.ceil(found.length / PAGE_SIZE);
     const vacancies = found
       .slice((this.#page - 1) * PAGE_SIZE, this.#page * PAGE_SIZE)
-      .map(({ id, title, salary_from: from, salary_to: to, currency, created_at: createdAt, company_name: company, logo_url: logoUrl }) => ({
+      .map((vacancy) => {
+        const { id, title, salary_from: from, salary_to: to, currency, created_at: createdAt, company_name: company, logo_url: logoUrl } = vacancy;
+        return {
+        conditions: conditions(vacancy), tags: vacancy.categories, level: workLabel('experience_level', vacancy.experience_level), deadline: vacancy.apply_until,
         favorite: isFavorite(id),
         company,
         logoUrl,
@@ -154,7 +158,8 @@ export default class VacanciesPage implements Page {
         salary: formatSalary(from, to, currency),
         hasSalary: (from !== null && from !== undefined) || (to !== null && to !== undefined),
         published: formatPublished(createdAt),
-      }));
+        };
+      });
 
     this.#results.innerHTML = resultsTemplate({
       vacancies,

@@ -1,0 +1,9 @@
+<div class="editor__record">
+  {{#each fields}}
+    <label class="field">{{label}}
+      <input class="field__input" data-record-field="{{key}}" type="{{type}}" {{#if checked}}checked{{/if}} value="{{value}}">
+      <span class="field__message" aria-live="polite"></span>
+    </label>
+  {{/each}}
+  <button class="button button_ghost" type="button" data-remove-record>Удалить запись</button>
+</div>

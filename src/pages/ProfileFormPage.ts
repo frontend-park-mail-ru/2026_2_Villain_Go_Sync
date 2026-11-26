@@ -1,3 +1,4 @@
+import { mountEditorDetails, readEditorDetails, validateEditorDetails } from '../components/editor-details';
 import { mountFormSteps } from '../components/form-steps';
 import { mountProfileImage } from '../components/ProfileImage';
 import { mountPendingProfileImage, type PendingProfileImage } from '../components/PendingProfileImage';
@@ -170,6 +171,7 @@ export default class ProfileFormPage implements Page {
     if (!isProfileForUser(profile, user.id)) { profile = null; }
     this.#container.innerHTML = template({ heading, profile, isCompany: this.#isCompany });
     this.#form = this.#container.querySelector<HTMLFormElement>('.edit-form');
+    mountEditorDetails(this.#form!, profile ?? {});
     this.#initialValues = this.#snapshot();
     updateTextFields(this.#form!, PROFILE_FIELD_LIMITS, getProfileFieldError);
     for (const name of ['phone', 'website'] as const) {
@@ -201,7 +203,7 @@ export default class ProfileFormPage implements Page {
    * @returns Значения полей без пробелов по краям.
    */
   #snapshot(): string {
-    const fields = [...this.#form!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[name]:not([type="file"]), textarea[name]')];
+    const fields = [...this.#form!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[name]:not([type="file"]), textarea[name], select[name]')];
 
     return JSON.stringify(fields.map((field) => field.value.trim()));
   }
@@ -231,10 +233,12 @@ export default class ProfileFormPage implements Page {
    * @returns Сохранение профиля или `null`, если есть ошибки.
    */
   #validate(): (() => Promise<void>) | null {
+    if (!validateEditorDetails(this.#form!)) { return null; }
     const elements = this.#form!.elements as ProfileFormElements;
     const value = (field?: HTMLInputElement | HTMLTextAreaElement): string => field?.value.trim() ?? '';
     let firstInvalid: HTMLInputElement | HTMLTextAreaElement | null = null;
-    for (const field of this.#form!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[name]:not([type="file"]), textarea[name]')) {
+    for (const field of this.#form!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[name]:not([type="file"]), textarea[name], select[name]')) {
+      if (field.hasAttribute('data-extra')) { continue; }
       const error = getProfileFieldError(field.name as keyof typeof PROFILE_FIELD_LIMITS | 'phone' | 'website', field.value);
       setFieldError(field, error);
       if (error) { firstInvalid ??= field; }
@@ -247,6 +251,7 @@ export default class ProfileFormPage implements Page {
 
       return () =>
         saveEmployerProfile({
+          ...readEditorDetails(this.#form!),
           company_name: value(companyName),
           description: value(elements.description),
           website: normalizedWebsite ?? '',
@@ -255,6 +260,7 @@ export default class ProfileFormPage implements Page {
       const { firstName, lastName, phone } = elements as Required<ProfileFormElements>;
       return () =>
         saveSeekerProfile({
+          ...readEditorDetails(this.#form!),
           first_name: value(firstName),
           last_name: value(lastName),
           phone: value(phone),

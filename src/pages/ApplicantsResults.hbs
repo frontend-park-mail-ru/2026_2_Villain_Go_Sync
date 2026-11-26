@@ -32,11 +32,11 @@
   {{#if board}}
     <div class="applicants__board">
       {{#each columns}}
-        <section class="pipeline pipeline_{{type}}">
+        <section class="pipeline pipeline_{{type}}" {{#if stage}}data-stage="{{stage}}"{{/if}}>
           <h2>{{title}} <span>{{count}}</span></h2>
           <div class="pipeline__cards">
             {{#each cards}}
-              {{> "../components/ApplicantCard"}}
+              {{> "../components/ApplicantCard" board=true}}
             {{/each}}
           </div>
         </section>

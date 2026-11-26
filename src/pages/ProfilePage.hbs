@@ -52,7 +52,7 @@
   {{else}}
     <div class="profile__card profile__identity">
       <div class="profile__avatar{{#if isCompany}} profile__avatar_company{{/if}}" aria-hidden="true">{{initials}}</div>
-      <h2 class="profile__name">{{name.value}}</h2>
+      <div><h2 class="profile__name">{{name.value}}</h2>{{#if info}}<p class="profile__subtitle">{{info}}</p>{{/if}}</div>
       <a class="button button_secondary" href="/profile/edit">{{#if isCompany}}Редактировать компанию{{else}}Редактировать профиль{{/if}}</a>
     </div>
     <div class="profile__columns">
@@ -65,8 +65,7 @@
         {{#each sections}}
           <section class="profile__card">
             <h2 class="profile__section-title">{{title}}</h2>
-            <p class="profile__subtitle">{{subtitle}}</p>
-            <p class="profile__text">Нет данных</p>
+            <p class="profile__text">{{#if text}}{{text}}{{else}}Нет данных{{/if}}</p>
           </section>
         {{/each}}
         {{#if isCompany}}
@@ -86,6 +85,9 @@
             {{/if}}
           </div>
         {{/if}}
+        {{#each contacts}}
+          {{#if value}}<div><p class="profile__label">{{label}}</p><p class="profile__value">{{value}}</p></div>{{/if}}
+        {{/each}}
       </aside>
     </div>
   {{/if}}

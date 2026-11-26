@@ -9,7 +9,7 @@
     <p class="candidate-preview__label">Отклик на {{vacancy_title}}{{#if date}} · {{date}}{{/if}}</p>
     <section>
       <h3>Резюме</h3>
-      <a href="/resumes/{{resume_id}}">{{resume_title}}</a>
+      {{#if resume_id}}<a href="/resumes/{{resume_id}}">{{resume_title}}</a>{{else}}<p>{{resume_title}}</p>{{/if}}
       <p class="detail__text" data-resume-summary></p>
     </section>
     {{#if cover_letter}}
@@ -23,12 +23,26 @@
       <p>{{#if date}}{{date}} · {{/if}}Отклик получен</p>
       <p>Текущий этап · {{status}}</p>
     </section>
-    <fieldset class="unavailable-options" disabled>
-      <legend>Изменить этап</legend>
-      <button class="chip" type="button">Рассмотрение</button>
-      <button class="chip" type="button">Собеседование</button>
-      <button class="chip" type="button">Отказать</button>
-    </fieldset>
-    <p class="editor__hint">Изменение этапа пока недоступно.</p>
+    {{#if status_comment}}<p class="detail__text">{{status_comment}}</p>{{/if}}
+    <form class="candidate-preview__form">
+      <label class="field">Изменить этап
+        <select name="status" class="field__input" required>
+          <option value="">Выберите этап</option><option value="reviewing">Рассмотрение</option>
+          <option value="interview">Собеседование</option><option value="offer">Предложение</option>
+          <option value="rejected">Отказ</option>
+        </select>
+      </label>
+      <label class="field" data-rejection hidden>Причина отказа
+        <select name="reason" class="field__input">
+          <option value="">Выберите причину</option><option value="insufficient_experience">Недостаточный опыт</option>
+          <option value="skills_mismatch">Не подходят навыки</option><option value="salary_mismatch">Зарплатные ожидания</option>
+          <option value="work_format_mismatch">Формат работы</option><option value="location_mismatch">Местоположение</option>
+          <option value="candidate_declined">Отказ кандидата</option><option value="other">Другая причина</option>
+        </select>
+      </label>
+      <label class="field">Комментарий к этапу<textarea name="comment" class="field__input"></textarea></label>
+      <p role="alert" class="field__message"></p>
+      <button type="submit" class="button button_secondary">Сохранить этап</button>
+    </form>
   </div>
 </dialog>

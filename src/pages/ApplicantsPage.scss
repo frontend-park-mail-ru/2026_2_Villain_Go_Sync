@@ -292,3 +292,6 @@
   [data-resume-summary] { max-height: 160px; overflow: auto; }
   @include mobile { inset: 16px 16px auto auto; max-height: calc(100dvh - 32px); }
 }
+
+.candidate-preview__form { display: grid; gap: 12px; }
+.candidate-preview__form [hidden] { display: none; }

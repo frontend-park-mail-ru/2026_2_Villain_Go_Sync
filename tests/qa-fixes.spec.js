@@ -213,11 +213,11 @@ test('слишком большое письмо остаётся в форме 
   await page.getByRole('dialog').getByRole('button', { name: 'Откликнуться', exact: true }).click();
   await expect(page.locator('[name=coverLetter]')).toHaveAttribute('aria-invalid', 'true');
   await expect(page.getByText('Сократите письмо до 10 000 символов')).toBeVisible();
-  expect(state.requests.some((request) => request.path.endsWith('/applications'))).toBe(false);
+  expect(state.requests.some((request) => request.method === 'POST' && request.path.endsWith('/applications'))).toBe(false);
   await page.locator('[name=coverLetter]').fill('Я'.repeat(10000));
   await page.getByRole('dialog').getByRole('button', { name: 'Откликнуться', exact: true }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  expect(state.requests.filter((request) => request.path.endsWith('/applications'))).toHaveLength(1);
+  expect(state.requests.filter((request) => request.method === 'POST' && request.path.endsWith('/applications'))).toHaveLength(1);
 });
 
 test('переключатель пароля сообщает актуальное действие', async ({ page }) => {

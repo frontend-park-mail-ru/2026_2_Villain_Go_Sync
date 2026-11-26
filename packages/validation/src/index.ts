@@ -93,6 +93,7 @@ export function getResumeFieldError(name: keyof typeof RESUME_FIELD_LIMITS, valu
 export function getProfileFieldError(name: keyof typeof PROFILE_FIELD_LIMITS | 'phone' | 'website', value: string): string {
   if (name === 'phone') { return getPhoneError(value); }
   if (name === 'website') { return getWebsiteError(value); }
+  if (name === 'lastName' && !hasVisibleText(value)) { return 'Введите фамилию'; }
   if (name === 'firstName' && !hasVisibleText(value)) { return 'Введите имя'; }
   if (name === 'companyName' && !hasVisibleText(value)) { return 'Введите название компании'; }
   const lengthError = getLengthError(value, PROFILE_FIELD_LIMITS[name], PROFILE_FIELD_LABELS[name]);

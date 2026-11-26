@@ -63,7 +63,7 @@
               <div class="editor__import">
                 <div>
                   <strong>Уже заполнили профиль?</strong>
-                  <p>Скопируйте раздел «О себе» в это резюме.</p>
+                  <p>Скопируйте опыт, образование, навыки, проекты и раздел «О себе» в это резюме.</p>
                 </div>
                 <button type="button" class="button button_secondary" data-from-profile>Заполнить из профиля</button>
               </div>
@@ -84,18 +84,35 @@
               <p class="field__message" id="resume-title-message"></p>
             </div>
 
-            <label class="field">Желаемая должность<input class="field__input" disabled placeholder="Пока недоступно"></label>
-            <label class="field">Город поиска<input class="field__input" disabled placeholder="Пока недоступно"></label>
-            <fieldset class="unavailable-options" disabled>
-              <legend>Формат работы</legend>
-              <span class="chip">Удалённо</span>
-              <span class="chip">Гибрид</span>
-              <span class="chip">Офис</span>
-            </fieldset>
-            <label class="field">Зарплата от<input class="field__input" disabled placeholder="Пока недоступно"></label>
+            <label class="field">Желаемая должность *
+              <input class="field__input" name="target_position" data-extra required type="text">
+              <span class="field__message" aria-live="polite"></span>
+            </label>
+            <label class="field">Город поиска
+              <input class="field__input" name="city" data-extra type="text">
+              <span class="field__message" aria-live="polite"></span>
+            </label>
+            <label class="field">Формат работы
+              <select class="field__input" name="work_format" data-extra><option value="">Не указано</option></select>
+              <span class="field__message" aria-live="polite"></span>
+            </label>
+            <label class="field">Занятость
+              <select class="field__input" name="employment_type" data-extra><option value="">Не указано</option></select>
+              <span class="field__message" aria-live="polite"></span>
+            </label>
+            <label class="field">График
+              <select class="field__input" name="work_schedule" data-extra><option value="">Не указано</option></select>
+              <span class="field__message" aria-live="polite"></span>
+            </label>
+            <label class="field">Зарплата от
+              <input class="field__input" name="salary_from" data-extra type="number" min="0" max="9999999999.99" step="0.01">
+              <span class="field__message" aria-live="polite"></span>
+            </label>
           </section>
           <section class="editor__panel" tabindex="-1" data-panel data-instructions="Добавьте опыт, достижения и образование." hidden>
             <h2>Опыт работы и образование</h2>
+            {{> "../components/EditorRecords" group="experience_items" label="Добавить место работы"}}
+            {{> "../components/EditorRecords" group="education_items" label="Добавить образование"}}
             <div class="edit-form__row">
               <div class="field">
                 <label class="field__label" for="resume-experience">Опыт</label>
@@ -124,10 +141,10 @@
               </div>
             </div>
 
-
           </section>
           <section class="editor__panel" tabindex="-1" data-panel data-instructions="Выберите навыки, добавьте информацию о себе и ссылки на портфолио." hidden>
             <h2>Навыки и информация о себе</h2>
+            {{> "../components/EditorRecords" group="projects" label="Добавить проект"}}
             <div class="field">
               <label class="field__label" for="resume-description">О себе</label>
               <textarea
@@ -141,9 +158,18 @@
               <p class="field__message" id="resume-description-message"></p>
             </div>
 
-            <label class="field">Навыки<input class="field__input" disabled placeholder="Пока недоступно"></label>
-            <label class="field">Портфолио / GitHub<input class="field__input" disabled placeholder="Пока недоступно"></label>
-            <label class="field">Языки<input class="field__input" disabled placeholder="Пока недоступно"></label>
+            <label class="field">Навыки
+              <input class="field__input" name="skills" data-extra="names" type="text" placeholder="Через запятую">
+              <span class="field__message" aria-live="polite"></span>
+            </label>
+            <label class="field">Портфолио / GitHub
+              <input class="field__input" name="portfolio_url" data-extra type="url">
+              <span class="field__message" aria-live="polite"></span>
+            </label>
+            <label class="field">Языки
+              <input class="field__input" name="languages" data-extra type="text">
+              <span class="field__message" aria-live="polite"></span>
+            </label>
           </section>
           <section class="editor__panel" tabindex="-1" data-panel data-instructions="Проверьте готовое резюме и при необходимости вернитесь к предыдущим этапам." hidden>
             <h2>Предпросмотр резюме</h2>
@@ -164,6 +190,10 @@
                 <dt>О себе</dt>
                 <dd data-value="description"></dd>
               </div>
+              <div><dt>Желаемая должность</dt><dd data-value="target_position"></dd></div>
+              <div><dt>Город</dt><dd data-value="city"></dd></div>
+              <div><dt>Навыки</dt><dd data-value="skills"></dd></div>
+              <div><dt>Портфолио</dt><dd data-value="portfolio_url"></dd></div>
             </dl>
           </section>
         </div>

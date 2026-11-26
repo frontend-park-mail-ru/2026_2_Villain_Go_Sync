@@ -1,3 +1,4 @@
+import { detailError } from './editor-details';
 import { saveCreationDraft } from './creation-draft';
 import { setFieldError } from './form';
 import { showToast } from './toast';
@@ -23,7 +24,8 @@ export function mountFormSteps(form: HTMLFormElement, validate: (control: TextCo
   const preview = (): void => {
     for (const item of form.querySelectorAll<HTMLElement>('[data-value]')) {
       const field = form.elements.namedItem(item.dataset.value!) as TextControl | null;
-      const value = field?.value.trim() || item.dataset.empty || '—';
+      const label = field instanceof HTMLSelectElement ? field.selectedOptions[0]?.textContent : field?.value.trim();
+      const value = label || item.dataset.empty || '—';
       // Полный текст остаётся в поле. Карточке предпросмотра достаточно нескольких строк.
       item.textContent = item.closest('.editor__preview') ? value.slice(0, 500) : value;
     }
@@ -43,8 +45,8 @@ export function mountFormSteps(form: HTMLFormElement, validate: (control: TextCo
   };
   const go = (target: number): void => {
     for (let i = current; i < target; i++) {
-      for (const field of panels[i].querySelectorAll<TextControl>('input[name]:enabled, textarea[name]:enabled, select[name]:enabled')) {
-        const error = validate(field);
+      for (const field of panels[i].querySelectorAll<TextControl>('input[name]:enabled, input[data-record-field], textarea[name]:enabled, select[name]:enabled')) {
+        const error = field.hasAttribute('data-extra') || field.hasAttribute('data-record-field') ? detailError(field) : validate(field);
         setFieldError(field, error);
         if (error) { display(i); field.focus(); return; }
       }

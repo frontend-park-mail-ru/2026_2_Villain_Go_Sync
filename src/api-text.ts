@@ -1,6 +1,9 @@
 const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
 const TEXT_FIELDS = new Set(['title', 'description', 'experience', 'education', 'company_name',
-  'first_name', 'last_name', 'website', 'resume_title', 'vacancy_title']);
+  'first_name', 'last_name', 'website', 'city', 'messenger', 'contact_email', 'preferred_position', 'preferred_cities',
+  'industry', 'team_size', 'main_city', 'benefits', 'hiring_email', 'office_address', 'position_title', 'achievements',
+  'record_type', 'institution', 'specialization', 'name', 'short_description', 'url', 'target_position', 'portfolio_url',
+  'languages', 'responsibilities', 'requirements', 'offer', 'work_hours', 'status_comment', 'resume_title', 'vacancy_title']);
 
 /**
  * Декодирует один слой сущностей текстового API; результат по-прежнему экранируется шаблоном.

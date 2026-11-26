@@ -1,3 +1,4 @@
+import { recordText, workLabel } from '../components/work-options';
 import jobsTemplate from './ProfileJobs.hbs';
 import { formatSalary } from '@hirenoon/format';
 import { mountImage } from '../components/profile-images';
@@ -101,18 +102,23 @@ export default class ProfilePage implements Page {
     if (!isProfileComplete(profile, user.id, user.role)) { profile = null; }
     const imageUrl = profileImageURL(isCompany ? (profile as Employer | null)?.logo_url : (profile as Seeker | null)?.avatar_url);
     const description = this.#describe(profile, isCompany);
+    const employer = isCompany ? profile as Employer | null : null;
+    const seeker = isCompany ? null : profile as Seeker | null;
     const sections = isCompany ? [
-      { title: 'Направления и технологии', subtitle: 'Чем занимается команда' },
-      { title: 'Команда и культура', subtitle: 'Подходы к работе и ценности' },
-      { title: 'Условия и преимущества', subtitle: 'Что получает сотрудник' },
+      { title: 'Направления и технологии', text: employer?.technologies?.map((v) => v.name).join(' · ') },
+      { title: 'Команда и культура', text: recordText(employer?.culture) },
+      { title: 'Условия и преимущества', text: employer?.benefits },
     ] : [
-      { title: 'Желаемая работа', subtitle: 'Предпочтения для поиска работы' },
-      { title: 'Опыт работы', subtitle: 'Профессиональный опыт' },
-      { title: 'Образование и курсы', subtitle: 'Обучение и квалификация' },
-      { title: 'Навыки', subtitle: 'Профессиональные компетенции' },
-      { title: 'Портфолио и проекты', subtitle: 'Примеры выполненных работ' },
+      { title: 'Желаемая работа', text: [seeker?.preferred_position, seeker?.preferred_cities, workLabel('work_format', seeker?.work_format)].filter(Boolean).join(' · ') },
+      { title: 'Опыт работы', text: recordText(seeker?.experience_items) },
+      { title: 'Образование и курсы', text: recordText(seeker?.education_items) },
+      { title: 'Навыки', text: seeker?.skills?.map((v) => v.name).join(' · ') },
+      { title: 'Портфолио и проекты', text: recordText(seeker?.projects) },
     ];
-    this.#container.innerHTML = template({ heading, isCompany, sections, ...description });
+    const info = isCompany ? [employer?.industry, employer?.main_city, employer?.team_size].filter(Boolean).join(' · ') : seeker?.city;
+    const contacts = isCompany ? [{ label: 'Контактная почта', value: employer?.hiring_email }, { label: 'Адрес офиса', value: employer?.office_address }]
+      : [{ label: 'Контактная почта', value: seeker?.contact_email }, { label: 'Мессенджер', value: seeker?.messenger }];
+    this.#container.innerHTML = template({ heading, isCompany, sections, info, contacts, ...description });
     const avatar = this.#container.querySelector<HTMLElement>('.profile__avatar');
     if (avatar) { mountImage(avatar, imageUrl, description.initials ? String(description.initials) : { role: user.role }); }
     const jobs = this.#container.querySelector<HTMLElement>('[data-company-jobs]');

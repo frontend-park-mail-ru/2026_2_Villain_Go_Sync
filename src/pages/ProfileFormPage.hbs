@@ -104,14 +104,38 @@
                 <p class="field__message" id="profile-website-message"></p>
               </div>
               <div class="edit-form__row">
-                <label class="field">Отрасль<input class="field__input" disabled placeholder="Пока недоступно"></label>
-                <label class="field">Размер команды<input class="field__input" disabled placeholder="Пока недоступно"></label>
+                <label class="field">Отрасль
+                  <input class="field__input" name="industry" data-extra type="text">
+                  <span class="field__message" aria-live="polite"></span>
+                </label>
+                <label class="field">Размер команды
+                  <input class="field__input" name="team_size" data-extra type="text">
+                  <span class="field__message" aria-live="polite"></span>
+                </label>
               </div>
               <div class="edit-form__row">
-                <label class="field">Основной город<input class="field__input" disabled placeholder="Пока недоступно"></label>
-                <label class="field">Контактная почта<input class="field__input" disabled placeholder="Пока недоступно"></label>
+                <label class="field">Основной город
+                  <input class="field__input" name="main_city" data-extra type="text">
+                  <span class="field__message" aria-live="polite"></span>
+                </label>
+                <label class="field">Рабочая почта
+                  <input class="field__input" name="hiring_email" data-extra type="email">
+                  <span class="field__message" aria-live="polite"></span>
+                </label>
               </div>
-              <p class="editor__hint">Сохранение дополнительных полей пока недоступно.</p>
+              <label class="field">Условия и преимущества
+                <textarea class="field__input" name="benefits" data-extra></textarea>
+                <span class="field__message" aria-live="polite"></span>
+              </label>
+              <label class="field">Адрес офиса
+                <input class="field__input" name="office_address" data-extra type="text">
+                <span class="field__message" aria-live="polite"></span>
+              </label>
+              <label class="field">Направления и технологии
+                <input class="field__input" name="technologies" data-extra="names" type="text" placeholder="Через запятую">
+                <span class="field__message" aria-live="polite"></span>
+              </label>
+              {{> "../components/EditorRecords" group="culture" label="Добавить запись о команде"}}
             </section>
           {{else}}
             <section class="editor__panel" tabindex="-1" data-panel data-instructions="Шаг 1 из 4 · Личные данные.">
@@ -166,11 +190,20 @@
                   />
                   <p class="field__message" id="profile-phone-message"></p>
                 </div>
-                <label class="field">Контактная почта<input class="field__input" disabled placeholder="Пока недоступно"></label>
+                <label class="field">Контактная почта
+                  <input class="field__input" name="contact_email" data-extra type="email">
+                  <span class="field__message" aria-live="polite"></span>
+                </label>
               </div>
               <div class="edit-form__row">
-                <label class="field">Город<input class="field__input" disabled placeholder="Пока недоступно"></label>
-                <label class="field">Мессенджер<input class="field__input" disabled placeholder="Пока недоступно"></label>
+                <label class="field">Город
+                  <input class="field__input" name="city" data-extra type="text">
+                  <span class="field__message" aria-live="polite"></span>
+                </label>
+                <label class="field">Мессенджер
+                  <input class="field__input" name="messenger" data-extra type="text">
+                  <span class="field__message" aria-live="polite"></span>
+                </label>
               </div>
               <div class="field">
                 <label class="field__label" for="profile-description">О себе</label>
@@ -184,40 +217,34 @@
                 <p class="field__counter" id="profile-description-counter"></p>
                 <p class="field__message" id="profile-description-message"></p>
               </div>
-              <p class="editor__hint">Сохранение дополнительных полей пока недоступно.</p>
+              <label class="field">Желаемая должность
+                <input class="field__input" name="preferred_position" data-extra type="text">
+                <span class="field__message" aria-live="polite"></span>
+              </label>
+              <label class="field">Желаемые города
+                <input class="field__input" name="preferred_cities" data-extra type="text">
+                <span class="field__message" aria-live="polite"></span>
+              </label>
+              <label class="field">Формат работы
+                <select class="field__input" name="work_format" data-extra><option value="">Не указано</option></select>
+                <span class="field__message" aria-live="polite"></span>
+              </label>
             </section>
             <section class="editor__panel" tabindex="-1" data-panel data-instructions="Шаг 2 из 4 · Опыт работы.">
               <h2>Опыт работы</h2>
-              <div class="edit-form__row">
-                <label class="field">Компания<input class="field__input" disabled placeholder="Пока недоступно"></label>
-                <label class="field">Должность<input class="field__input" disabled placeholder="Пока недоступно"></label>
-              </div>
-              <div class="edit-form__row">
-                <label class="field">Начало работы<input class="field__input" disabled placeholder="Пока недоступно"></label>
-                <label class="field">Окончание<input class="field__input" disabled placeholder="Пока недоступно"></label>
-              </div>
-              <label class="field">Обязанности и достижения<input class="field__input" disabled placeholder="Пока недоступно"></label>
-              <p class="editor__hint">Сохранение дополнительных полей пока недоступно.</p>
+              {{> "../components/EditorRecords" group="experience_items" label="Добавить место работы" seeker=true}}
             </section>
             <section class="editor__panel" tabindex="-1" data-panel data-instructions="Шаг 3 из 4 · Образование и навыки.">
               <h2>Образование и навыки</h2>
-              <label class="field">Тип записи<input class="field__input" disabled placeholder="Пока недоступно"></label>
-              <div class="edit-form__row">
-                <label class="field">Учебное заведение или курс<input class="field__input" disabled placeholder="Пока недоступно"></label>
-                <label class="field">Год завершения<input class="field__input" disabled placeholder="Пока недоступно"></label>
-              </div>
-              <label class="field">Специальность / направление<input class="field__input" disabled placeholder="Пока недоступно"></label>
-              <label class="field">Навыки<input class="field__input" disabled placeholder="Пока недоступно"></label>
-              <p class="editor__hint">Сохранение дополнительных полей пока недоступно.</p>
+              {{> "../components/EditorRecords" group="education_items" label="Добавить образование"}}
+              <label class="field">Навыки
+                <input class="field__input" name="skills" data-extra="names" type="text" placeholder="Через запятую">
+                <span class="field__message" aria-live="polite"></span>
+              </label>
             </section>
             <section class="editor__panel" tabindex="-1" data-panel data-instructions="Шаг 4 из 4 · Проекты и проверка.">
               <h2>Проекты и проверка</h2>
-              <div class="edit-form__row">
-                <label class="field">Название проекта<input class="field__input" disabled placeholder="Пока недоступно"></label>
-                <label class="field">Ссылка<input class="field__input" disabled placeholder="Пока недоступно"></label>
-              </div>
-              <label class="field">Описание проекта<input class="field__input" disabled placeholder="Пока недоступно"></label>
-              <p class="editor__hint">Сохранение дополнительных полей пока недоступно.</p>
+              {{> "../components/EditorRecords" group="projects" label="Добавить проект"}}
               <h2>Проверка данных профиля</h2>
               <p>
                 <span data-value="firstName"></span> <span data-value="lastName"></span>

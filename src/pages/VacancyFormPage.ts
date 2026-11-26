@@ -1,3 +1,4 @@
+import { mountEditorDetails, readEditorDetails, validateEditorDetails } from '../components/editor-details';
 import { mountCardImages } from '../components/profile-images';
 import { mountFormSteps } from '../components/form-steps';
 import {
@@ -8,7 +9,7 @@ import {
 } from '@hirenoon/validation';
 import { saveCreationDraft, restoreCreationDraft, clearCreationDraft } from '../components/creation-draft';
 import { getRequiredProfile, showMissingProfile } from '../profile-required';
-import { ApiError, createVacancy, getVacancy, updateVacancy, type Currency, type VacancyFields } from '../api';
+import { getVacancyCategories, ApiError, createVacancy, getVacancy, updateVacancy, type Currency, type VacancyFields } from '../api';
 import { setFieldError, setLoading, updateTextFields } from '../components/form';
 import { confirmAction } from '../components/Modal';
 import { hideToast, showToast } from '../components/toast';
@@ -264,11 +265,46 @@ export default class VacancyFormPage implements Page {
     });
 
     this.#form = this.#container.querySelector<HTMLFormElement>('.edit-form');
+    mountEditorDetails(this.#form!, vacancy);
     this.#initialValues = this.#snapshot();
     if (this.#id === null) { restoreCreationDraft('/vacancies/new', this.#form!); }
+    void this.#loadCategories(vacancy);
     this.#updateTextFields();
     mountCardImages(this.#form!);
     mountFormSteps(this.#form!, (field) => this.#fieldError(field), this.#id === null ? '/vacancies/new' : undefined);
+  }
+
+  /**
+   * Загружает названия и ID тегов, сохраняя выбор при редактировании или восстановлении черновика.
+   * @param vacancy Исходная вакансия.
+   */
+  async #loadCategories(vacancy: VacancyFields): Promise<void> {
+    const form = this.#form!;
+    const select = form.querySelector<HTMLSelectElement>('[data-category-select]')!;
+    const hidden = form.elements.namedItem('category_ids') as HTMLInputElement;
+    const hint = form.querySelector<HTMLElement>('[data-category-hint]')!;
+    try {
+      const categories = await getVacancyCategories(this.#abortController.signal);
+      if (this.#isDestroyed || form !== this.#form) { return; }
+      const original = 'categories' in vacancy && Array.isArray(vacancy.categories) ? vacancy.categories : [];
+      const draft: number[] | null = hidden.value ? JSON.parse(hidden.value) : null;
+      for (const { id, name } of categories) { select.add(new Option(name, String(id), false, draft ? draft.includes(id) : original.includes(name))); }
+      if (select.selectedOptions.length >= 5) {
+        for (const option of select.options) { option.disabled = !option.selected; }
+      }
+      select.disabled = !categories.length;
+      if (draft && categories.length) { hidden.disabled = false; }
+      hint.textContent = categories.length ? 'Можно выбрать до пяти направлений' : 'Справочник пока пуст';
+      select.addEventListener('change', () => {
+        const ids = [...select.selectedOptions].map((option) => Number(option.value));
+        hidden.value = JSON.stringify(ids);
+        hidden.disabled = false;
+        for (const option of select.options) { option.disabled = ids.length >= 5 && !option.selected; }
+        hint.textContent = ids.length >= 5 ? 'Выбрано пять направлений' : 'Можно выбрать до пяти направлений';
+      });
+    } catch {
+      if (!this.#isDestroyed) { hint.textContent = 'Не удалось загрузить направления'; }
+    }
   }
 
   /**
@@ -296,7 +332,7 @@ export default class VacancyFormPage implements Page {
   #snapshot(): string {
     const { title, description, salaryFrom, salaryTo, currency } = this.#form!.elements as VacancyFormElements;
 
-    return JSON.stringify([title, description, salaryFrom, salaryTo, currency].map((field) => field.value.trim()));
+    return JSON.stringify([title, description, salaryFrom, salaryTo, currency].map((field) => field.value.trim()).concat(JSON.stringify(readEditorDetails(this.#form!))));
   }
 
   /**
@@ -381,7 +417,9 @@ export default class VacancyFormPage implements Page {
       return null;
     }
 
+    if (!validateEditorDetails(this.#form!)) { return null; }
     return {
+      ...readEditorDetails(this.#form!),
       title: title.value.trim(),
       description: description.value.trim(),
       salary_from: from as number | null,

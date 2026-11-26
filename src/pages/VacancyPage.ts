@@ -1,5 +1,6 @@
+import { conditions, workLabel } from '../components/work-options';
 import { isFavorite, toggleFavorite } from '../components/favorites';
-import { ApiError, deleteVacancy, getSeekerResumes, getVacancy, type Vacancy } from '../api';
+import { getMyApplications, ApiError, deleteVacancy, getSeekerResumes, getVacancy, type Vacancy } from '../api';
 import { openApplicationDialog } from '../components/ApplicationDialog';
 import { setLoading } from '../components/form';
 import { confirmAction } from '../components/Modal';
@@ -106,13 +107,8 @@ export default class VacancyPage implements Page {
     const user = getCurrentUser();
     const isOwner = user?.id !== null && user?.id === vacancy.employer_id;
 
-    let applied = false;
-    if (user?.role === 'seeker') {
-      try { applied = sessionStorage.getItem('hirenoon:applied:' + user.id + ':' + this.#id) === '1'; }
-      catch { /* Вкладка может работать без хранилища. */ }
-    }
     this.#container.innerHTML = template({
-      vacancy, applied,
+      vacancy, conditions: conditions(vacancy), level: workLabel('experience_level', vacancy.experience_level),
       company: vacancy.company_name,
       isOwner,
       // Гостя кнопка отклика ведёт на вход, работодателю отклик не нужен.
@@ -125,6 +121,16 @@ export default class VacancyPage implements Page {
     });
     const favorite = this.#container.querySelector<HTMLButtonElement>('[data-favorite]');
     favorite?.addEventListener('click', () => toggleFavorite(vacancy, favorite));
+    if (user?.role === 'seeker') {
+      try {
+        const mine = await getMyApplications(signal);
+        const button = this.#container.querySelector<HTMLButtonElement>('[data-action="apply"]');
+        if (!signal.aborted && button && mine.some((item) => item.vacancy_id === vacancy.id)) {
+          button.disabled = true;
+          button.textContent = button.dataset.label = 'Вы уже откликнулись';
+        }
+      } catch { /* API отклонит дубликат, даже если список временно недоступен. */ }
+    }
   }
 
   /**
@@ -153,8 +159,6 @@ export default class VacancyPage implements Page {
       setLoading(button, false);
       if (this.#abortController.signal.aborted) { return; }
       if (await openApplicationDialog(this.#id, resumes, this.#abortController.signal)) {
-        try { sessionStorage.setItem('hirenoon:applied:' + userId + ':' + this.#id, '1'); }
-        catch { /* Кнопка обновится и без хранилища. */ }
         button.disabled = true;
         button.dataset.label = 'Вы уже откликнулись';
       }

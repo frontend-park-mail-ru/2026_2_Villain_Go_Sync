@@ -25,6 +25,9 @@
         {{/if}}
         <h2 class="vacancy-card__title"><a class="card-link" href="/vacancies/{{id}}">{{title}}</a></h2>
         <p class="vacancy-card__salary">{{salary}}</p>
+        {{#if conditions}}<small>{{conditions}}</small>{{/if}}
+        {{#if level}}<small>Опыт: {{level}}</small>{{/if}}
+        {{#if deadline}}<small>Приём откликов до {{deadline}}</small>{{/if}}
         {{#if tags.length}}
           <div class="vacancy-card__tags">
             {{#each tags}}

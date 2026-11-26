@@ -11,10 +11,12 @@ const PAGE_SIZE = 12;
 
 const dateFormat = new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-// Новый отклик бэкенд отдаёт как pending, хотя в базе такого статуса нет; оба значения — «Новый».
+// Старые записи и текущий API используют разные названия некоторых этапов.
 const STATUSES: Record<string, { type: string; label: string }> = {
   pending: { type: 'new', label: 'Новый' },
   created: { type: 'new', label: 'Новый' },
+  reviewing: { type: 'viewed', label: 'Рассмотрение' },
+  offer: { type: 'accepted', label: 'Предложение' },
   viewed: { type: 'viewed', label: 'Просмотрен' },
   interview: { type: 'interview', label: 'Собеседование' },
   accepted: { type: 'accepted', label: 'Принят' },
@@ -65,6 +67,37 @@ export default class ApplicantsPage implements Page {
       });
     }
 
+    const openPreview = (id: number, nextStage?: string): void => {
+      const applicant = this.#applicants?.find((item) => item.application_id === id);
+      if (!applicant) { return; }
+      const date = new Date(applicant.applied_at);
+      openApplicantPreview(container, applicant, {
+        date: Number.isNaN(date.getTime()) ? '' : dateFormat.format(date),
+        status: STATUSES[applicant.status]?.label ?? 'Неизвестный статус',
+      }, this.#abortController.signal, () => this.#renderList(), nextStage);
+    };
+
+    let dragged: HTMLElement | null = null;
+    this.#content.addEventListener('dragstart', (event) => {
+      dragged = (event.target as Element).closest<HTMLElement>('[data-candidate][draggable]');
+      if (dragged && event.dataTransfer) {
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', dragged.dataset.candidate!);
+      }
+    });
+    this.#content.addEventListener('dragend', () => { dragged = null; });
+    this.#content.addEventListener('dragover', (event) => {
+      const column = (event.target as Element).closest<HTMLElement>('[data-stage]');
+      if (dragged && column?.dataset.stage && !column.contains(dragged)) { event.preventDefault(); }
+    });
+    this.#content.addEventListener('drop', (event) => {
+      const column = (event.target as Element).closest<HTMLElement>('[data-stage]');
+      if (!dragged || !column?.dataset.stage || column.contains(dragged)) { return; }
+      event.preventDefault();
+      openPreview(Number(dragged.dataset.candidate), column.dataset.stage);
+      dragged = null;
+    });
+
     this.#content.addEventListener('click', (event) => {
       const target = event.target as Element;
       const page = target.closest<HTMLElement>('[data-page]')?.dataset.page;
@@ -72,13 +105,7 @@ export default class ApplicantsPage implements Page {
 
       const preview = target.closest<HTMLElement>('[data-preview]');
       if (preview) {
-        const applicant = this.#applicants?.find((item) => item.application_id === Number(preview.dataset.preview));
-        if (!applicant) { return; }
-        const date = new Date(applicant.applied_at);
-        openApplicantPreview(container, applicant, {
-          date: Number.isNaN(date.getTime()) ? '' : dateFormat.format(date),
-          status: STATUSES[applicant.status]?.label ?? 'Неизвестный статус',
-        }, this.#abortController.signal);
+        openPreview(Number(preview.dataset.preview));
       } else if (page) {
         this.#page = Number(page);
         this.#renderList();
@@ -192,7 +219,8 @@ export default class ApplicantsPage implements Page {
       board: this.#view === 'board', table: this.#view === 'table',
       columns: stages.map(([type, title]) => {
         const cards = applicants.filter((item) => item.status.type === type);
-        return { type, title, count: cards.length, cards };
+        const stage = ({ viewed: 'reviewing', interview: 'interview', accepted: 'offer', rejected: 'rejected' } as Record<string, string>)[type];
+        return { type, title, stage, count: cards.length, cards };
       }),
       hasQuery: Boolean(query || vacancy || days),
       pagination: this.#view === 'board' ? '' : renderPagination(this.#page, pageCount),

@@ -33,6 +33,7 @@ for (const [role, missingStatus] of [['seeker', 404], ['seeker', 200], ['employe
     });
     await page.goto(destination);
     await page.locator('[name="title"]').fill('Название черновика');
+    if (role === 'seeker') { await page.locator('[name=target_position]').fill('Разработчик'); }
     await page.locator('[data-step]').nth(1).click();
     if (role === 'employer') {
       await page.locator('[name="salaryFrom"]').fill('100000');

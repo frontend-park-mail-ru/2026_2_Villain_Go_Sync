@@ -43,6 +43,7 @@
               <p class="vacancy-card__description">{{description}}</p>
             {{/if}}
           </div>
+          {{#if categories}}<div class="chips">{{#each categories}}<span class="chip">{{this}}</span>{{/each}}</div>{{/if}}
           <div class="vacancy-card__footer">
             <p class="vacancy-card__salary{{#unless hasSalary}} vacancy-card__salary_empty{{/unless}}">{{salary}}</p>
             <div class="vacancy-card__actions">

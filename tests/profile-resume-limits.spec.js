@@ -45,6 +45,7 @@ for (const edit of [false, true]) {
       const state = await setup(page);
       await page.goto(edit ? '/resumes/9/edit' : '/resumes/new');
       await page.locator('[name=title]').fill('Разработчик');
+      await page.locator('[name=target_position]').fill('Разработчик');
       if (name !== 'title') { await page.locator('[data-step]').nth(name === 'description' ? 2 : 1).click(); }
       const field = page.locator(`[name=${name}]`);
       const group = field.locator('..');
@@ -124,7 +125,7 @@ test('резюме: обязательность, пустые необязат�
   await title.fill('🚀'.repeat(100));
   await saveEditor(page);
   await expect(page).toHaveURL('/resumes/9');
-  expect(state.writes[0].fields).toEqual({ title: '🚀'.repeat(100), description: '', experience: '', education: '' });
+  expect(state.writes[0].fields).toMatchObject({ target_position: 'Разработчик', title: '🚀'.repeat(100), description: '', experience: '', education: '' });
 });
 
 test('профиль: обязательность имени, неверный телефон и очистка необязательных полей', async ({ page }) => {
@@ -138,7 +139,7 @@ test('профиль: обязательность имени, неверный 
   await page.locator('[name=phone]').fill('');
   await saveEditor(page);
   await expect(page).toHaveURL('/profile');
-  expect(state.writes[0].fields).toEqual({ first_name: '🚀'.repeat(100), last_name: '', phone: '', description: '' });
+  expect(state.writes[0].fields).toMatchObject({ first_name: '🚀'.repeat(100), last_name: 'Петров', phone: '', description: '' });
 });
 
 for (const emptyProfile of [true, false]) {

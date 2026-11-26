@@ -3,9 +3,9 @@
     <h2 class="modal__title" id="list-filters-title">{{title}}</h2>
     <button type="button" class="modal__close" data-close aria-label="Закрыть">×</button>
     {{#each groups}}
-      <fieldset class="unavailable-options" disabled>
+      <fieldset class="unavailable-options" {{#if disabled}}disabled{{/if}}>
         <legend>{{title}}</legend>
-        {{#each options}}<button type="button" class="chip">{{this}}</button>{{/each}}
+        {{#each options}}<label class="chip"><input type="checkbox" name="{{../key}}" value="{{value}}"> {{label}}</label>{{/each}}
       </fieldset>
     {{/each}}
     {{#if salary}}
@@ -13,7 +13,7 @@
         <label class="field">От, ₽<input class="field__input" type="number" min="0" name="from"></label>
         <label class="field">До, ₽<input class="field__input" type="number" min="0" name="to"></label>
       </div>
-      <label class="field">Город<input class="field__input" disabled placeholder="Пока недоступно"></label>
+      <label class="field">Город<input class="field__input" name="city" placeholder="Введите город"></label>
     {{else}}
       {{#if resumes}}<label class="field">Последнее изменение
         <select class="field__input" name="days"><option value="">За всё время</option><option value="7">За неделю</option><option value="30">За месяц</option></select>
@@ -22,7 +22,6 @@
         <select class="field__input" name="order"><option value="new">Сначала недавние</option><option value="old">Сначала старые</option><option value="title">По названию</option></select>
       </label>
     {{/if}}
-    <p class="editor__hint">Затемнённые параметры пока недоступны.</p>
     <div class="modal__actions">
       <button class="button button_secondary" type="submit">{{submit}}</button>
       <button class="button button_outline" type="reset">Сбросить</button>

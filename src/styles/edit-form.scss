@@ -132,3 +132,10 @@
   padding: 16px; border-radius: var(--radius); background: var(--color-accent-soft);
   p { margin: 4px 0 0; color: var(--color-text-muted); font-size: 14px; }
 }
+
+.editor__records, .editor__records [data-rows] { display: grid; gap: 12px; }
+.editor__records > button { justify-self: start; }
+.editor__record { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 16px; border: 1px solid var(--color-border); border-radius: var(--radius); }
+.editor__record button { justify-self: start; }
+.editor__record input[type=checkbox] { width: 20px; height: 20px; }
+@include mobile { .editor__record { grid-template-columns: minmax(0, 1fr); } }
