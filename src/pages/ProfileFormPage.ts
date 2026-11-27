@@ -2,6 +2,7 @@ import { mountEditorDetails, readEditorDetails, validateEditorDetails } from '..
 import { mountFormSteps } from '../components/form-steps';
 import { mountProfileImage } from '../components/ProfileImage';
 import { mountPendingProfileImage, type PendingProfileImage } from '../components/PendingProfileImage';
+import { getProfileInitials, notifyProfileAvatarChange } from '../components/profile-images';
 import { isProfileForUser, profileReturnPath } from '../profile-required';
 import {
   ApiError,
@@ -230,9 +231,9 @@ export default class ProfileFormPage implements Page {
 
   /**
    * Проверяет поля и показывает ошибки под ними.
-   * @returns Сохранение профиля или `null`, если есть ошибки.
+   * @returns Действие, которое сохраняет профиль и возвращает инициалы, или `null` при ошибке проверки.
    */
-  #validate(): (() => Promise<void>) | null {
+  #validate(): (() => Promise<string>) | null {
     if (!validateEditorDetails(this.#form!)) { return null; }
     const elements = this.#form!.elements as ProfileFormElements;
     const value = (field?: HTMLInputElement | HTMLTextAreaElement): string => field?.value.trim() ?? '';
@@ -249,23 +250,30 @@ export default class ProfileFormPage implements Page {
       const { companyName, website } = elements as Required<ProfileFormElements>;
       const normalizedWebsite = normalizeWebsite(value(website));
 
-      return () =>
-        saveEmployerProfile({
+      return async () => {
+        const name = value(companyName);
+        await saveEmployerProfile({
           ...readEditorDetails(this.#form!),
-          company_name: value(companyName),
+          company_name: name,
           description: value(elements.description),
           website: normalizedWebsite ?? '',
         });
+        return getProfileInitials(name);
+      };
     } else {
       const { firstName, lastName, phone } = elements as Required<ProfileFormElements>;
-      return () =>
-        saveSeekerProfile({
+      return async () => {
+        const first = value(firstName);
+        const last = value(lastName);
+        await saveSeekerProfile({
           ...readEditorDetails(this.#form!),
-          first_name: value(firstName),
-          last_name: value(lastName),
+          first_name: first,
+          last_name: last,
           phone: value(phone),
           description: value(elements.description),
         });
+        return getProfileInitials(first, last);
+      };
     }
   }
 
@@ -285,14 +293,18 @@ export default class ProfileFormPage implements Page {
       return;
     }
 
+    const user = getCurrentUser();
     const button = this.#form.querySelector<HTMLButtonElement>('[type="submit"]')!;
 
     this.#isSubmitting = true;
     setLoading(button, true);
 
     try {
-      await save();
+      const initials = await save();
       if (this.#isDestroyed) { return; }
+      if (user && user.id !== null && user.role !== null) {
+        notifyProfileAvatarChange({ id: user.id, role: user.role, initials });
+      }
       this.#initialValues = this.#snapshot();
       if (this.#pendingImage && !(await this.#pendingImage.save())) {
         queueMicrotask(() => {

@@ -2,33 +2,65 @@ import { API_URL } from '../config';
 import type { UserRole } from '../api';
 import { profileImageURL } from '../api';
 
-/** Обновление изображения собственного профиля. */
-export interface ProfileImageChange {
-  /** Владелец изображения. */
+/** Обновление изображения или инициалов собственного профиля. */
+type ProfileAvatarChange = {
+  /** Владелец профиля. */
   id: number;
   /** Роль владельца. */
   role: UserRole;
+} & ({
   /** Абсолютный адрес или пустая строка после удаления. */
   url: string;
-}
+} | {
+  /** Инициалы из сохранённого имени или названия компании. */
+  initials: string;
+});
 
-const listeners = new Set<(change: ProfileImageChange) => void>();
+const listeners = new Set<(change: ProfileAvatarChange) => void>();
 const MAX_CACHED_IMAGE_GROUPS = 48;
 const cardImages = new WeakMap<HTMLElement, Map<string, HTMLElement[]>>();
 
 /**
- * Подписывает шапку на замену изображения без перезагрузки страницы.
+ * Собирает инициалы для заглушки вместо фото.
+ * @param names Имя и фамилия или название компании.
+ * @returns Инициалы первых двух слов.
+ */
+export function getProfileInitials(...names: (string | null | undefined)[]): string {
+  return names
+    .flatMap((name) => (name ?? '').trim().split(/\s+/))
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0].toUpperCase())
+    .join('');
+}
+
+/**
+ * Читает выбранное изображение для локального предпросмотра.
+ * @param file Выбранный файл.
+ * @returns Data URL изображения в Base64.
+ */
+export function readProfileImagePreview(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Подписывает шапку на обновление аватарки без перезагрузки страницы.
  * @param listener Обработчик изменения.
  */
-export function onProfileImageChange(listener: (change: ProfileImageChange) => void): void {
+export function onProfileAvatarChange(listener: (change: ProfileAvatarChange) => void): void {
   listeners.add(listener);
 }
 
 /**
- * Сообщает об успешной загрузке или удалении изображения.
- * @param change Новое изображение владельца.
+ * Сообщает об изменении изображения или инициалов после сохранения.
+ * @param change Новые данные аватарки владельца.
  */
-export function notifyProfileImageChange(change: ProfileImageChange): void {
+export function notifyProfileAvatarChange(change: ProfileAvatarChange): void {
   for (const listener of listeners) { listener(change); }
 }
 

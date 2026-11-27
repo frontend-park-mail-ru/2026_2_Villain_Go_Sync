@@ -1,7 +1,7 @@
 import { saveProfileImage, type UserRole } from '../api';
 import { getProfileImageError } from '@hirenoon/validation';
 import template from './ProfileImage.hbs';
-import { notifyProfileImageChange, publicProfileImage } from './profile-images';
+import { notifyProfileAvatarChange, publicProfileImage, readProfileImagePreview } from './profile-images';
 
 /** Изображение, выбранное до первого сохранения профиля. */
 export interface PendingProfileImage {
@@ -27,31 +27,34 @@ export function mountPendingProfileImage(container: HTMLElement, user: { id: num
   const remove = container.querySelector<HTMLButtonElement>('button')!;
   const message = container.querySelector<HTMLElement>('[role="status"]')!;
   let file: File | null = null;
-  let previewURL: string | null = null;
   let saving = false;
-  const clearPreview = (): void => {
-    if (previewURL) { URL.revokeObjectURL(previewURL); previewURL = null; }
-  };
   const reset = (): void => {
     file = null;
-    clearPreview();
     image.removeAttribute('src');
     image.hidden = remove.hidden = true;
     input.value = '';
   };
-  signal.addEventListener('abort', clearPreview, { once: true });
   image.addEventListener('error', () => { image.hidden = true; }, { signal });
-  input.addEventListener('change', () => {
+  input.addEventListener('change', async () => {
     const selected = input.files?.[0];
     if (!selected || saving) { return; }
     const error = getProfileImageError(selected);
     if (error) { reset(); message.textContent = error; return; }
-    clearPreview();
     file = selected;
-    previewURL = URL.createObjectURL(file);
-    image.src = previewURL;
-    image.hidden = remove.hidden = false;
+    image.removeAttribute('src');
+    image.hidden = true;
+    remove.hidden = false;
     message.textContent = 'Изображение выбрано. Нажмите «Сохранить», чтобы загрузить его вместе с профилем.';
+    try {
+      const preview = await readProfileImagePreview(selected);
+      if (file !== selected || signal.aborted) { return; }
+      image.src = preview;
+      image.hidden = false;
+    } catch {
+      if (file !== selected || signal.aborted || saving) { return; }
+      reset();
+      message.textContent = 'Не удалось прочитать изображение. Выберите файл ещё раз';
+    }
   }, { signal });
   remove.addEventListener('click', () => {
     if (!saving) { reset(); message.textContent = 'Выбор изображения отменён.'; }
@@ -67,10 +70,13 @@ export function mountPendingProfileImage(container: HTMLElement, user: { id: num
       try {
         await saveProfileImage(user.role, file);
         file = null;
-        clearPreview();
         const url = `${publicProfileImage(user.id, user.role)}?v=${Date.now()}`;
-        notifyProfileImageChange({ ...user, url });
-        if (!signal.aborted) { image.src = url; message.textContent = 'Изображение сохранено.'; }
+        notifyProfileAvatarChange({ ...user, url });
+        if (!signal.aborted) {
+          image.src = url;
+          image.hidden = false;
+          message.textContent = 'Изображение сохранено.';
+        }
         return true;
       } catch {
         if (!signal.aborted) { message.textContent = 'Профиль сохранён, но изображение загрузить не удалось. Нажмите «Сохранить», чтобы повторить'; }
