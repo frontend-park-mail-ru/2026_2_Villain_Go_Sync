@@ -1,6 +1,7 @@
 import { workOptions } from './work-options';
 import template from './ListFilters.hbs';
 import type { Resume, Vacancy } from '../api';
+import type { CreationDraft } from './creation-draft';
 
 type ListKind = 'catalog' | 'vacancies' | 'resumes';
 
@@ -34,6 +35,7 @@ export class ListFilters {
     container.insertAdjacentHTML('beforeend', template({
       title: kind === 'catalog' ? 'Фильтры вакансий' : resumes ? 'Фильтры моих резюме' : 'Фильтры моих вакансий',
       resumes,
+      publishedLabel: kind === 'catalog' ? '' : resumes ? 'Опубликовано' : 'Опубликована',
       groups: kind === 'catalog' ? [
         ['work_format', 'Формат работы'], ['employment_type', 'Занятость'], ['work_schedule', 'График'], ['experience_level', 'Опыт'],
       ].map(([key, title]) => ({ key, title, options: Object.entries(workOptions[key]).map(([value, label]) => ({ value, label })) }))
@@ -83,28 +85,32 @@ export class ListFilters {
    * @param owner Сортировать собственные записи по дате.
    * @returns Отфильтрованный список.
    */
-  apply<T extends Resume | Vacancy>(records: T[], owner = false): T[] {
+  apply<T extends Resume | Vacancy | CreationDraft>(records: T[], owner = false): T[] {
     const from = this.#values.get('from');
     const to = this.#values.get('to');
     const days = Number(this.#values.get('days'));
-    const date = (item: T): number => Date.parse(('updated_at' in item && item.updated_at) || item.created_at) || 0;
+    const statuses = this.#values.getAll('status');
+    const date = (item: T): number => Date.parse(item.updated_at || ('created_at' in item ? item.created_at : '')) || 0;
     const result = records.filter((item) => {
+      const isDraft = 'draftPath' in item;
+      if (statuses.length && !statuses.includes(isDraft ? 'draft' : 'published')) { return false; }
       for (const key of Object.keys(workOptions)) {
         const selected = this.#values.getAll(key);
         if (selected.length && !selected.includes(String((item as unknown as Record<string, unknown>)[key]))) { return false; }
       }
       const city = this.#values.get('city');
-      if (city && !item.city?.toLowerCase().includes(city.toLowerCase())) { return false; }
+      if (city && (isDraft || !item.city?.toLowerCase().includes(city.toLowerCase()))) { return false; }
       const usage = this.#values.getAll('applications');
       if (usage.length && this.#applicationCounts) {
-        const counts = this.#applicationCounts.get(item.id);
+        const counts = isDraft ? undefined : this.#applicationCounts.get(item.id);
         const matchesNew = usage.includes('with') && (('currency' in item ? counts?.fresh : counts?.total) ?? 0) > 0;
         if (!matchesNew && !(usage.includes('without') && !counts?.total)) { return false; }
       }
       const deadlines = this.#values.getAll('deadline');
-      if (deadlines.length && 'currency' in item) {
-        const remaining = item.apply_until ? Date.parse(item.apply_until + 'T23:59:59') - Date.now() : NaN;
-        if (!(deadlines.includes('none') && !item.apply_until) && !(deadlines.includes('soon') && remaining >= 0 && remaining <= 7 * 86400000)) { return false; }
+      if (deadlines.length) {
+        const deadline = 'currency' in item ? item.apply_until : null;
+        const remaining = deadline ? Date.parse(deadline + 'T23:59:59') - Date.now() : NaN;
+        if (!(deadlines.includes('none') && !deadline) && !(deadlines.includes('soon') && remaining >= 0 && remaining <= 7 * 86400000)) { return false; }
       }
       if (days && date(item) < Date.now() - days * 86400000) { return false; }
       if ((!from && !to) || !('currency' in item)) { return true; }

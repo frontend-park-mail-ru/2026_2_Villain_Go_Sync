@@ -1,4 +1,5 @@
 import { ListFilters } from '../components/ListFilters';
+import { clearCreationDraft, getCreationDrafts } from '../components/creation-draft';
 import { getEmployerApplicants, deleteVacancy, getEmployerVacancies, type Vacancy } from '../api';
 import { confirmAction } from '../components/Modal';
 import { renderPagination } from '../components/pagination';
@@ -51,7 +52,7 @@ export default class MyVacanciesPage implements Page {
         this.#renderList();
         window.scrollTo(0, 0);
       } else if (actionElement?.dataset.action === 'delete') {
-        this.#confirmDelete(Number(actionElement.dataset.id));
+        this.#confirmDelete(actionElement.dataset.draftPath ?? Number(actionElement.dataset.id));
       } else if (actionElement?.dataset.action === 'reset') {
         this.#listFilters.reset();
         this.#setQuery('');
@@ -124,9 +125,10 @@ export default class MyVacanciesPage implements Page {
    * Рисует текущую страницу вакансий, подходящих под запрос, или пустое состояние.
    */
   #renderList(): void {
-    const allVacancies = this.#vacancies ?? [];
+    const drafts = getCreationDrafts('/vacancies/new', 'Вакансия без названия');
+    const records = [...drafts, ...(this.#vacancies ?? [])];
     const query = this.#query.toLowerCase();
-    const found = this.#listFilters.apply(allVacancies.filter(({ title }) => title.toLowerCase().includes(query)), true);
+    const found = this.#listFilters.apply(records.filter(({ title }) => title.toLowerCase().includes(query)), true);
     const pageCount = Math.ceil(found.length / PAGE_SIZE);
 
     // После удаления последней вакансии на странице возвращаемся на предыдущую.
@@ -135,13 +137,21 @@ export default class MyVacanciesPage implements Page {
     this.#content.innerHTML = resultsTemplate({
       vacancies: found
         .slice((this.#page - 1) * PAGE_SIZE, this.#page * PAGE_SIZE)
-        .map(({ id, title, description, categories, salary_from: from, salary_to: to, currency }) => ({
-          id,
-          title,
-          description, categories,
-          salary: formatSalary(from, to, currency),
-          hasSalary: (from !== null && from !== undefined) || (to !== null && to !== undefined),
-        })),
+        .map((item) => {
+          if ('draftPath' in item) { return { ...item, href: item.draftPath }; }
+          const { id, title, description, salary_from: from, salary_to: to, currency } = item;
+          const categories = item.categories ?? [];
+          const hiddenCategoryCount = categories.length > 3 ? categories.length - 2 : 0;
+          return {
+            id, title, description,
+            href: `/vacancies/${id}`,
+            categories: hiddenCategoryCount ? categories.slice(0, 2) : categories,
+            hiddenCategoryCount,
+            salary: formatSalary(from, to, currency),
+            hasSalary: (from !== null && from !== undefined) || (to !== null && to !== undefined),
+          };
+        }),
+      canCreate: !drafts.some(({ draftPath }) => draftPath === '/vacancies/new'),
       hasQuery: Boolean(query) || this.#listFilters.active,
       pagination: renderPagination(this.#page, pageCount),
     });
@@ -149,28 +159,35 @@ export default class MyVacanciesPage implements Page {
 
   /**
    * Спрашивает подтверждение и удаляет вакансию из списка.
-   * @param id Идентификатор вакансии.
+   * @param idOrDraftPath Идентификатор опубликованной записи или путь к черновику.
    */
-  async #confirmDelete(id: number): Promise<void> {
+  async #confirmDelete(idOrDraftPath: number | string): Promise<void> {
     if (this.#isDeleting) {
       return;
     }
 
     const isConfirmed = await confirmAction({
-      title: 'Удалить вакансию?',
+      title: typeof idOrDraftPath === 'string' ? 'Удалить черновик?' : 'Удалить вакансию?',
       text: 'Восстановить её после удаления не получится.',
       confirmLabel: 'Удалить',
       cancelLabel: 'Отмена',
     });
 
-    if (!isConfirmed) {
+    if (!isConfirmed || this.#abortController.signal.aborted) {
+      return;
+    }
+
+    if (typeof idOrDraftPath === 'string') {
+      const deleted = clearCreationDraft(idOrDraftPath);
+      showToast(deleted ? 'Черновик удалён' : 'Не удалось удалить черновик', deleted ? 'success' : 'error');
+      if (deleted) { this.#renderList(); }
       return;
     }
 
     this.#isDeleting = true;
 
     try {
-      await deleteVacancy(id);
+      await deleteVacancy(idOrDraftPath);
     } catch (error) {
       showToast((error as Error).message, 'error');
       return;
@@ -181,7 +198,7 @@ export default class MyVacanciesPage implements Page {
     showToast('Вакансия удалена');
 
     if (!this.#abortController.signal.aborted && this.#vacancies) {
-      this.#vacancies = this.#vacancies.filter((vacancy) => vacancy.id !== id);
+      this.#vacancies = this.#vacancies.filter((vacancy) => vacancy.id !== idOrDraftPath);
       this.#renderList();
     }
   }

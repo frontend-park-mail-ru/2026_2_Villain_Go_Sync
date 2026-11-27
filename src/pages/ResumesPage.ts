@@ -1,4 +1,5 @@
 import { ListFilters } from '../components/ListFilters';
+import { clearCreationDraft, getCreationDrafts } from '../components/creation-draft';
 import { getMyApplications, deleteResume, getSeekerResumes, type Resume } from '../api';
 import { confirmAction } from '../components/Modal';
 import { renderPagination } from '../components/pagination';
@@ -51,7 +52,7 @@ export default class ResumesPage implements Page {
         this.#renderList();
         window.scrollTo(0, 0);
       } else if (actionElement?.dataset.action === 'delete') {
-        this.#confirmDelete(Number(actionElement.dataset.id));
+        this.#confirmDelete(actionElement.dataset.draftPath ?? Number(actionElement.dataset.id));
       } else if (actionElement?.dataset.action === 'reset') {
         this.#listFilters.reset();
         this.#setQuery('');
@@ -129,16 +130,20 @@ export default class ResumesPage implements Page {
    * Рисует текущую страницу резюме, подходящих под запрос, или пустое состояние.
    */
   #renderList(): void {
-    const allResumes = this.#resumes ?? [];
+    const drafts = getCreationDrafts('/resumes/new', 'Резюме без названия');
+    const records = [...drafts, ...(this.#resumes ?? [])];
     const query = this.#query.toLowerCase();
-    const found = this.#listFilters.apply(allResumes.filter(({ title }) => title.toLowerCase().includes(query)), true);
+    const found = this.#listFilters.apply(records.filter(({ title }) => title.toLowerCase().includes(query)), true);
     const pageCount = Math.ceil(found.length / PAGE_SIZE);
 
     // После удаления последнего резюме на странице возвращаемся на предыдущую.
     this.#page = Math.min(this.#page, Math.max(pageCount, 1));
 
     this.#content.innerHTML = resultsTemplate({
-      resumes: found.slice((this.#page - 1) * PAGE_SIZE, this.#page * PAGE_SIZE),
+      resumes: found
+        .slice((this.#page - 1) * PAGE_SIZE, this.#page * PAGE_SIZE)
+        .map((item) => ({ ...item, href: 'draftPath' in item ? item.draftPath : `/resumes/${item.id}` })),
+      canCreate: !drafts.some(({ draftPath }) => draftPath === '/resumes/new'),
       hasQuery: Boolean(query) || this.#listFilters.active,
       pagination: renderPagination(this.#page, pageCount),
     });
@@ -146,28 +151,35 @@ export default class ResumesPage implements Page {
 
   /**
    * Спрашивает подтверждение и удаляет резюме из списка.
-   * @param id Идентификатор резюме.
+   * @param idOrDraftPath Идентификатор опубликованной записи или путь к черновику.
    */
-  async #confirmDelete(id: number): Promise<void> {
+  async #confirmDelete(idOrDraftPath: number | string): Promise<void> {
     if (this.#isDeleting) {
       return;
     }
 
     const isConfirmed = await confirmAction({
-      title: 'Удалить резюме?',
+      title: typeof idOrDraftPath === 'string' ? 'Удалить черновик?' : 'Удалить резюме?',
       text: 'Восстановить его после удаления не получится.',
       confirmLabel: 'Удалить',
       cancelLabel: 'Отмена',
     });
 
-    if (!isConfirmed) {
+    if (!isConfirmed || this.#abortController.signal.aborted) {
+      return;
+    }
+
+    if (typeof idOrDraftPath === 'string') {
+      const deleted = clearCreationDraft(idOrDraftPath);
+      showToast(deleted ? 'Черновик удалён' : 'Не удалось удалить черновик', deleted ? 'success' : 'error');
+      if (deleted) { this.#renderList(); }
       return;
     }
 
     this.#isDeleting = true;
 
     try {
-      await deleteResume(id);
+      await deleteResume(idOrDraftPath);
     } catch (error) {
       showToast((error as Error).message, 'error');
       return;
@@ -178,7 +190,7 @@ export default class ResumesPage implements Page {
     showToast('Резюме удалено');
 
     if (!this.#abortController.signal.aborted && this.#resumes) {
-      this.#resumes = this.#resumes.filter((resume) => resume.id !== id);
+      this.#resumes = this.#resumes.filter((resume) => resume.id !== idOrDraftPath);
       this.#renderList();
     }
   }

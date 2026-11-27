@@ -2,6 +2,19 @@
   <form class="list-filters__form">
     <h2 class="modal__title" id="list-filters-title">{{title}}</h2>
     <button type="button" class="modal__close" data-close aria-label="Закрыть">×</button>
+    {{#if publishedLabel}}
+      <fieldset class="unavailable-options">
+        <legend>Статус</legend>
+        <label class="list-filters__status-option">
+          <input class="chip__control" type="checkbox" name="status" value="published">
+          <span class="chip">{{publishedLabel}}</span>
+        </label>
+        <label class="list-filters__status-option">
+          <input class="chip__control" type="checkbox" name="status" value="draft">
+          <span class="chip">Черновик</span>
+        </label>
+      </fieldset>
+    {{/if}}
     {{#each groups}}
       <fieldset class="unavailable-options" {{#if disabled}}disabled{{/if}}>
         <legend>{{title}}</legend>
