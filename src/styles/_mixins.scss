@@ -12,3 +12,9 @@ $mobile: 768px;
     @content;
   }
 }
+
+@mixin profile-avatar-fallback {
+  font-weight: 600;
+  color: var(--color-text-on-color);
+  background-color: var(--color-primary);
+}

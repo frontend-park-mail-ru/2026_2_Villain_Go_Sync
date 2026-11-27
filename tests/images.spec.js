@@ -34,16 +34,40 @@ for (const role of ['seeker', 'employer']) {
     });
     await page.goto('/profile/edit');
     const input = page.locator('input[type="file"]');
+    const image = page.locator('.profile-image img');
     await input.setInputFiles({ name: 'wrong.txt', mimeType: 'text/plain', buffer: Buffer.from('text') });
     await expect(page.getByText('Выберите PNG, JPEG или WebP размером от 1 байта до 10 МБ')).toBeVisible();
     expect(mutations).toBe(0);
-    await input.setInputFiles({ name: 'image.png', mimeType: 'image/png', buffer: png });
+
+    const upload = Promise.withResolvers();
+    await page.route(`**/api/me/${field}`, async (route) => {
+      await upload.promise;
+      await route.fallback();
+    }, { times: 1 });
+    const file = { name: 'image.png', mimeType: 'image/png', buffer: png };
+    try {
+      await input.setInputFiles(file);
+      await expect(image).toHaveAttribute('src', `data:image/png;base64,${png.toString('base64')}`);
+      await expect(image).toBeVisible();
+      await expect(page.getByText('Сохранение…', { exact: true })).toBeVisible();
+    } finally {
+      upload.resolve();
+    }
     await expect(page.getByText('Изображение сохранено.')).toBeVisible();
     await expect(page.locator('.header__avatar img')).toHaveCSS('opacity', '1');
+
+    const savedSrc = await image.getAttribute('src');
+    await page.route(`**/api/me/${field}`, (route) => route.fulfill({ status: 500 }), { times: 1 });
+    await input.setInputFiles(file);
+    await expect(page.getByText('Не удалось сохранить изображение. Попробуйте ещё раз')).toBeVisible();
+    await expect(image).toHaveAttribute('src', savedSrc);
+    await expect(image).toBeVisible();
+
     await page.getByRole('button', { name: 'Удалить изображение' }).click();
     await expect(page.getByText('Изображение удалено.')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Удалить изображение' })).toBeHidden();
     await expect(page.locator('.header__avatar img')).toHaveCount(0);
+    await expect(page.locator('.header__avatar')).toHaveText(role === 'seeker' ? 'И' : 'К');
     expect(mutations).toBe(2);
   });
 }

@@ -1,5 +1,5 @@
-import { getEmployer, getSeeker, logout, profileImageURL } from '../api';
-import { mountImage, onProfileImageChange } from './profile-images';
+import { getEmployer, getSeeker, logout, profileImageURL, type Employer, type Seeker } from '../api';
+import { getProfileInitials, mountImage, onProfileAvatarChange } from './profile-images';
 import { APP_NAME } from '../config';
 import { isProfileComplete } from '../profile-required';
 import { getCurrentUser, isAuthorized, onSessionChange } from '../session';
@@ -51,12 +51,18 @@ export default class Header {
     });
 
     onSessionChange(() => this.#update());
-    onProfileImageChange(({ id, role, url }) => {
+    onProfileAvatarChange((change) => {
       const user = getCurrentUser();
       const avatar = this.#container.querySelector<HTMLElement>('.header__avatar');
-      if (user?.id === id && user.role === role && avatar) {
+      if (user?.id !== change.id || user.role !== change.role || !avatar) { return; }
+      if ('url' in change) {
         this.#imageRequest?.abort();
-        mountImage(avatar, url, avatar.dataset.initials || { role });
+        mountImage(avatar, change.url, avatar.dataset.initials || { role: user.role });
+      } else {
+        avatar.dataset.initials = change.initials;
+        const placeholder = avatar.querySelector('span')!;
+        placeholder.className = '';
+        placeholder.textContent = change.initials;
       }
     });
     this.#update();
@@ -88,13 +94,13 @@ export default class Header {
     try {
       const profile = user.role === 'employer' ? await getEmployer(user.id, { signal }) : await getSeeker(user.id, { signal });
       if (signal.aborted || !isProfileComplete(profile, user.id, user.role)) { return; }
-      const name = 'company_name' in profile ? profile.company_name : `${profile.first_name} ${profile.last_name}`;
-      const initials = name.trim().split(/\s+/).slice(0, 2).map((word) => word.charAt(0)).join('').toUpperCase();
-      const url = profileImageURL('company_name' in profile ? profile.logo_url : profile.avatar_url);
       const avatar = this.#container.querySelector<HTMLElement>('.header__avatar');
       if (avatar) {
-        avatar.dataset.initials = initials;
-        mountImage(avatar, url, initials || { role: user.role });
+        const employer = user.role === 'employer' ? profile as Employer : null;
+        const seeker = user.role === 'seeker' ? profile as Seeker : null;
+        avatar.dataset.initials ??= employer ? getProfileInitials(employer.company_name) : getProfileInitials(seeker?.first_name, seeker?.last_name);
+        const url = profileImageURL(employer?.logo_url ?? seeker?.avatar_url);
+        mountImage(avatar, url, avatar.dataset.initials || { role: user.role });
       }
     } catch { /* Меню доступно и при незаполненном или недоступном профиле. */ }
   }

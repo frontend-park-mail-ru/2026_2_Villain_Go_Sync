@@ -1,7 +1,7 @@
 import { recordText, workLabel } from '../components/work-options';
 import jobsTemplate from './ProfileJobs.hbs';
 import { formatSalary } from '@hirenoon/format';
-import { mountImage } from '../components/profile-images';
+import { getProfileInitials, mountImage } from '../components/profile-images';
 import { ApiError, getEmployerVacancies, profileImageURL, getEmployer, getSeeker, type Employer, type Seeker } from '../api';
 import type { Page } from '../router';
 import { getCurrentUser } from '../session';
@@ -10,20 +10,6 @@ import { getWebsiteHref } from '@hirenoon/validation';
 import template from './ProfilePage.hbs';
 
 const SKELETON_FIELDS = 2;
-
-/**
- * Собирает инициалы для заглушки вместо фото.
- * @param words Имя и фамилия или название компании.
- * @returns Не больше двух заглавных букв.
- */
-function getInitials(...words: string[]): string {
-  return words
-    .flatMap((word) => word.trim().split(/\s+/))
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0].toUpperCase())
-    .join('');
-}
 
 /**
  * Страница профиля вошедшего пользователя: соискателя или компании.
@@ -157,7 +143,7 @@ export default class ProfilePage implements Page {
       const { company_name: companyName, website, description } = profile as Employer;
 
       return {
-        initials: getInitials(companyName),
+        initials: getProfileInitials(companyName),
         name: { label: 'Название компании', value: companyName },
         contact: { label: 'Сайт', value: website, href: getWebsiteHref(website) },
         about: { title: 'О компании', text: description },
@@ -167,7 +153,7 @@ export default class ProfilePage implements Page {
     const { first_name: firstName, last_name: lastName, phone, description } = profile as Seeker;
 
     return {
-      initials: getInitials(firstName, lastName),
+      initials: getProfileInitials(firstName, lastName),
       name: { label: 'Имя и фамилия', value: `${firstName} ${lastName}`.trim() },
       contact: { label: 'Телефон', value: phone },
       about: { title: 'О себе', text: description },

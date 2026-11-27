@@ -54,7 +54,7 @@ for (const role of ['seeker', 'employer']) {
     await page.goto('/profile/edit');
     await page.locator('input[type=file]').setInputFiles({ name: 'first.png', mimeType: 'image/png', buffer: png });
     await expect(page.locator('.profile-image img')).toBeVisible();
-    await expect(page.locator('.profile-image img')).toHaveAttribute('src', /^blob:/);
+    await expect(page.locator('.profile-image img')).toHaveAttribute('src', `data:image/png;base64,${png.toString('base64')}`);
     expect(state.writes).toEqual([]);
     await saveEditor(page);
     await expect(page.locator(`[name=${required}]`)).toHaveAttribute('aria-invalid', 'true');
@@ -77,7 +77,7 @@ for (const role of ['seeker', 'employer']) {
     await expect(page.locator('#profile-image-message')).toContainText('Профиль сохранён, но изображение загрузить не удалось');
     await expect(page).toHaveURL('/profile/edit');
     await expect(page.locator(`[name=${required}]`)).toHaveValue('Тест');
-    await expect(page.locator('.profile-image img')).toHaveAttribute('src', /^blob:/);
+    await expect(page.locator('.profile-image img')).toHaveAttribute('src', /^data:image\/png;base64,/);
     state.failImage = false;
     await saveEditor(page);
     await expect(page).toHaveURL('/profile');
@@ -116,15 +116,35 @@ for (const role of ['seeker', 'employer']) {
     await expect(page).toHaveURL('/profile');
   });
 
-  test(`первый профиль ${role}: невалидный файл отклонён, фото необязательно`, async ({ page }) => {
+  test(`первый профиль ${role}: без фото видны актуальные инициалы`, async ({ page }) => {
     const state = await setup(page, role);
     await page.goto('/profile/edit');
     await page.locator('input[type=file]').setInputFiles({ name: 'bad.txt', mimeType: 'text/plain', buffer: Buffer.from('text') });
     await expect(page.locator('#profile-image-message')).toContainText('Выберите PNG');
     await expect(page.locator('.profile-image img')).toBeHidden();
     await page.locator(`[name=${required}]`).fill('Тест');
+    if (role === 'seeker') { await page.locator('[name=lastName]').fill('Петров'); }
     await saveEditor(page);
     await expect(page).toHaveURL('/profile');
     expect(state.writes).toEqual(['profile']);
+
+    const headerAvatar = page.locator('.header__avatar');
+    const profileAvatar = page.locator('.profile__avatar');
+    const initials = role === 'seeker' ? 'ТП' : 'Т';
+    await expect(headerAvatar).toHaveText(initials);
+    await expect(profileAvatar).toHaveText(initials);
+    for (const property of ['background-color', 'color', 'font-weight', 'border-radius']) {
+      const profileValue = await profileAvatar.evaluate((avatar, name) => getComputedStyle(avatar).getPropertyValue(name), property);
+      await expect(headerAvatar).toHaveCSS(property, profileValue);
+    }
+
+    await page.locator('#page a[href="/profile/edit"]').click();
+    await page.locator(`[name=${required}]`).fill(role === 'seeker' ? 'Новый' : 'Новый Профиль');
+    await expect(headerAvatar).toHaveText(initials);
+    await saveEditor(page);
+    await expect(page).toHaveURL('/profile');
+    await expect(headerAvatar).toHaveText('НП');
+    await expect(profileAvatar).toHaveText('НП');
+    expect(state.writes).toEqual(['profile', 'profile']);
   });
 }

@@ -105,6 +105,21 @@ test('Назад/Вперёд сохраняют согласованность 
   await expect(page.locator('[name=title]')).toHaveValue('');
 });
 
+test('Назад после редиректа гостя показывает страницу входа', async ({ page }) => {
+  await fixture(page, null);
+  await page.goto('/profile');
+  await expect(page).toHaveURL('/login');
+  await page.locator('#page a[href="/register"]').click();
+  await expect(page).toHaveURL('/register');
+  await expect(page.getByRole('heading', { name: 'Создать аккаунт' })).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL('/login');
+  await expect(page.getByRole('heading', { name: 'Войти в HireNoon' })).toBeVisible();
+  await page.goForward();
+  await expect(page).toHaveURL('/register');
+  await expect(page.getByRole('heading', { name: 'Создать аккаунт' })).toBeVisible();
+});
+
 test('перезагрузка изменённой формы вызывает системное подтверждение', async ({ page }) => {
   await fixture(page);
   await page.goto('/resumes/new');

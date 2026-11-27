@@ -297,7 +297,7 @@ export default class Router {
     const redirectUrl = route.redirect?.();
 
     if (redirectUrl) {
-      window.history.replaceState(null, '', redirectUrl);
+      window.history.replaceState(window.history.state, '', redirectUrl);
       this.#render();
       return;
     }

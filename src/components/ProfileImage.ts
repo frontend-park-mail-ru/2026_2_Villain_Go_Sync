@@ -1,6 +1,6 @@
 import { getEmployer, getSeeker, profileImageURL, saveProfileImage, type UserRole } from '../api';
 import template from './ProfileImage.hbs';
-import { notifyProfileImageChange, publicProfileImage } from './profile-images';
+import { notifyProfileAvatarChange, publicProfileImage, readProfileImagePreview } from './profile-images';
 import { getProfileImageError } from '@hirenoon/validation';
 
 /**
@@ -29,18 +29,35 @@ export function mountProfileImage(container: HTMLElement, user: { id: number; ro
     }
     input.disabled = remove.disabled = true;
     message.textContent = 'Сохранение…';
+    const previousSrc = image.getAttribute('src');
+    const wasHidden = image.hidden;
+    let saved = false;
     try {
+      if (file) {
+        const preview = await readProfileImagePreview(file);
+        if (signal.aborted) { return; }
+        image.src = preview;
+        image.hidden = false;
+      }
       await saveProfileImage(user.role, file);
-      notifyProfileImageChange({ ...user, url: file ? `${publicProfileImage(user.id, user.role)}?v=${Date.now()}` : '' });
+      saved = true;
+      notifyProfileAvatarChange({ ...user, url: file ? `${publicProfileImage(user.id, user.role)}?v=${Date.now()}` : '' });
       if (signal.aborted) { return; }
       const profile = user.role === 'employer' ? await getEmployer(user.id, { signal }) : await getSeeker(user.id, { signal });
       if (signal.aborted) { return; }
       const url = profileImageURL('logo_url' in profile ? profile.logo_url : 'avatar_url' in profile ? profile.avatar_url : null);
       image.hidden = remove.hidden = !url;
       if (url) { image.src = `${url}?v=${Date.now()}`; }
+      else { image.removeAttribute('src'); }
       message.textContent = file ? 'Изображение сохранено.' : 'Изображение удалено.';
     } catch {
-      if (!signal.aborted) { message.textContent = 'Не удалось сохранить изображение. Попробуйте ещё раз'; }
+      if (signal.aborted) { return; }
+      if (file && !saved) {
+        if (previousSrc) { image.src = previousSrc; }
+        else { image.removeAttribute('src'); }
+        image.hidden = wasHidden;
+      }
+      message.textContent = 'Не удалось сохранить изображение. Попробуйте ещё раз';
     } finally {
       input.disabled = remove.disabled = false;
       input.value = '';

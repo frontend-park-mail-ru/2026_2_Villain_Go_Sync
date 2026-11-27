@@ -182,7 +182,10 @@
   &__columns &__card { padding: 24px; gap: 12px; }
   &__columns &__subtitle, &__label { font-size: 14px; }
   &__card_empty { width: min(100%, 880px); }
-  &__avatar:not(.profile__avatar_skeleton) { background-color: var(--color-primary); color: var(--color-text-on-color); flex-shrink: 0; }
+  &__avatar:not(.profile__avatar_skeleton) {
+    @include profile-avatar-fallback;
+    flex-shrink: 0;
+  }
   @include mobile { &__columns { grid-template-columns: minmax(0, 1fr); } }
 }
 
