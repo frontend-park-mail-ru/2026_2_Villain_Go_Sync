@@ -266,12 +266,13 @@ export default class VacancyFormPage implements Page {
 
     this.#form = this.#container.querySelector<HTMLFormElement>('.edit-form');
     mountEditorDetails(this.#form!, vacancy);
-    this.#initialValues = this.#snapshot();
     if (this.#id === null) { restoreCreationDraft('/vacancies/new', this.#form!); }
     void this.#loadCategories(vacancy);
+    this.#initialValues = this.#snapshot();
     this.#updateTextFields();
     mountCardImages(this.#form!);
-    mountFormSteps(this.#form!, (field) => this.#fieldError(field), this.#id === null ? '/vacancies/new' : undefined);
+    mountFormSteps(this.#form!, (field) => this.#fieldError(field),
+      this.#id === null ? { path: '/vacancies/new', onSaved: () => { this.#initialValues = this.#snapshot(); } } : undefined);
   }
 
   /**
@@ -284,16 +285,16 @@ export default class VacancyFormPage implements Page {
     const hidden = form.elements.namedItem('category_ids') as HTMLInputElement;
     const hint = form.querySelector<HTMLElement>('[data-category-hint]')!;
     try {
+      const draft: number[] | null = hidden.value ? JSON.parse(hidden.value) : null;
+      if (Array.isArray(draft)) { hidden.disabled = false; }
       const categories = await getVacancyCategories(this.#abortController.signal);
       if (this.#isDestroyed || form !== this.#form) { return; }
       const original = 'categories' in vacancy && Array.isArray(vacancy.categories) ? vacancy.categories : [];
-      const draft: number[] | null = hidden.value ? JSON.parse(hidden.value) : null;
-      for (const { id, name } of categories) { select.add(new Option(name, String(id), false, draft ? draft.includes(id) : original.includes(name))); }
+      for (const { id, name } of categories) { select.add(new Option(name, String(id), false, Array.isArray(draft) ? draft.includes(id) : original.includes(name))); }
       if (select.selectedOptions.length >= 5) {
         for (const option of select.options) { option.disabled = !option.selected; }
       }
       select.disabled = !categories.length;
-      if (draft && categories.length) { hidden.disabled = false; }
       hint.textContent = categories.length ? 'Можно выбрать до пяти направлений' : 'Справочник пока пуст';
       select.addEventListener('change', () => {
         const ids = [...select.selectedOptions].map((option) => Number(option.value));
@@ -361,7 +362,6 @@ export default class VacancyFormPage implements Page {
       }
     }
 
-    if (this.#id === null) { clearCreationDraft('/vacancies/new'); }
     this.#router.navigate(this.#backPath(this.#id), { force: true });
   }
 

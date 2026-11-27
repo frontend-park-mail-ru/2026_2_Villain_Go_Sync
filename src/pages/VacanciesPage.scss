@@ -73,6 +73,14 @@
   // Карточка в «Моих вакансиях»: с описанием и кнопкой удаления.
   &_owner {
     padding-top: 24px;
+
+    .chips .chip {
+      max-width: 100%;
+      min-height: 32px;
+      height: auto;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
   }
 
   &__identity {

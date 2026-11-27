@@ -307,3 +307,73 @@ test('при ошибке справочника каталог загружае
   await page.getByRole('button', { name: 'Повторить загрузку категорий' }).click();
   await expect(page.getByRole('button', { name: 'Финансы' })).toBeVisible();
 });
+
+for (const [role, resource, listPath, published] of [
+  ['employer', 'vacancies', '/my/vacancies', 'Опубликована'],
+  ['seeker', 'resumes', '/resumes', 'Опубликовано'],
+]) {
+  test(`личный список фильтруется по статусу и открывает сохранённый черновик — ${resource}`, async ({ page }) => {
+    const state = await mockAPI(page, role);
+    state.documents = [{
+      id: 9, title: 'Опубликованная запись', employer_id: 5, seeker_id: 5,
+      categories: ['Go', 'PostgreSQL', 'SQL', 'API', 'Docker'],
+    }];
+    await page.goto(`/${resource}/new`);
+    await page.locator('[name=title]').fill('Сохранённый вариант');
+    await page.getByRole('button', { name: 'Сохранить черновик' }).click();
+    const notice = page.getByRole('status').filter({ hasText: 'Черновик сохранён в этой вкладке' });
+    await notice.getByRole('button', { name: 'Закрыть' }).click();
+    await page.locator('.header__nav').locator(`a[href="${listPath}"]`).click();
+    await expect(page).toHaveURL(listPath);
+
+    const draft = page.getByRole('link', { name: 'Сохранённый вариант' });
+    const publishedLink = page.getByRole('link', { name: 'Опубликованная запись' });
+    await expect(draft).toBeVisible();
+    await expect(publishedLink).toBeVisible();
+    if (role === 'employer') {
+      await expect(page.locator('.vacancy-card_owner .chip')).toHaveText(['Go', 'PostgreSQL', '+3']);
+    }
+
+    const filters = page.getByRole('button', { name: 'Фильтры', exact: true });
+    const panel = page.getByRole('dialog');
+    const apply = panel.getByRole('button', { name: /Показать/ });
+    const draftStatus = panel.getByRole('checkbox', { name: 'Черновик' });
+    const publishedStatus = panel.getByRole('checkbox', { name: published, exact: true });
+    await filters.click();
+    await publishedStatus.check();
+    await apply.click();
+    await expect(publishedLink).toBeVisible();
+    await expect(draft).toHaveCount(0);
+
+    await filters.click();
+    await publishedStatus.uncheck();
+    await draftStatus.check();
+    await apply.click();
+    await expect(publishedLink).toHaveCount(0);
+    await draft.click();
+    await expect(page.locator('[name=title]')).toHaveValue('Сохранённый вариант');
+    await page.getByRole('button', { name: 'Отмена', exact: true }).click();
+    await expect(page).toHaveURL(listPath);
+    await expect(draft).toBeVisible();
+
+    await page.getByRole('button', { name: 'Удалить черновик «Сохранённый вариант»' }).click();
+    await panel.getByRole('button', { name: 'Удалить', exact: true }).click();
+    await expect(draft).toHaveCount(0);
+    await expect(publishedLink).toBeVisible();
+    expect(state.writes).toEqual([]);
+  });
+}
+
+test('черновик копии резюме в старом формате открывается без исходного резюме', async ({ page }) => {
+  await mockAPI(page, 'seeker');
+  await page.goto('/resumes');
+  await page.evaluate(() => {
+    sessionStorage.setItem('hirenoon:creation:5:/resumes/new?copy=3', JSON.stringify({ title: 'Черновик копии' }));
+    sessionStorage.setItem('hirenoon:creation:6:/resumes/new', JSON.stringify({ title: 'Черновик другого пользователя' }));
+  });
+  await page.reload();
+  await expect(page.getByRole('link', { name: 'Черновик другого пользователя' })).toHaveCount(0);
+  await page.getByRole('link', { name: 'Черновик копии' }).click();
+  await expect(page).toHaveURL('/resumes/new?copy=3');
+  await expect(page.locator('[name=title]')).toHaveValue('Черновик копии');
+});

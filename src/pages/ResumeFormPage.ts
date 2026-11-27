@@ -1,7 +1,7 @@
 import { mountEditorDetails, readEditorDetails, validateEditorDetails } from '../components/editor-details';
 import { mountFormSteps } from '../components/form-steps';
 import { RESUME_FIELD_LIMITS, getResumeFieldError } from '@hirenoon/validation';
-import { saveCreationDraft, restoreCreationDraft, clearCreationDraft } from '../components/creation-draft';
+import { saveCreationDraft, restoreCreationDraft, clearCreationDraft, hasCreationDraft } from '../components/creation-draft';
 import { getRequiredProfile, showMissingProfile } from '../profile-required';
 import { ApiError, createResume, getResume, updateResume, type ResumeFields, type Seeker } from '../api';
 import { setFieldError, setLoading, updateTextFields } from '../components/form';
@@ -129,14 +129,14 @@ export default class ResumeFormPage implements Page {
    */
   async #load(): Promise<void> {
     const sourceId = this.#id ?? (this.#copy === null ? null : Number(this.#copy));
-    if (sourceId === null) {
+    if (sourceId === null || (this.#id === null && hasCreationDraft(this.#draftPath))) {
       this.#form = null;
       this.#container.innerHTML = template({ isLoading: true, heading: this.#heading });
       try {
         const profile = await getRequiredProfile('seeker', this.#abortController.signal);
         if (this.#abortController.signal.aborted) { return; }
         if (!profile) {
-          this.#container.innerHTML = template({ profileRequired: true, profilePath: '/profile/edit?next=/resumes/new' });
+          this.#container.innerHTML = template({ profileRequired: true, profilePath: '/profile/edit?next=' + encodeURIComponent(this.#draftPath) });
           return;
         }
         if ('first_name' in profile) { this.#profileData = profile; }
@@ -203,7 +203,6 @@ export default class ResumeFormPage implements Page {
 
     this.#form = this.#container.querySelector<HTMLFormElement>('.edit-form');
     mountEditorDetails(this.#form!, resume);
-    this.#initialValues = JSON.stringify(this.#readFields());
     this.#form!.querySelector('[data-from-profile]')?.addEventListener('click', async () => {
       const field = (this.#form!.elements as ResumeFormElements).description;
       const profile = this.#profileData;
@@ -226,9 +225,10 @@ export default class ResumeFormPage implements Page {
       showToast('Данные скопированы из профиля');
     });
     if (this.#id === null) { restoreCreationDraft(this.#draftPath, this.#form!); }
+    this.#initialValues = JSON.stringify(this.#readFields());
     updateTextFields(this.#form!, RESUME_FIELD_LIMITS, getResumeFieldError);
     mountFormSteps(this.#form!, (field) => getResumeFieldError(field.name as keyof typeof RESUME_FIELD_LIMITS, field.value),
-      this.#id === null ? this.#draftPath : undefined);
+      this.#id === null ? { path: this.#draftPath, onSaved: () => { this.#initialValues = JSON.stringify(this.#readFields()); } } : undefined);
   }
 
   /**
@@ -285,7 +285,6 @@ export default class ResumeFormPage implements Page {
       }
     }
 
-    if (this.#id === null) { clearCreationDraft(this.#draftPath); }
     this.#router.navigate(this.#backPath(this.#id), { force: true });
   }
 

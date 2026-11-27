@@ -9,9 +9,15 @@ type TextControl = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
  * Подключает шаги формы, проверку текущего шага и живой предпросмотр.
  * @param form Форма документа.
  * @param validate Проверка одного поля.
- * @param draftPath Ключ черновика новой записи.
+ * @param draftOptions Путь черновика и обработчик успешного сохранения.
+ * @param draftOptions.path Страница формы.
+ * @param draftOptions.onSaved Обновление состояния формы после сохранения.
  */
-export function mountFormSteps(form: HTMLFormElement, validate: (control: TextControl) => string, draftPath?: string): void {
+export function mountFormSteps(
+  form: HTMLFormElement,
+  validate: (control: TextControl) => string,
+  draftOptions?: { path: string; onSaved: () => void },
+): void {
   const panels = [...form.querySelectorAll<HTMLElement>('[data-panel]')];
   const steps = [...form.querySelectorAll<HTMLButtonElement>('[data-step]')];
   const submit = form.querySelector<HTMLButtonElement>('[type="submit"]')!;
@@ -64,9 +70,10 @@ export function mountFormSteps(form: HTMLFormElement, validate: (control: TextCo
     go(current + 1);
   });
   form.addEventListener('input', preview);
-  if (draft && draftPath) {
+  if (draft && draftOptions) {
     draft.addEventListener('click', () => {
-      const saved = saveCreationDraft(draftPath, form);
+      const saved = saveCreationDraft(draftOptions.path, form);
+      if (saved) { draftOptions.onSaved(); }
       showToast(saved ? 'Черновик сохранён в этой вкладке' : 'Не удалось сохранить черновик', saved ? 'success' : 'error');
     });
   }
