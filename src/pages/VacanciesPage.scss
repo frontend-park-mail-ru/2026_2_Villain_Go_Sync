@@ -34,6 +34,20 @@
     --icon: url('/images/search.svg');
   }
 
+  &__filters {
+    &:empty { display: none; }
+
+    .chip {
+      max-width: 100%;
+      height: auto;
+      min-height: 32px;
+      white-space: normal;
+      overflow-wrap: anywhere;
+
+      &.chip_selected:hover { background: var(--color-accent); }
+    }
+  }
+
   &__results {
     display: flex;
     flex-direction: column;
