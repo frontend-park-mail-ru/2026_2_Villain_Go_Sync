@@ -150,7 +150,11 @@
 
 @include mobile {
   .header { column-gap: 12px; }
-  .header__actions { gap: 6px; }
+  .header__actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+  }
   .header__logo { gap: 8px; font-size: 21px; }
   .header__logo-icon { width: 40px; height: 40px; }
 }

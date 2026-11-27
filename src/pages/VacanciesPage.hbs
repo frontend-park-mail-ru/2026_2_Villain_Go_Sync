@@ -22,11 +22,7 @@
     <button class="button button_outline list-filter-trigger" type="button" data-filters>Фильтры</button>
   </form>
 
-  <div class="chips vacancies__filters">
-    {{#each filters}}
-      <button class="chip" type="button">{{this}}</button>
-    {{/each}}
-  </div>
+  <div class="chips vacancies__filters" role="group" aria-label="Категории вакансий"></div>
 
   <div class="vacancies__results" aria-live="polite"></div>
 </section>

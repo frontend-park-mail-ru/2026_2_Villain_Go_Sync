@@ -1,0 +1,7 @@
+{{#if error}}
+  <button class="button button_outline" type="button" data-retry-categories>Повторить загрузку категорий</button>
+{{else}}
+  {{#each categories}}
+    <button class="chip" type="button" data-category="{{name}}" aria-pressed="false">{{name}}</button>
+  {{/each}}
+{{/if}}

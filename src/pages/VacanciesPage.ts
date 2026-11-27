@@ -3,14 +3,14 @@ import { isFavorite, toggleFavorite } from '../components/favorites';
 import { getCurrentUser } from '../session';
 import { ListFilters } from '../components/ListFilters';
 import { mountCardImages } from '../components/profile-images';
-import { getVacancies, type Vacancy } from '../api';
+import { getVacancies, getVacancyCategories, type Vacancy } from '../api';
 import { renderPagination } from '../components/pagination';
 import { formatPublished, formatSalary } from '@hirenoon/format';
 import type { Page } from '../router';
 import template from './VacanciesPage.hbs';
+import categoryFiltersTemplate from './VacancyCategoryFilters.hbs';
 import resultsTemplate from './VacanciesResults.hbs';
 
-const FILTERS = ['Продажи', 'Офис', 'Маркетинг', 'Финансы', 'Кадры', 'ИТ'];
 const SKELETON_COUNT = 6;
 const PAGE_SIZE = 6;
 
@@ -22,6 +22,7 @@ export default class VacanciesPage implements Page {
   #vacancies: Vacancy[] | null = null;
   #listFilters = new ListFilters();
   #query = '';
+  #selectedCategory: string | null = null;
   #page = 1;
   #input!: HTMLInputElement;
   #filters!: HTMLElement;
@@ -32,7 +33,7 @@ export default class VacanciesPage implements Page {
    * @param container Контейнер страницы.
    */
   render(container: HTMLElement): void {
-    container.innerHTML = template({ filters: FILTERS });
+    container.innerHTML = template();
 
     this.#input = container.querySelector<HTMLInputElement>('#vacancies-query')!;
     this.#filters = container.querySelector<HTMLElement>('.vacancies__filters')!;
@@ -40,15 +41,18 @@ export default class VacanciesPage implements Page {
 
     container.querySelector('.vacancies__search')!.addEventListener('submit', (event) => {
       event.preventDefault();
-      this.#search(this.#input.value);
+      this.#query = this.#input.value.trim();
+      this.#input.value = this.#query;
+      this.#refreshResults();
     });
 
     this.#filters.addEventListener('click', (event) => {
-      const chip = (event.target as Element).closest('.chip');
-
-      if (chip) {
-        // Повторный клик по выбранному фильтру снимает его.
-        this.#search(chip.classList.contains('chip_selected') ? '' : (chip.textContent ?? ''));
+      const target = event.target as Element;
+      const category = target.closest<HTMLButtonElement>('[data-category]')?.dataset.category?.toLowerCase();
+      if (category) {
+        this.#selectCategory(this.#selectedCategory === category ? null : category);
+      } else if (target.closest('[data-retry-categories]')) {
+        this.#loadCategories();
       }
     });
 
@@ -71,17 +75,17 @@ export default class VacanciesPage implements Page {
 
       if (action === 'reset') {
         this.#listFilters.reset();
-        this.#search('');
+        this.#query = '';
+        this.#input.value = '';
+        this.#selectCategory(null);
       } else if (action === 'retry') {
         this.#load();
       }
     });
 
-    this.#listFilters.mount(container, 'catalog', () => {
-      this.#page = 1;
-      if (this.#vacancies) { this.#renderList(this.#vacancies); }
-    });
+    this.#listFilters.mount(container, 'catalog', () => this.#refreshResults());
     this.#load();
+    this.#loadCategories();
   }
 
   /**
@@ -117,18 +121,43 @@ export default class VacanciesPage implements Page {
   }
 
   /**
-   * Применяет поисковый запрос: бэкенд искать не умеет, поэтому фильтруется уже загруженный список.
-   * @param query Текст запроса или название фильтра; пустая строка сбрасывает поиск.
+   * Загружает справочник независимо от списка вакансий.
    */
-  #search(query: string): void {
-    this.#query = query.trim();
-    this.#page = 1;
-    this.#input.value = this.#query;
+  async #loadCategories(): Promise<void> {
+    const { signal } = this.#abortController;
+    this.#filters.replaceChildren();
 
-    for (const chip of this.#filters.querySelectorAll('.chip')) {
-      chip.classList.toggle('chip_selected', chip.textContent?.toLowerCase() === this.#query.toLowerCase());
+    try {
+      const categories = await getVacancyCategories(signal);
+      if (!signal.aborted && categories.length) {
+        this.#filters.innerHTML = categoryFiltersTemplate({ categories });
+      }
+    } catch {
+      if (!signal.aborted) {
+        this.#filters.innerHTML = categoryFiltersTemplate({ error: true });
+      }
     }
+  }
 
+  /**
+   * Обновляет состояние кнопок категорий и выдачу.
+   * @param category Название выбранной категории в нижнем регистре или null для сброса.
+   */
+  #selectCategory(category: string | null): void {
+    this.#selectedCategory = category;
+    for (const chip of this.#filters.querySelectorAll<HTMLButtonElement>('[data-category]')) {
+      const selected = chip.dataset.category?.toLowerCase() === category;
+      chip.classList.toggle('chip_selected', selected);
+      chip.setAttribute('aria-pressed', String(selected));
+    }
+    this.#refreshResults();
+  }
+
+  /**
+   * Показывает первую страницу выдачи после изменения запроса или фильтров.
+   */
+  #refreshResults(): void {
+    this.#page = 1;
     if (this.#vacancies) {
       this.#renderList(this.#vacancies);
     }
@@ -140,7 +169,9 @@ export default class VacanciesPage implements Page {
    */
   #renderList(allVacancies: Vacancy[]): void {
     const query = this.#query.toLowerCase();
+    const selectedCategory = this.#selectedCategory;
     const found = this.#listFilters.apply(allVacancies.filter(({ title, description, company_name, categories, city }) =>
+      (selectedCategory === null || categories?.some((category) => category.toLowerCase() === selectedCategory)) &&
       `${title} ${description} ${company_name || ''} ${categories?.join(' ') ?? ''} ${city ?? ''}`.toLowerCase().includes(query),
     ));
     const pageCount = Math.ceil(found.length / PAGE_SIZE);
@@ -164,7 +195,7 @@ export default class VacanciesPage implements Page {
     this.#results.innerHTML = resultsTemplate({
       vacancies,
       showFavorites: getCurrentUser()?.role !== 'employer',
-      hasQuery: Boolean(query) || this.#listFilters.active,
+      hasQuery: Boolean(query) || selectedCategory !== null || this.#listFilters.active,
       pagination: renderPagination(this.#page, pageCount),
     });
     mountCardImages(this.#results);

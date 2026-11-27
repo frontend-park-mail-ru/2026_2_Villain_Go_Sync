@@ -252,3 +252,58 @@ test('поиск по городу и формату включает вакан
   await expect(page.locator('.vacancy-card')).toHaveCount(1);
   await expect(page.locator('.vacancy-card')).toContainText('Аналитик');
 });
+
+test('категория из справочника сочетается с поиском и фильтром зарплаты', async ({ page }) => {
+  const state = await mockAPI(page, 'seeker');
+  await page.route('**/api/vacancy-categories', (route) => route.fulfill({ json: {
+    data: [{ id: 1, name: 'ИТ' }, { id: 2, name: 'Финансы' }, { id: 3, name: 'Образование' }],
+  } }));
+  state.documents = [
+    { id: 1, title: 'Аналитик платформы', categories: ['ит'], salary_from: 200000, currency: 'RUB' },
+    { id: 2, title: 'Аналитик данных', categories: ['ИТ'], salary_from: 90000, salary_to: 110000, currency: 'RUB' },
+    { id: 3, title: 'Аналитик банка', description: 'Кредиты', categories: ['Финансы'], salary_from: 210000, currency: 'RUB' },
+    { id: 4, title: 'Аналитик продукта', categories: ['ИТ-консалтинг'], salary_from: 180000, currency: 'RUB' },
+    { id: 5, title: 'Инженер', categories: ['ИТ'], salary_from: 170000, currency: 'RUB' },
+  ];
+
+  await page.goto('/');
+  const search = page.getByRole('searchbox', { name: 'Поиск вакансий' });
+  const categories = page.getByRole('group', { name: 'Категории вакансий' });
+  const it = categories.getByRole('button', { name: 'ИТ', exact: true });
+  const titles = page.locator('.vacancy-card__title');
+  await search.fill('аналитик');
+  await search.press('Enter');
+  await it.click();
+  await expect(it).toHaveAttribute('aria-pressed', 'true');
+  await expect(search).toHaveValue('аналитик');
+  await expect(titles).toHaveText(['Аналитик платформы', 'Аналитик данных']);
+
+  await page.getByRole('button', { name: 'Фильтры', exact: true }).click();
+  await page.getByLabel('От, ₽').fill('150000');
+  await page.getByRole('button', { name: 'Показать вакансии' }).click();
+  await expect(titles).toHaveText(['Аналитик платформы']);
+
+  await it.click();
+  await expect(it).toHaveAttribute('aria-pressed', 'false');
+  await expect(search).toHaveValue('аналитик');
+  await expect(titles).toHaveText(['Аналитик платформы', 'Аналитик банка', 'Аналитик продукта']);
+
+  const education = categories.getByRole('button', { name: 'Образование', exact: true });
+  await education.click();
+  await page.getByRole('button', { name: 'Сбросить поиск и фильтры' }).click();
+  await expect(education).toHaveAttribute('aria-pressed', 'false');
+  await expect(search).toBeEmpty();
+  await expect(titles).toHaveCount(5);
+});
+
+test('при ошибке справочника каталог загружается, а категории можно запросить повторно', async ({ page }) => {
+  const state = await mockAPI(page, 'seeker');
+  state.documents = [{ id: 1, title: 'Аналитик', categories: ['Финансы'] }];
+  await page.route('**/api/vacancy-categories', (route) => route.fulfill({ json: { data: [{ id: 2, name: 'Финансы' }] } }));
+  await page.route('**/api/vacancy-categories', (route) => route.fulfill({ status: 500 }), { times: 1 });
+  await page.goto('/');
+
+  await expect(page.getByRole('link', { name: 'Аналитик' })).toBeVisible();
+  await page.getByRole('button', { name: 'Повторить загрузку категорий' }).click();
+  await expect(page.getByRole('button', { name: 'Финансы' })).toBeVisible();
+});
