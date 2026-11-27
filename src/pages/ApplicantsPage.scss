@@ -1,5 +1,11 @@
 @use '../styles/mixins' as *;
 
+.applicant-card__name a,
+.applicants__table .applicant-card__identity a {
+  color: inherit;
+  overflow-wrap: anywhere;
+}
+
 .applicants {
   display: flex;
   flex-direction: column;
@@ -267,6 +273,7 @@
   .applicant-card__identity { flex-wrap: wrap; gap: 6px; }
   .applicant-card__status { display: none; }
   .applicant-card__name { font-size: 14px; }
+  .applicant-card__name a { position: relative; z-index: 1; }
 }
 .applicant-card {
   &__identity { flex-wrap: wrap; }

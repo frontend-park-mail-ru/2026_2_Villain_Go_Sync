@@ -1,0 +1,15 @@
+<ul class="profile__records">
+  {{#each records}}
+    <li class="profile__record">
+      {{#if title}}
+        {{#if href}}
+          <a class="profile__record-title" href="{{href}}" target="_blank" rel="noopener noreferrer">{{title}}</a>
+        {{else}}
+          <h3 class="profile__record-title">{{title}}</h3>
+        {{/if}}
+      {{/if}}
+      {{#if caption}}<p class="profile__caption">{{caption}}</p>{{/if}}
+      {{#if text}}<p class="profile__text">{{text}}</p>{{/if}}
+    </li>
+  {{/each}}
+</ul>

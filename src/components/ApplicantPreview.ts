@@ -9,11 +9,19 @@ import template from './ApplicantPreview.hbs';
  * @param details Подписи даты и текущего этапа.
  * @param details.date Дата получения отклика.
  * @param details.status Текущий этап.
+ * @param details.actionTitle Заголовок подтверждения действия на странице отклика.
  * @param signal Сигнал ухода со страницы откликов.
  * @param refresh Обновляет доску после подтверждения сервером.
  * @param nextStage Этап целевой колонки при перетаскивании.
  */
-export function openApplicantPreview(container: HTMLElement, applicant: Applicant, details: { date: string; status: string }, signal: AbortSignal, refresh: () => void, nextStage?: string): void {
+export function openApplicantPreview(
+  container: HTMLElement,
+  applicant: Applicant,
+  details: { date: string; status: string; actionTitle?: string },
+  signal: AbortSignal,
+  refresh: () => void,
+  nextStage?: string,
+): void {
   const initials = [applicant.first_name, applicant.last_name].map((part) => part.trim().charAt(0)).join('');
   container.insertAdjacentHTML('beforeend', template({ ...applicant, ...details, initials }));
   const dialog = container.querySelector<HTMLDialogElement>('.candidate-preview')!;
@@ -36,7 +44,7 @@ export function openApplicantPreview(container: HTMLElement, applicant: Applican
   const submit = form.querySelector('button')!;
   stage.value = nextStage ?? applicant.status;
   reason.value = applicant.reason_code ?? '';
-  comment.value = applicant.status_comment ?? '';
+  comment.value = details.actionTitle ? '' : applicant.status_comment ?? '';
   const updateReason = (): void => {
     reason.required = stage.value === 'rejected';
     reason.disabled = !reason.required;
@@ -60,7 +68,7 @@ export function openApplicantPreview(container: HTMLElement, applicant: Applican
     } finally { submit.disabled = false; }
   });
   dialog.showModal();
-  if (!applicant.resume_id) { return; }
+  if (details.actionTitle || !applicant.resume_id) { return; }
   getResume(applicant.resume_id, { signal: controller.signal }).then((resume) => {
     if (dialog.isConnected) {
       dialog.querySelector('[data-resume-summary]')!.textContent = resume?.experience || resume?.description || '';

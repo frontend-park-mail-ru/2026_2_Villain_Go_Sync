@@ -1,6 +1,32 @@
-<h2 class="profile__section-title">Открытые вакансии</h2>
-<p class="profile__subtitle">Актуальные направления найма</p>
-{{#each vacancies}}
-  <div><a href="/vacancies/{{id}}">{{title}}</a><p class="profile__value">{{salary}}</p></div>
-{{/each}}
-<a class="profile__link" href="/my/vacancies">Смотреть все вакансии компании</a>
+{{#if publicView}}
+  <div>
+    <h2 class="profile__section-title">Открытые вакансии</h2>
+    <p class="profile__subtitle">Актуальные направления найма</p>
+  </div>
+  {{#if loading}}
+    <div class="skeleton detail__skeleton-line" role="status" aria-label="Загрузка вакансий"></div>
+  {{else if error}}
+    <p class="profile__text">Не удалось загрузить вакансии</p>
+    <button class="button button_outline" type="button" data-action="retry-jobs">Повторить</button>
+  {{else if vacancies}}
+    <ul class="profile__records">
+      {{#each vacancies}}
+        <li class="profile__record">
+          <a class="profile__record-title" href="/vacancies/{{id}}">{{title}}</a>
+          {{#if conditions}}<p class="profile__caption">{{conditions}}</p>{{/if}}
+          <p class="profile__text">{{salary}}</p>
+        </li>
+      {{/each}}
+    </ul>
+    <a class="profile__link" href="{{companyPath}}">Смотреть все вакансии компании</a>
+  {{else}}
+    <p class="profile__caption">Открытых вакансий пока нет</p>
+  {{/if}}
+{{else}}
+  <h2 class="profile__section-title">Открытые вакансии</h2>
+  <p class="profile__subtitle">Актуальные направления найма</p>
+  {{#each vacancies}}
+    <div><a href="/vacancies/{{id}}">{{title}}</a><p class="profile__value">{{salary}}</p></div>
+  {{/each}}
+  <a class="profile__link" href="/my/vacancies">Смотреть все вакансии компании</a>
+{{/if}}

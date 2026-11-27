@@ -3,6 +3,7 @@ import './styles/main.scss';
 import { restoreSession } from './api';
 import Header from './components/Header';
 import { APP_NAME } from './config';
+import ApplicantPage from './pages/ApplicantPage';
 import ApplicantsPage from './pages/ApplicantsPage';
 import LoginPage from './pages/LoginPage';
 import MyVacanciesPage from './pages/MyVacanciesPage';
@@ -14,7 +15,7 @@ import ResumesPage from './pages/ResumesPage';
 import VacanciesPage from './pages/VacanciesPage';
 import VacancyPage from './pages/VacancyPage';
 import Router from './router';
-import { isAuthorized, onSessionChange } from './session';
+import { getCurrentUser, isAuthorized, onSessionChange } from './session';
 import { showToast } from './components/toast';
 
 /**
@@ -33,6 +34,14 @@ function redirectGuest(): string | null {
   return isAuthorized() ? null : '/login';
 }
 
+/**
+ * @returns Куда перейти, если текущий пользователь не работодатель.
+ */
+function redirectNonEmployer(): string | null {
+  if (!isAuthorized()) { return '/login'; }
+  return getCurrentUser()?.role === 'employer' ? null : '/';
+}
+
 if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
   navigator.serviceWorker.register('/sw.js');
 }
@@ -45,7 +54,7 @@ async function startApplication(): Promise<void> {
   try {
     await restoreSession();
   } catch {
-    const isPublic = window.location.pathname === '/' || /^\/(vacancies|resumes)\/[1-9]\d*\/?$/.test(window.location.pathname);
+    const isPublic = window.location.pathname === '/' || /^\/(vacancies|resumes|employers)\/[1-9]\d*\/?$/.test(window.location.pathname);
     if (!isPublic) {
       const container = document.getElementById('page')!;
       container.innerHTML = '<section class="empty-state"><h1 class="empty-state__title">Не удалось проверить вход</h1><p class="empty-state__text">Проверьте соединение и повторите попытку</p><button class="button button_secondary" type="button" data-session-retry>Повторить</button></section>';
@@ -65,12 +74,15 @@ async function startApplication(): Promise<void> {
     .register('/vacancies/:id', { title: 'Вакансия', page: VacancyPage })
     .register('/vacancies/:id/edit', { title: 'Редактирование вакансии', loadPage: () => import('./pages/VacancyFormPage'), redirect: redirectGuest })
     .register('/applicants', { title: 'Отклики', page: ApplicantsPage, redirect: redirectGuest })
+    .register('/applicants/:id', { title: 'Отклик кандидата', page: ApplicantPage, redirect: redirectNonEmployer })
     .register('/my/vacancies', { title: 'Мои вакансии', page: MyVacanciesPage, redirect: redirectGuest })
     .register('/resumes', { title: 'Мои резюме', page: ResumesPage, redirect: redirectGuest })
     .register('/resumes/new', { title: 'Создание резюме', loadPage: () => import('./pages/ResumeFormPage'), redirect: redirectGuest })
     .register('/resumes/:id', { title: 'Резюме', page: ResumePage })
     .register('/resumes/:id/edit', { title: 'Редактирование резюме', loadPage: () => import('./pages/ResumeFormPage'), redirect: redirectGuest })
     .register('/profile', { title: 'Профиль', page: ProfilePage, redirect: redirectGuest })
+    .register('/employers/:id', { title: 'Профиль компании', loadPage: () => import('./pages/PublicProfilePage').then((module) => ({ default: module.CompanyProfilePage })) })
+    .register('/seekers/:id', { title: 'Профиль соискателя', loadPage: () => import('./pages/PublicProfilePage').then((module) => ({ default: module.SeekerProfilePage })), redirect: redirectNonEmployer })
     .register('/profile/edit', { title: 'Редактирование профиля', loadPage: () => import('./pages/ProfileFormPage'), redirect: redirectGuest })
     .register('/login', { title: 'Вход', page: LoginPage, layout: 'auth', redirect: redirectAuthorized })
     .register('/register', { title: 'Регистрация', page: RegisterPage, layout: 'auth', redirect: redirectAuthorized })

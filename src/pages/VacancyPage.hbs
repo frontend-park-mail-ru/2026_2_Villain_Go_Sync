@@ -48,7 +48,7 @@
         <article class="detail__card">
           <h1 class="detail__name detail__name_large">{{vacancy.title}}</h1>
           {{#if company}}
-            <p class="detail__subtitle">{{company}}</p>
+            <p class="detail__subtitle">{{#if companyPath}}<a href="{{companyPath}}">{{company}}</a>{{else}}{{company}}{{/if}}</p>
           {{/if}}
           <p class="detail__salary">{{salary}}</p>
           {{#if conditions}}<p class="detail__subtitle">{{conditions}}</p>{{/if}}

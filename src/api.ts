@@ -503,11 +503,13 @@ export async function getMyApplications(signal?: AbortSignal): Promise<{ vacancy
  * Загружает ленту вакансий.
  * @param options Настройки запроса.
  * @param options.signal Сигнал для отмены запроса.
+ * @param options.employerId Ограничивает публичную выдачу вакансиями компании.
  * @returns Вакансии; пустой массив, если их нет.
  * @throws {ApiError} Сервер недоступен, ответил ошибкой или прислал не список.
  */
-export async function getVacancies({ signal }: { signal?: AbortSignal } = {}): Promise<Vacancy[]> {
-  return getList('/vacancies', signal);
+export async function getVacancies({ signal, employerId }: { signal?: AbortSignal; employerId?: number } = {}): Promise<Vacancy[]> {
+  const vacancies = await getList<Vacancy>('/vacancies', signal);
+  return employerId === undefined ? vacancies : vacancies.filter((vacancy) => vacancy.employer_id === employerId);
 }
 
 /**

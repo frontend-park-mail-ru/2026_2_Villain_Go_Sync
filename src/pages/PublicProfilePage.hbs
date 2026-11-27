@@ -1,0 +1,66 @@
+<section class="profile profile_public">
+  <header>
+    <h1 class="profile__title">{{heading}}</h1>
+    <p class="profile__subtitle">{{subtitle}}</p>
+  </header>
+  {{#if isLoading}}
+    <div class="profile__card profile__identity" role="status" aria-label="Загрузка профиля">
+      <div class="skeleton profile__avatar profile__avatar_skeleton"></div>
+      <div class="skeleton detail__skeleton-line"></div>
+    </div>
+  {{else if notFound}}
+    <section class="empty-state">
+      <h2 class="empty-state__title">Профиль не найден</h2>
+      <a class="button button_outline" href="{{#if isCompany}}/{{else}}/applicants{{/if}}">{{#if isCompany}}К вакансиям{{else}}К откликам{{/if}}</a>
+    </section>
+  {{else if error}}
+    <section class="empty-state">
+      <h2 class="empty-state__title">Не удалось загрузить профиль</h2>
+      <p class="empty-state__text">{{error}}</p>
+      <button class="button button_secondary empty-state__button" type="button" data-action="retry">Повторить</button>
+    </section>
+  {{else}}
+    <div class="profile__card profile__identity">
+      <div class="profile__avatar{{#if isCompany}} profile__avatar_company{{/if}}" aria-hidden="true"></div>
+      <div class="profile__identity-copy">
+        <h2 class="profile__name">{{name}}</h2>
+        {{#if meta}}<p class="profile__caption">{{meta}}</p>{{/if}}
+      </div>
+    </div>
+    <div class="profile__columns">
+      <div class="profile__column">
+        {{#each sections}}
+          <section class="profile__card">
+            <div>
+              <h2 class="profile__section-title">{{title}}</h2>
+              <p class="profile__subtitle">{{subtitle}}</p>
+            </div>
+            {{#if text}}
+              <p class="profile__text">{{text}}</p>
+            {{else if tags}}
+              <ul class="chips profile__tags">{{#each tags}}<li class="chip">{{name}}</li>{{/each}}</ul>
+            {{else if records}}
+              {{> "../components/ProfileRecords" records=records}}
+            {{else if values}}
+              {{> "../components/ProfileValues" values=values columns=true}}
+            {{else}}
+              <p class="profile__caption">Нет данных</p>
+            {{/if}}
+          </section>
+        {{/each}}
+        {{#if isCompany}}<section class="profile__card" data-company-jobs></section>{{/if}}
+      </div>
+      <aside class="profile__card">
+        <div>
+          <h2 class="profile__section-title">Контакты</h2>
+          <p class="profile__subtitle">{{#if isCompany}}Информация для кандидатов{{else}}Способы связи с кандидатом{{/if}}</p>
+        </div>
+        {{#if contacts}}
+          {{> "../components/ProfileValues" values=contacts}}
+        {{else}}
+          <p class="profile__caption">Контакты не указаны</p>
+        {{/if}}
+      </aside>
+    </div>
+  {{/if}}
+</section>

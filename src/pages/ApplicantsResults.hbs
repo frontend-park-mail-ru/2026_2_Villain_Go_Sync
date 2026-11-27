@@ -60,7 +60,9 @@
             <tr>
               <td>
                 <div class="applicant-card__identity">
-                  <span class="applicant-card__avatar" data-image-url="{{avatarUrl}}">{{initials}}</span>{{name}}</div>
+                  <span class="applicant-card__avatar" data-image-url="{{avatarUrl}}" aria-hidden="true">{{initials}}</span>
+                  <a href="/applicants/{{id}}">{{name}}</a>
+                </div>
               </td>
               <td>{{vacancy}}</td>
               <td>{{resume}}</td>

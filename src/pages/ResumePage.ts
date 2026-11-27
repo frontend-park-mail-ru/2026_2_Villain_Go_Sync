@@ -113,6 +113,7 @@ export default class ResumePage implements Page {
     this.#container.innerHTML = template({
       resume,
       sections,
+      showSeekerProfile: user?.role === 'employer' && Number.isSafeInteger(resume.seeker_id) && resume.seeker_id > 0,
       isOwner: user?.id !== null && user?.id === resume.seeker_id,
     });
   }
