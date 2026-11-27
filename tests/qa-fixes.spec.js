@@ -220,6 +220,27 @@ for (const width of [320, 375, 768, 1440]) {
   });
 }
 
+test.describe('мобильная шапка гостя', () => {
+  test.use({ viewport: { width: 320, height: 800 }, isMobile: true, hasTouch: true });
+
+  test('кнопка регистрации помещается на 320px и открывает форму', async ({ page }) => {
+    await fixture(page, null);
+    await page.goto('/');
+
+    const header = page.locator('.header');
+    const register = header.getByRole('link', { name: 'Зарегистрироваться' });
+    await expect(register).toBeVisible();
+    await page.evaluate(async () => { await document.fonts.ready; });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+    await expect(header.getByRole('link', { name: 'Войти', exact: true })).toBeInViewport({ ratio: 1 });
+    await expect(register).toBeInViewport({ ratio: 1 });
+
+    await register.tap();
+    await expect(page).toHaveURL('/register');
+    await expect(page.getByRole('heading', { name: 'Создать аккаунт' })).toBeVisible();
+  });
+});
+
 test('слишком большое письмо остаётся в форме и не отправляется', async ({ page }) => {
   const state = await fixture(page);
   await page.goto('/vacancies/1');
