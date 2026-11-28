@@ -6,6 +6,7 @@ import { renderPagination } from '../components/pagination';
 import { showToast } from '../components/toast';
 import { formatSalary } from '@hirenoon/format';
 import type { Page } from '../router';
+import { currentRuntimeConfig, onRuntimeConfigChange, VACANCY_CREATION_DISABLED } from '../runtime-config';
 import template from './MyVacanciesPage.hbs';
 import resultsTemplate from './MyVacanciesResults.hbs';
 
@@ -25,6 +26,7 @@ export default class MyVacanciesPage implements Page {
   #search!: HTMLFormElement;
   #input!: HTMLInputElement;
   #content!: HTMLElement;
+  #creationNotice!: HTMLElement;
 
   /**
    * Рисует страницу в контейнер и загружает вакансии.
@@ -36,6 +38,9 @@ export default class MyVacanciesPage implements Page {
     this.#search = container.querySelector<HTMLFormElement>('.owner-list__search')!;
     this.#input = this.#search.querySelector<HTMLInputElement>('.owner-list__search-input')!;
     this.#content = container.querySelector<HTMLElement>('.owner-list__content')!;
+    this.#creationNotice = container.querySelector<HTMLElement>('[data-vacancy-creation-notice]')!;
+    onRuntimeConfigChange(() => this.#updateCreationAction(), this.#abortController.signal);
+    this.#updateCreationAction();
 
     this.#search.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -155,6 +160,16 @@ export default class MyVacanciesPage implements Page {
       hasQuery: Boolean(query) || this.#listFilters.active,
       pagination: renderPagination(this.#page, pageCount),
     });
+    this.#updateCreationAction();
+  }
+
+  /** Синхронизирует доступность создания без перерисовки списка и фильтров. */
+  #updateCreationAction(): void {
+    const enabled = currentRuntimeConfig().vacancyCreationEnabled;
+    const link = this.#content.querySelector<HTMLElement>('[data-vacancy-create]');
+    if (link) { link.hidden = !enabled; }
+    this.#creationNotice.hidden = enabled;
+    this.#creationNotice.textContent = enabled ? '' : VACANCY_CREATION_DISABLED;
   }
 
   /**

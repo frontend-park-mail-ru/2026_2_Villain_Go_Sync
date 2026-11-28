@@ -260,6 +260,7 @@ function refreshSession(): Promise<boolean> {
  * @param options.canRetryCsrf Можно ли обновить CSRF-cookie после отказа проверки токена.
  * @param options.normalizeText Нужно ли декодировать HTML-сущности в текстовых полях.
  * @param options.baseURL Базовый URL сервиса. Сессия продлевается через продуктовый API.
+ * @param options.cache Правила браузерного кеширования запроса.
  * @returns Содержимое поля `data` из ответа или `null`, если его нет.
  * @throws {ApiError} Сервер недоступен или ответил ошибкой; в `body` — текст из поля `error`.
  */
@@ -273,9 +274,10 @@ async function request(
     canRetryCsrf = true,
     normalizeText = true,
     baseURL = API_URL,
-  }: { body?: unknown; signal?: AbortSignal; canRefresh?: boolean; canRetryCsrf?: boolean; normalizeText?: boolean; baseURL?: string } = {},
+    cache,
+  }: { body?: unknown; signal?: AbortSignal; canRefresh?: boolean; canRetryCsrf?: boolean; normalizeText?: boolean; baseURL?: string; cache?: RequestCache } = {},
 ): Promise<unknown> {
-  const init: RequestInit = { method, credentials: 'include', signal };
+  const init: RequestInit = { method, credentials: 'include', signal, cache };
   const headers = new Headers();
 
   if (!['GET', 'HEAD', 'OPTIONS'].includes(method) && !CSRF_EXEMPT_PATHS.includes(path)) {
@@ -311,9 +313,12 @@ async function request(
     throw new ApiError(0);
   }
 
+  signal?.throwIfAborted();
   if (response.status === 401 && canRefresh) {
-    if (await refreshSession()) {
-      return request(method, path, { body, signal, canRefresh: false, canRetryCsrf, normalizeText, baseURL });
+    const refreshed = await refreshSession();
+    signal?.throwIfAborted();
+    if (refreshed) {
+      return request(method, path, { body, signal, canRefresh: false, canRetryCsrf, normalizeText, baseURL, cache });
     }
 
     // Продлить не получилось — сессия закончилась, страницы для вошедших больше недоступны.
@@ -322,8 +327,10 @@ async function request(
 
   // CSRF проверяется до обработчика: отклонённый запрос ещё не изменил данные.
   if (response.status === 403 && canRetryCsrf && CSRF_ERRORS.has(String(getField(data, 'error')))) {
-    if (await refreshSession()) {
-      return request(method, path, { body, signal, canRefresh: false, canRetryCsrf: false, normalizeText, baseURL });
+    const refreshed = await refreshSession();
+    signal?.throwIfAborted();
+    if (refreshed) {
+      return request(method, path, { body, signal, canRefresh: false, canRetryCsrf: false, normalizeText, baseURL, cache });
     }
     setCurrentUser(null);
   }
@@ -335,6 +342,24 @@ async function request(
 
   const payload = getField(data, 'data') ?? null;
   return normalizeText ? normalizeAPIText(payload) : payload;
+}
+
+/**
+ * Загружает настройки продукта для текущей сессии.
+ * @param signal Сигнал смены сессии или таймаута.
+ * @returns Поле data из ответа бэкенда.
+ */
+export function getRuntimeConfig(signal: AbortSignal): Promise<unknown> {
+  return request('GET', '/runtime-config', { signal, cache: 'no-store' });
+}
+
+/**
+ * Отличает выключенную функцию от остальных отказов в доступе.
+ * @param error Ошибка запроса.
+ * @returns Отказал ли backend из-за флага.
+ */
+export function isFeatureDisabledError(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 403 && error.body === 'feature disabled';
 }
 
 /**

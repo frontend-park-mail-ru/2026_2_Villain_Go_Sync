@@ -16,6 +16,7 @@ import VacanciesPage from './pages/VacanciesPage';
 import VacancyPage from './pages/VacancyPage';
 import Router from './router';
 import { getCurrentUser, isAuthorized, onSessionChange } from './session';
+import { startRuntimeConfig } from './runtime-config';
 import { showToast } from './components/toast';
 
 /**
@@ -93,4 +94,5 @@ async function startApplication(): Promise<void> {
   onSessionChange(() => router.refresh());
 }
 
+startRuntimeConfig();
 await startApplication();

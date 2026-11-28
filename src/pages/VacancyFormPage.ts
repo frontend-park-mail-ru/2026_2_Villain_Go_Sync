@@ -9,13 +9,14 @@ import {
 } from '@hirenoon/validation';
 import { saveCreationDraft, restoreCreationDraft, clearCreationDraft } from '../components/creation-draft';
 import { getRequiredProfile, showMissingProfile } from '../profile-required';
-import { getVacancyCategories, ApiError, createVacancy, getVacancy, updateVacancy, type Currency, type VacancyFields } from '../api';
+import { getVacancyCategories, ApiError, createVacancy, getVacancy, isFeatureDisabledError, updateVacancy, type Currency, type VacancyFields } from '../api';
 import { setFieldError, setLoading, updateTextFields } from '../components/form';
 import { confirmAction } from '../components/Modal';
 import { hideToast, showToast } from '../components/toast';
 import type { Page, PageProps } from '../router';
 import type Router from '../router';
 import { getCurrentUser } from '../session';
+import { currentRuntimeConfig, onRuntimeConfigChange, reportDisabledFeature, VACANCY_CREATION_DISABLED } from '../runtime-config';
 import template from './VacancyFormPage.hbs';
 
 const SKELETON_FIELDS = 3;
@@ -84,6 +85,7 @@ export default class VacancyFormPage implements Page {
   /** Значения полей при открытии формы — чтобы понять, есть ли несохранённые изменения. */
   #initialValues = '';
   #isSubmitting = false;
+  #isPublishStep = false;
   #isDestroyed = false;
 
   /**
@@ -154,6 +156,10 @@ export default class VacancyFormPage implements Page {
       { signal },
     );
 
+    onRuntimeConfigChange(() => {
+      this.#updatePublishing();
+      this.#updateCategoryLimit();
+    }, signal);
     this.#load();
   }
 
@@ -272,7 +278,45 @@ export default class VacancyFormPage implements Page {
     this.#updateTextFields();
     mountCardImages(this.#form!);
     mountFormSteps(this.#form!, (field) => this.#fieldError(field),
-      this.#id === null ? { path: '/vacancies/new', onSaved: () => { this.#initialValues = this.#snapshot(); } } : undefined);
+      this.#id === null ? { path: '/vacancies/new', onSaved: () => { this.#initialValues = this.#snapshot(); } } : undefined,
+      (final) => {
+        this.#isPublishStep = final;
+        this.#updatePublishing();
+      });
+  }
+
+  /** Меняет доступность публикации на последнем шаге, сохраняя введённые поля. */
+  #updatePublishing(): void {
+    if (!this.#form) { return; }
+    const blocked = this.#id === null && !currentRuntimeConfig().vacancyCreationEnabled;
+    const button = this.#form.querySelector<HTMLButtonElement>('[type="submit"]')!;
+    button.disabled = this.#isSubmitting || (blocked && this.#isPublishStep);
+    const notice = this.#form.querySelector<HTMLElement>('[data-vacancy-creation-notice]');
+    if (notice) {
+      notice.hidden = !blocked;
+      notice.textContent = blocked ? VACANCY_CREATION_DISABLED : '';
+    }
+  }
+
+  /** Обновляет подсказку и доступность выбора без изменения сохранённых категорий. */
+  #updateCategoryLimit(): void {
+    if (!this.#form) { return; }
+    const select = this.#form.querySelector<HTMLSelectElement>('[data-category-select]')!;
+    if (!select.options.length) { return; }
+    const hidden = this.#form.elements.namedItem('category_ids') as HTMLInputElement;
+    const hint = this.#form.querySelector<HTMLElement>('[data-category-hint]')!;
+    const limit = currentRuntimeConfig().maxVacancyCategories;
+    const selected = select.selectedOptions.length;
+    const exceeds = selected > limit;
+    for (const option of select.options) { option.disabled = selected >= limit && !option.selected; }
+    select.setAttribute('aria-invalid', String(exceeds && !hidden.disabled));
+    if (exceeds) {
+      hint.textContent = hidden.disabled
+        ? `Текущий лимит — ${limit}. Сохранённые направления можно оставить.`
+        : `Выбрано ${selected}. Сократите число направлений до ${limit}.`;
+    } else {
+      hint.textContent = `Выбрано ${selected} из ${limit}.`;
+    }
   }
 
   /**
@@ -290,18 +334,15 @@ export default class VacancyFormPage implements Page {
       const categories = await getVacancyCategories(this.#abortController.signal);
       if (this.#isDestroyed || form !== this.#form) { return; }
       const original = 'categories' in vacancy && Array.isArray(vacancy.categories) ? vacancy.categories : [];
+      const originalIds = new Set(categories.filter(({ name }) => original.includes(name)).map(({ id }) => id));
       for (const { id, name } of categories) { select.add(new Option(name, String(id), false, Array.isArray(draft) ? draft.includes(id) : original.includes(name))); }
-      if (select.selectedOptions.length >= 5) {
-        for (const option of select.options) { option.disabled = !option.selected; }
-      }
       select.disabled = !categories.length;
-      hint.textContent = categories.length ? 'Можно выбрать до пяти направлений' : 'Справочник пока пуст';
+      if (categories.length) { this.#updateCategoryLimit(); } else { hint.textContent = 'Справочник пока пуст'; }
       select.addEventListener('change', () => {
         const ids = [...select.selectedOptions].map((option) => Number(option.value));
         hidden.value = JSON.stringify(ids);
-        hidden.disabled = false;
-        for (const option of select.options) { option.disabled = ids.length >= 5 && !option.selected; }
-        hint.textContent = ids.length >= 5 ? 'Выбрано пять направлений' : 'Можно выбрать до пяти направлений';
+        hidden.disabled = this.#id !== null && ids.length === originalIds.size && ids.every((id) => originalIds.has(id));
+        this.#updateCategoryLimit();
       });
     } catch {
       if (!this.#isDestroyed) { hint.textContent = 'Не удалось загрузить направления'; }
@@ -418,8 +459,14 @@ export default class VacancyFormPage implements Page {
     }
 
     if (!validateEditorDetails(this.#form!)) { return null; }
+    const details = readEditorDetails(this.#form!);
+    const limit = currentRuntimeConfig().maxVacancyCategories;
+    if (Array.isArray(details.category_ids) && details.category_ids.length > limit) {
+      showToast(`Выберите не больше ${limit} направлений на первом шаге`, 'error');
+      return null;
+    }
     return {
-      ...readEditorDetails(this.#form!),
+      ...details,
       title: title.value.trim(),
       description: description.value.trim(),
       salary_from: from as number | null,
@@ -437,6 +484,10 @@ export default class VacancyFormPage implements Page {
     }
 
     hideToast();
+    if (this.#id === null && !currentRuntimeConfig().vacancyCreationEnabled) {
+      showToast(VACANCY_CREATION_DISABLED, 'error');
+      return;
+    }
 
     const fields = this.#validate();
 
@@ -448,6 +499,7 @@ export default class VacancyFormPage implements Page {
 
     this.#isSubmitting = true;
     setLoading(button, true);
+    this.#updatePublishing();
 
     let id = this.#id;
 
@@ -459,6 +511,11 @@ export default class VacancyFormPage implements Page {
       }
     } catch (error) {
       if (this.#isDestroyed) { return; }
+      if (this.#id === null && isFeatureDisabledError(error)) {
+        reportDisabledFeature('vacancyCreationEnabled');
+        showToast(VACANCY_CREATION_DISABLED, 'error');
+        return;
+      }
       if (this.#id === null && await showMissingProfile(error, 'employer', this.#abortController.signal, this.#form)) { return; }
       if (this.#isDestroyed) { return; }
       showToast(this.#getSubmitError(error), 'error');
@@ -466,6 +523,7 @@ export default class VacancyFormPage implements Page {
     } finally {
       this.#isSubmitting = false;
       setLoading(button, false);
+      if (!this.#isDestroyed) { this.#updatePublishing(); }
     }
 
     if (!this.#isDestroyed) {

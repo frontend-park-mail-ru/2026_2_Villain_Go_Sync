@@ -9,6 +9,7 @@ import { formatSalary } from '@hirenoon/format';
 import type { Page, PageProps } from '../router';
 import type Router from '../router';
 import { getCurrentUser, isAuthorized } from '../session';
+import { APPLICATIONS_DISABLED, currentRuntimeConfig, onRuntimeConfigChange } from '../runtime-config';
 import template from './VacancyPage.hbs';
 
 /**
@@ -22,6 +23,7 @@ export default class VacancyPage implements Page {
   #container!: HTMLElement;
   #isDeleting = false;
   #isApplying = false;
+  #hasApplied = false;
 
   /**
    * @param props Параметры страницы.
@@ -56,6 +58,7 @@ export default class VacancyPage implements Page {
       },
       { signal: this.#abortController.signal },
     );
+    onRuntimeConfigChange(() => this.#updateApplyButton(), this.#abortController.signal);
 
     this.#load();
   }
@@ -104,6 +107,7 @@ export default class VacancyPage implements Page {
       return;
     }
 
+    this.#hasApplied = false;
     const user = getCurrentUser();
     const isOwner = user?.id !== null && user?.id === vacancy.employer_id;
 
@@ -122,16 +126,29 @@ export default class VacancyPage implements Page {
     });
     const favorite = this.#container.querySelector<HTMLButtonElement>('[data-favorite]');
     favorite?.addEventListener('click', () => toggleFavorite(vacancy, favorite));
+    this.#updateApplyButton();
     if (user?.role === 'seeker') {
       try {
         const mine = await getMyApplications(signal);
-        const button = this.#container.querySelector<HTMLButtonElement>('[data-action="apply"]');
-        if (!signal.aborted && button && mine.some((item) => item.vacancy_id === vacancy.id)) {
-          button.disabled = true;
-          button.textContent = button.dataset.label = 'Вы уже откликнулись';
+        if (!signal.aborted && mine.some((item) => item.vacancy_id === vacancy.id)) {
+          this.#hasApplied = true;
+          this.#updateApplyButton();
         }
       } catch { /* API отклонит дубликат, даже если список временно недоступен. */ }
     }
+  }
+
+  /** Обновляет кнопку отклика и подсказку, не перерисовывая вакансию. */
+  #updateApplyButton(): void {
+    const button = this.#container.querySelector<HTMLButtonElement>('[data-action="apply"]');
+    if (!button) { return; }
+    const enabled = currentRuntimeConfig().applicationsEnabled;
+    button.disabled = this.#hasApplied || !enabled;
+    button.dataset.label = this.#hasApplied ? 'Вы уже откликнулись' : 'Откликнуться';
+    if (button.getAttribute('aria-busy') !== 'true') { button.textContent = button.dataset.label; }
+    const notice = this.#container.querySelector<HTMLElement>('[data-applications-notice]')!;
+    notice.hidden = enabled || this.#hasApplied;
+    notice.textContent = notice.hidden ? '' : APPLICATIONS_DISABLED;
   }
 
   /**
@@ -142,7 +159,7 @@ export default class VacancyPage implements Page {
     const button = target.closest<HTMLButtonElement>('[data-action="apply"]')!;
     const userId = getCurrentUser()?.id ?? null;
 
-    if (this.#isApplying) {
+    if (this.#isApplying || this.#hasApplied || !currentRuntimeConfig().applicationsEnabled) {
       return;
     }
 
@@ -159,9 +176,9 @@ export default class VacancyPage implements Page {
 
       setLoading(button, false);
       if (this.#abortController.signal.aborted) { return; }
+      if (!currentRuntimeConfig().applicationsEnabled) { return; }
       if (await openApplicationDialog(this.#id, resumes, this.#abortController.signal)) {
-        button.disabled = true;
-        button.dataset.label = 'Вы уже откликнулись';
+        this.#hasApplied = true;
       }
     } catch (error) {
       if (!this.#abortController.signal.aborted) {
@@ -170,6 +187,7 @@ export default class VacancyPage implements Page {
     } finally {
       this.#isApplying = false;
       setLoading(button, false);
+      if (!this.#abortController.signal.aborted) { this.#updateApplyButton(); }
     }
   }
 

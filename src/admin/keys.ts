@@ -2,6 +2,7 @@ export type JsonValue = null | boolean | number | string | JsonValue[] | { [key:
 
 interface KeyFields {
   id?: number;
+  scopeId?: number;
   ownerUserId?: number;
   name: string;
   scope: string;

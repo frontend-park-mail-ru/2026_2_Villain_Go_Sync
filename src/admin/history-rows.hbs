@@ -1,0 +1,25 @@
+{{#each entries}}
+  <details class="history-entry">
+    <summary>
+      <span class="history-entry-main">
+        <span class="history-resource-type">{{this.resourceType}}</span>
+        <span class="history-resource-name">{{this.resourceName}}</span>
+      </span>
+      <span class="history-entry-meta">
+        <span class="history-action" data-action="{{this.action}}">{{this.actionLabel}}</span>
+        <span>Автор #{{this.actorUserId}}</span>
+        <time datetime="{{this.createdAt}}">{{this.dateLabel}}</time>
+      </span>
+    </summary>
+    <div class="history-snapshots">
+      <div>
+        <h3>До изменения</h3>
+        <pre>{{this.before}}</pre>
+      </div>
+      <div>
+        <h3>После изменения</h3>
+        <pre>{{this.after}}</pre>
+      </div>
+    </div>
+  </details>
+{{/each}}

@@ -84,6 +84,7 @@
             {{/if}}
             <button class="button button_outline" type="button" data-favorite aria-pressed="{{favorite}}">{{#if favorite}}♥ В избранном{{else}}♡ Сохранить в избранное{{/if}}</button>
             <p class="detail__subtitle">Выберите своё резюме и при желании добавьте сопроводительное письмо.</p>
+            {{#unless isGuest}}<p class="detail__subtitle" data-applications-notice role="status" hidden></p>{{/unless}}
           {{/if}}
         </aside>
       {{/if}}

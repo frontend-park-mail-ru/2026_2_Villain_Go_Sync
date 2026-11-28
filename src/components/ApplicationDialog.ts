@@ -1,4 +1,5 @@
-import { ApiError, applyToVacancy, type Resume } from '../api';
+import { ApiError, applyToVacancy, isFeatureDisabledError, type Resume } from '../api';
+import { APPLICATIONS_DISABLED, currentRuntimeConfig, onRuntimeConfigChange, reportDisabledFeature } from '../runtime-config';
 import { setFieldError, setLoading } from './form';
 import { getCoverLetterError } from '@hirenoon/validation';
 import { hideToast, showToast } from './toast';
@@ -26,6 +27,7 @@ function getApplyError(error: unknown): string {
  * @returns Обещание, которое выполняется после закрытия окна; `true`, если отклик отправлен.
  */
 export function openApplicationDialog(vacancyId: number, resumes: Resume[], signal: AbortSignal): Promise<boolean> {
+  if (signal.aborted) { return Promise.resolve(false); }
   return new Promise((resolve) => {
     const wrapper = document.createElement('div');
 
@@ -33,8 +35,20 @@ export function openApplicationDialog(vacancyId: number, resumes: Resume[], sign
 
     const dialog = wrapper.querySelector('dialog')!;
     const form = dialog.querySelector<HTMLFormElement>('.application');
+    const button = form?.querySelector<HTMLButtonElement>('[type="submit"]');
+    const notice = dialog.querySelector<HTMLElement>('[data-applications-notice]')!;
+    const lifetime = new AbortController();
     let isSubmitting = false;
     let isClosed = false;
+
+    const updateAvailability = (): void => {
+      const enabled = currentRuntimeConfig().applicationsEnabled;
+      if (button) { button.disabled = !enabled || isSubmitting; }
+      notice.hidden = enabled;
+      notice.textContent = enabled ? '' : APPLICATIONS_DISABLED;
+    };
+    onRuntimeConfigChange(updateAvailability, lifetime.signal);
+    updateAvailability();
 
     dialog.addEventListener('click', (event) => {
       const target = event.target as Element;
@@ -56,6 +70,7 @@ export function openApplicationDialog(vacancyId: number, resumes: Resume[], sign
     const dismiss = (): void => dialog.close();
     signal.addEventListener('abort', dismiss, { once: true });
     dialog.addEventListener('close', () => {
+      lifetime.abort();
       signal.removeEventListener('abort', dismiss);
       isClosed = true;
       dialog.remove();
@@ -76,7 +91,7 @@ export function openApplicationDialog(vacancyId: number, resumes: Resume[], sign
     form?.addEventListener('submit', async (event) => {
       event.preventDefault();
 
-      if (isSubmitting) {
+      if (isSubmitting || !button || !currentRuntimeConfig().applicationsEnabled) {
         return;
       }
 
@@ -97,16 +112,20 @@ export function openApplicationDialog(vacancyId: number, resumes: Resume[], sign
         return;
       }
 
-      const button = form.querySelector<HTMLButtonElement>('[type="submit"]')!;
-
       hideToast();
       isSubmitting = true;
       setLoading(button, true);
+      updateAvailability();
 
       try {
         await applyToVacancy(vacancyId, { resumeId, coverLetter: String(data.get('coverLetter') ?? '').trim() });
       } catch (error) {
-        if (!isClosed) {
+        if (!isClosed && !signal.aborted) {
+          if (isFeatureDisabledError(error)) {
+            reportDisabledFeature('applicationsEnabled');
+            showToast(APPLICATIONS_DISABLED, 'error');
+            return;
+          }
           showToast(getApplyError(error), 'error');
           if (error instanceof ApiError && error.status === 409 && resumes.length === 1) { dialog.close('sent'); }
         }
@@ -114,6 +133,7 @@ export function openApplicationDialog(vacancyId: number, resumes: Resume[], sign
       } finally {
         isSubmitting = false;
         setLoading(button, false);
+        if (!isClosed) { updateAvailability(); }
       }
 
       if (!isClosed) { dialog.close('sent'); showToast('Отклик отправлен'); }

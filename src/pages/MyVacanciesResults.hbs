@@ -32,7 +32,7 @@
   <div class="owner-list__list">
     <div class="card-grid">
       {{#if canCreate}}
-        <a class="create-card" aria-label="Создать вакансию" href="/vacancies/new">
+        <a class="create-card" aria-label="Создать вакансию" href="/vacancies/new" data-vacancy-create>
           <span class="create-card__plus" aria-hidden="true">+</span>
           <strong>Создать вакансию</strong>
           <span>Добавьте новую вакансию, чтобы начать поиск кандидатов</span>
@@ -83,7 +83,7 @@
   </div>
 {{else}}
   <div class="card-grid">
-    <a class="create-card" aria-label="Создать вакансию" href="/vacancies/new">
+    <a class="create-card" aria-label="Создать вакансию" href="/vacancies/new" data-vacancy-create>
       <span class="create-card__plus" aria-hidden="true">+</span>
       <strong>Создать вакансию</strong>
       <span>Добавьте новую вакансию, чтобы начать поиск кандидатов</span>

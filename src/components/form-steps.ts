@@ -12,11 +12,13 @@ type TextControl = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
  * @param draftOptions Путь черновика и обработчик успешного сохранения.
  * @param draftOptions.path Страница формы.
  * @param draftOptions.onSaved Обновление состояния формы после сохранения.
+ * @param onStepChange Обновляет доступность основной кнопки при смене этапа.
  */
 export function mountFormSteps(
   form: HTMLFormElement,
   validate: (control: TextControl) => string,
   draftOptions?: { path: string; onSaved: () => void },
+  onStepChange?: (final: boolean) => void,
 ): void {
   const panels = [...form.querySelectorAll<HTMLElement>('[data-panel]')];
   const steps = [...form.querySelectorAll<HTMLButtonElement>('[data-step]')];
@@ -46,7 +48,9 @@ export function mountFormSteps(
     });
     back.hidden = index === 0;
     description.textContent = panels[index].dataset.instructions!;
-    submit.textContent = index === panels.length - 1 ? finalLabel : 'Далее →';
+    const final = index === panels.length - 1;
+    submit.textContent = submit.dataset.label = final ? finalLabel : 'Далее →';
+    onStepChange?.(final);
     preview();
   };
   const go = (target: number): void => {

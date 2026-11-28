@@ -37,6 +37,7 @@
     <h1 class="form-page__title">{{heading}}</h1>
 
     <form class="edit-form editor" novalidate>
+      {{#unless isEdit}}<p class="editor__hint" data-vacancy-creation-notice role="status" hidden></p>{{/unless}}
       <p class="editor__instructions" data-instructions></p>
       <nav class="editor__steps" aria-label="Этапы заполнения">
         <button type="button" data-step>
@@ -75,9 +76,9 @@
               <p class="field__message" id="vacancy-title-message"></p>
             </div>
 
-            <label class="field">Направления и теги вакансии (до пяти)
-              <select class="field__input" data-category-select multiple disabled></select>
-              <span class="field__message" data-category-hint></span>
+            <label class="field">Направления и теги вакансии
+              <select class="field__input" data-category-select aria-describedby="vacancy-category-hint" multiple disabled></select>
+              <span class="field__message" id="vacancy-category-hint" data-category-hint></span>
             </label>
             <input type="hidden" data-extra="ids" name="category_ids" disabled>
             <p class="editor__hint">Компания и логотип подставляются из профиля работодателя.</p>

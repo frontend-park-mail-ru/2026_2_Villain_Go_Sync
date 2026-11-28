@@ -1,12 +1,15 @@
 import './styles.scss';
 
 import { ApiError } from '../api';
+import { prepareFlagCheck } from './flag-check';
+import { enableHistory } from './history';
 import { bindKeyEditor } from './key-editor';
 import renderKeyRows from './key-rows.hbs';
 import { sameKey, type OnlineConfFlag, type OnlineConfKey } from './keys';
+import { enableManagement } from './management';
 import {
-  getOnlineConfCatalog, getOnlineConfOverrides, saveOnlineConfKey, saveOnlineConfOverrides,
-  type OnlineConfCatalog,
+  deleteOnlineConfKey, getOnlineConfCatalog, getOnlineConfOverrides, saveOnlineConfKey, saveOnlineConfOverrides,
+  type OnlineConfCatalog, type OnlineConfScope,
 } from './onlineconf-api';
 
 type KindFilter = 'all' | OnlineConfKey['kind'];
@@ -29,6 +32,8 @@ const signIn = document.querySelector<HTMLAnchorElement>('#login-link')!;
 const dialog = document.querySelector<HTMLDialogElement>('#key-dialog')!;
 const createButton = document.querySelector<HTMLButtonElement>('#create-key')!;
 const editButton = document.querySelector<HTMLButtonElement>('#edit-key')!;
+const deleteButton = document.querySelector<HTMLButtonElement>('#delete-key')!;
+const deleteError = document.querySelector<HTMLElement>('#delete-key-error')!;
 const overrideStatus = document.querySelector<HTMLElement>('#override-status')!;
 const overridePanel = document.querySelector<HTMLElement>('#dialog-overrides')!;
 
@@ -38,6 +43,7 @@ let kind: KindFilter = 'all';
 let selectedKey: OnlineConfKey | undefined;
 let liveCatalog: OnlineConfCatalog | undefined;
 let detailRequest = 0;
+let deletingKeyId: number | undefined;
 
 const openEditor = bindKeyEditor(persistKey, showSavedKey);
 
@@ -114,7 +120,7 @@ async function loadOverrides(flag: OnlineConfFlag, version: number): Promise<voi
     selectedKey = updated;
     renderOverrides(updated);
     overrideStatus.hidden = true;
-    editButton.disabled = false;
+    editButton.disabled = keyIsDeleting(updated);
   } catch {
     if (!dialog.open || version !== detailRequest) { return; }
     overrideStatus.textContent = 'Персональные настройки не загрузились. Откройте карточку повторно.';
@@ -141,11 +147,78 @@ function openKey(key: OnlineConfKey): void {
     : JSON.stringify(key.value, null, 2);
   overridePanel.hidden = true;
   overrideStatus.hidden = true;
-  editButton.disabled = false;
+  deleteError.hidden = true;
+  deleteButton.hidden = !liveCatalog || key.id === undefined;
+  deleteButton.disabled = deletingKeyId !== undefined;
+  editButton.disabled = keyIsDeleting(key);
+  prepareFlagCheck(isFlag && liveCatalog ? key.id : undefined);
   dialog.showModal();
   if (isFlag) {
     if (liveCatalog) { void loadOverrides(key, version); } else { renderOverrides(key); }
   }
+}
+
+/**
+ * Проверяет, есть ли незавершённое удаление для ключа.
+ * @param key Ключ карточки.
+ * @returns Удаляется ли этот ключ.
+ */
+function keyIsDeleting(key: OnlineConfKey): boolean {
+  return key.id !== undefined && key.id === deletingKeyId;
+}
+
+/** Подтверждает удаление открытого ресурса и обновляет каталог. */
+async function removeKey(): Promise<void> {
+  const key = selectedKey;
+  if (key?.id === undefined || deletingKeyId !== undefined
+    || !window.confirm(`Удалить ключ «${key.scope}.${key.name}»?`)) { return; }
+  const version = detailRequest;
+  deletingKeyId = key.id;
+  deleteButton.disabled = true;
+  editButton.disabled = true;
+  deleteError.hidden = true;
+  try {
+    await deleteOnlineConfKey(key);
+  } catch (error) {
+    if (!(error instanceof ApiError) || error.status !== 404) {
+      if (detailRequest === version && dialog.open) {
+        deleteError.textContent = error instanceof ApiError && error.status === 403
+          ? 'У вас нет прав на удаление ключа.'
+          : 'Не удалось удалить ключ. Обновите каталог и повторите попытку.';
+        deleteError.hidden = false;
+      }
+      return;
+    }
+  } finally {
+    deletingKeyId = undefined;
+    deleteButton.disabled = false;
+    if (selectedKey?.id === key.id) {
+      editButton.disabled = selectedKey.kind === 'flag' && selectedKey.included_users === undefined;
+    }
+  }
+  if (detailRequest === version) { dialog.close(); }
+  keys = keys.filter((entry) => entry.id !== key.id);
+  refreshFilters();
+  renderCatalog();
+  saveFeedback.textContent = 'Ключ удалён.';
+}
+
+/**
+ * Применяет изменения областей к списку и к фильтру по идентификатору.
+ * @param next Актуальные области из API.
+ */
+function updateScopes(next: OnlineConfScope[]): void {
+  if (!liveCatalog) { return; }
+  const selected = liveCatalog.scopes.find((entry) => entry.name === scope.value)?.id;
+  const names = new Map(next.map((entry) => [entry.id, entry.name]));
+  liveCatalog.scopes = next;
+  keys = keys.flatMap((key) => {
+    const name = key.scopeId === undefined ? key.scope : names.get(key.scopeId);
+    return name === undefined ? [] : [{ ...key, scope: name }];
+  });
+  refreshFilters();
+  if (selected !== undefined) { scope.value = names.get(selected) ?? ''; }
+  renderCatalog();
 }
 
 /**
@@ -241,6 +314,10 @@ async function loadCatalog(): Promise<void> {
   }
 
   refreshFilters();
+  if (liveCatalog) {
+    enableHistory();
+    enableManagement(liveCatalog.ownerUserId, liveCatalog.role, updateScopes);
+  }
   loadState.hidden = true;
   createButton.hidden = false;
   catalog.hidden = false;
@@ -263,6 +340,7 @@ rows.addEventListener('click', (event) => {
 });
 
 createButton.addEventListener('click', () => editKey());
+deleteButton.addEventListener('click', () => { void removeKey(); });
 editButton.addEventListener('click', () => {
   if (!selectedKey) { return; }
   dialog.close();

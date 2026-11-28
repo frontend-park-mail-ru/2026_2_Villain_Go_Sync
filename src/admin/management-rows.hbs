@@ -1,0 +1,12 @@
+{{#each rows}}
+  <div class="management-entry">
+    <div>
+      <strong>{{this.title}}</strong>
+      {{#if this.detail}}<p>{{this.detail}}</p>{{/if}}
+    </div>
+    <div class="management-actions">
+      <button class="secondary-button" type="button" data-management-action="edit" data-record-id="{{this.id}}">Изменить<span class="sr-only"> {{this.title}}</span></button>
+      <button class="secondary-button danger-button" type="button" data-management-action="delete" data-record-id="{{this.id}}">{{this.deleteLabel}}<span class="sr-only"> {{this.title}}</span></button>
+    </div>
+  </div>
+{{/each}}

@@ -40,9 +40,14 @@
               <h1>Конфиги и флаги</h1>
               <p>Настройки продукта и раскатка функций HireNoon.</p>
             </div>
-            <button class="primary-button create-key" type="button" id="create-key" hidden>
-              <span aria-hidden="true">+</span> Создать ключ
-            </button>
+            <div class="page-actions">
+              <button class="secondary-button" type="button" id="open-scopes" hidden>Области</button>
+              <button class="secondary-button" type="button" id="open-admins" hidden>Администраторы</button>
+              <button class="secondary-button" type="button" id="open-history" hidden>История изменений</button>
+              <button class="primary-button create-key" type="button" id="create-key" hidden>
+                <span aria-hidden="true">+</span> Создать ключ
+              </button>
+            </div>
           </header>
 
           <section class="panel load-state" id="load-state" aria-label="Состояние каталога">
@@ -121,9 +126,80 @@
           <dd id="dialog-excluded"></dd>
         </div>
       </dl>
+      <section class="flag-check" id="flag-check" aria-labelledby="flag-check-title" hidden>
+        <h3 id="flag-check-title">Проверка для пользователя</h3>
+        <form id="flag-check-form">
+          <label class="editor-field">
+            <span>ID пользователя</span>
+            <input id="flag-check-user" type="text" inputmode="numeric" pattern="[1-9][0-9]{0,18}" autocomplete="off" required />
+          </label>
+          <button class="secondary-button" type="submit" id="flag-check-submit">Проверить</button>
+        </form>
+        <div class="flag-check-feedback" id="flag-check-feedback" role="status"></div>
+      </section>
+      <p class="form-error" id="delete-key-error" role="alert" hidden></p>
       <div class="dialog-actions">
+        <button class="secondary-button danger-button" type="button" id="delete-key" hidden>Удалить</button>
         <button class="primary-button" type="button" id="edit-key">Редактировать</button>
       </div>
+    </dialog>
+
+    <dialog class="key-dialog management-dialog" id="management-dialog" aria-labelledby="management-title">
+      <div class="dialog-heading">
+        <h2 id="management-title"></h2>
+        <button class="secondary-button" type="button" id="management-close" autofocus>Закрыть</button>
+      </div>
+      <p class="management-status" id="management-status" role="status"></p>
+      <button class="secondary-button" type="button" id="management-retry" hidden>Повторить</button>
+      <div class="management-list" id="management-list"></div>
+      <form class="management-form" id="management-form" hidden>
+        <h3 id="management-form-title"></h3>
+        <fieldset class="editor-fields" id="management-fields">
+          <fieldset class="editor-fields" id="management-scope-fields">
+            <label class="editor-field">
+              <span>Название области</span>
+              <input id="management-scope-name" required pattern="[a-z][a-z0-9_]*" placeholder="vacancy" />
+              <span class="field-hint">Строчные латинские буквы, цифры и подчёркивания. Начните с буквы.</span>
+            </label>
+            <label class="editor-field">
+              <span>Описание</span>
+              <textarea id="management-scope-description" rows="2"></textarea>
+            </label>
+          </fieldset>
+          <fieldset class="editor-fields editor-grid" id="management-admin-fields">
+            <label class="editor-field">
+              <span>ID пользователя</span>
+              <input id="management-user-id" type="number" required min="1" max="9007199254740991" step="1" />
+            </label>
+            <label class="editor-field">
+              <span>Роль</span>
+              <select id="management-role">
+                <option value="admin">Администратор</option>
+                <option value="owner">Владелец</option>
+              </select>
+            </label>
+          </fieldset>
+        </fieldset>
+        <p class="form-error" id="management-error" role="alert" hidden></p>
+        <div class="dialog-actions">
+          <button class="secondary-button" type="button" id="management-cancel" hidden>Отмена</button>
+          <button class="primary-button" type="submit" id="management-submit"></button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="key-dialog history-dialog" id="history-dialog" aria-labelledby="history-title">
+      <div class="dialog-heading">
+        <h2 id="history-title">История изменений</h2>
+        <form method="dialog">
+          <button class="secondary-button" type="submit" autofocus>Закрыть</button>
+        </form>
+      </div>
+      <div class="history-list" id="history-list"></div>
+      <footer class="history-footer">
+        <p id="history-status" role="status"></p>
+        <button class="secondary-button" type="button" id="history-more" hidden>Загрузить ещё</button>
+      </footer>
     </dialog>
 
     <dialog class="key-dialog editor-dialog" id="key-editor" aria-labelledby="editor-title">

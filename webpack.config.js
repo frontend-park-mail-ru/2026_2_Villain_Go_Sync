@@ -21,7 +21,7 @@ try {
 
 const PORT = Number(process.env.PORT) || 8000;
 const API_URL = (process.env.API_URL || 'http://localhost:8080/api').replace(/\/+$/, '');
-const ONLINECONF_DEV_TARGET = process.env.ONLINECONF_DEV_TARGET || 'http://127.0.0.1:8091';
+const ONLINECONF_DEV_TARGET = process.env.ONLINECONF_DEV_TARGET || 'http://127.0.0.1:8081';
 
 export default (env, { mode }) => {
   const isProduction = mode === 'production';
