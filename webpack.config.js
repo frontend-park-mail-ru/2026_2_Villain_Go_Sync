@@ -21,13 +21,18 @@ try {
 
 const PORT = Number(process.env.PORT) || 8000;
 const API_URL = (process.env.API_URL || 'http://localhost:8080/api').replace(/\/+$/, '');
+const ONLINECONF_DEV_TARGET = process.env.ONLINECONF_DEV_TARGET || 'http://127.0.0.1:8091';
 
 export default (env, { mode }) => {
   const isProduction = mode === 'production';
+  const onlineConfDemo = !isProduction && process.env.ONLINECONF_DEMO === 'true';
   const hash = isProduction ? '.[contenthash]' : '';
 
   return {
-    entry: './src/index.ts',
+    entry: {
+      main: './src/index.ts',
+      onlineconf: './src/admin/index.ts',
+    },
     output: {
       path: path.join(rootDir, 'dist'),
       filename: `js/[name]${hash}.js`,
@@ -50,16 +55,31 @@ export default (env, { mode }) => {
       ],
     },
     plugins: [
-      new HtmlWebpackPlugin({ template: './src/index.html' }),
+      new HtmlWebpackPlugin({ template: './src/index.html', chunks: ['main'] }),
+      new HtmlWebpackPlugin({
+        template: './src/admin/index.html',
+        filename: 'admin/onlineconf/index.html',
+        chunks: ['onlineconf'],
+      }),
       new MiniCssExtractPlugin({ filename: `css/[name]${hash}.css` }),
       new CopyPlugin({ patterns: [{ from: 'public' }] }),
-      new webpack.DefinePlugin({ 'process.env.API_URL': JSON.stringify(API_URL) }),
+      new webpack.DefinePlugin({
+        'process.env.API_URL': JSON.stringify(API_URL),
+        'process.env.ONLINECONF_DEMO': JSON.stringify(String(onlineConfDemo)),
+      }),
       new ForkTsCheckerWebpackPlugin(),
-      ...(isProduction ? [new WorkboxPlugin.InjectManifest({ swSrc: './src/sw.ts', swDest: 'sw.js' })] : []),
+      ...(isProduction ? [new WorkboxPlugin.InjectManifest({
+        swSrc: './src/sw.ts',
+        swDest: 'sw.js',
+        exclude: [/\.map$/, /^manifest.*\.js$/, /^(admin\/onlineconf\/|(?:css|js)\/onlineconf\.)/],
+      })] : []),
     ],
     devServer: {
       port: PORT,
-      historyApiFallback: true,
+      proxy: [{ context: ['/api/onlineconf'], target: ONLINECONF_DEV_TARGET }],
+      historyApiFallback: {
+        rewrites: [{ from: /^\/admin\/onlineconf\/?$/, to: '/admin/onlineconf/index.html' }],
+      },
       static: false,
       ...(isProduction ? {
         hot: false,

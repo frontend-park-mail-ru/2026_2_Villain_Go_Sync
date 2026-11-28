@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ключи · OnlineConf</title>
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <div>
+            <div class="brand-name">OnlineConf</div>
+            <div class="brand-product">HireNoon</div>
+          </div>
+        </div>
+        <nav class="sidebar-nav" aria-label="Администрирование">
+          <a class="nav-item" href="/admin/onlineconf/" aria-current="page">
+            <span class="icon-grid" aria-hidden="true"></span>
+            Ключи
+          </a>
+        </nav>
+        <a class="product-link" href="/">
+          <img src="/images/logo.svg" alt="" width="18" height="18" />
+          Открыть HireNoon
+        </a>
+      </aside>
+
+      <div class="workspace">
+        <header class="topbar">
+          <span class="breadcrumb">Управление <span aria-hidden="true">/</span> <strong>Ключи</strong></span>
+          <span class="demo-label" title="Локальный каталог с тестовыми данными" id="demo-label" hidden>Демо-данные</span>
+        </header>
+
+        <main class="content">
+          <header class="page-heading">
+            <div>
+              <h1>Конфиги и флаги</h1>
+              <p>Настройки продукта и раскатка функций HireNoon.</p>
+            </div>
+            <button class="primary-button create-key" type="button" id="create-key" hidden>
+              <span aria-hidden="true">+</span> Создать ключ
+            </button>
+          </header>
+
+          <section class="panel load-state" id="load-state" aria-label="Состояние каталога">
+            <h2 id="load-message" role="status">Загружаем ключи…</h2>
+            <button class="secondary-button" type="button" id="retry" hidden>Повторить</button>
+            <a class="secondary-button" href="/login" id="login-link" hidden>Войти в HireNoon</a>
+          </section>
+
+          <section class="panel catalog" id="catalog" aria-label="Каталог ключей" hidden>
+            <div class="type-filters" role="group" aria-label="Фильтр по типу ключа">
+              <button type="button" data-kind="all" aria-pressed="true">Все ключи <span data-count="all" aria-hidden="true"></span></button>
+              <button type="button" data-kind="config" aria-pressed="false">Конфиги <span data-count="config" aria-hidden="true"></span></button>
+              <button type="button" data-kind="flag" aria-pressed="false">Флаги <span data-count="flag" aria-hidden="true"></span></button>
+            </div>
+
+            <div class="toolbar">
+              <label class="search">
+                <span class="sr-only">Поиск по названию ключа</span>
+                <img src="/images/search.svg" alt="" width="16" height="16" />
+                <input id="key-search" type="search" placeholder="Поиск по названию" autocomplete="off" />
+              </label>
+              <label class="scope-filter">
+                <span class="scope-label">Scope</span>
+                <select id="key-scope">
+                  <option value="">Все области</option>
+                </select>
+              </label>
+            </div>
+
+            <table class="key-table" id="key-table" role="table" aria-label="Ключи OnlineConf">
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader">Ключ</th>
+                  <th scope="col" role="columnheader">Scope</th>
+                  <th scope="col" role="columnheader">Тип</th>
+                  <th scope="col" role="columnheader">Значение / раскатка</th>
+                </tr>
+              </thead>
+              <tbody id="key-rows" role="rowgroup"></tbody>
+            </table>
+
+            <div class="empty-state" id="empty-state" hidden>
+              <h2 id="empty-title">Ключи не найдены</h2>
+              <button class="secondary-button" type="button" id="reset-filters">Сбросить фильтры</button>
+            </div>
+            <footer class="catalog-footer">
+              <p id="results" role="status"></p>
+              <p class="save-feedback" id="save-feedback" role="status"></p>
+            </footer>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <dialog class="key-dialog" id="key-dialog" aria-labelledby="dialog-title">
+      <div class="dialog-heading">
+        <div>
+          <p class="dialog-type" id="dialog-type"></p>
+          <h2 id="dialog-title"></h2>
+        </div>
+        <form method="dialog">
+          <button class="secondary-button" type="submit" autofocus>Закрыть</button>
+        </form>
+      </div>
+      <p class="dialog-description" id="dialog-description"></p>
+      <h3 id="dialog-value-label"></h3>
+      <pre id="dialog-value"></pre>
+      <p class="dialog-description" id="override-status" role="status" hidden></p>
+      <dl class="dialog-overrides" id="dialog-overrides">
+        <div>
+          <dt>Принудительно включён</dt>
+          <dd id="dialog-included"></dd>
+        </div>
+        <div>
+          <dt>Принудительно исключён</dt>
+          <dd id="dialog-excluded"></dd>
+        </div>
+      </dl>
+      <div class="dialog-actions">
+        <button class="primary-button" type="button" id="edit-key">Редактировать</button>
+      </div>
+    </dialog>
+
+    <dialog class="key-dialog editor-dialog" id="key-editor" aria-labelledby="editor-title">
+      <h2 id="editor-title">Создать ключ</h2>
+      <form id="key-form">
+        <fieldset class="editor-fields" id="editor-fields">
+          <div class="editor-grid">
+            <label class="editor-field">
+              <span>Название</span>
+              <input id="editor-name" name="name" type="text" placeholder="cover_letter_max_length" required autofocus />
+            </label>
+            <label class="editor-field">
+              <span>Scope</span>
+              <input id="editor-scope" name="scope" list="editor-scopes" placeholder="applications" required />
+              <datalist id="editor-scopes"></datalist>
+            </label>
+          </div>
+          <label class="editor-field">
+            <span>Тип</span>
+            <select id="editor-kind" name="kind">
+              <option value="config">Конфиг</option>
+              <option value="flag">Флаг</option>
+            </select>
+          </label>
+          <label class="editor-field">
+            <span>Описание <span class="field-hint">(необязательно)</span></span>
+            <textarea id="editor-description" name="description" rows="2"></textarea>
+          </label>
+          <fieldset class="editor-fields" id="editor-config">
+            <label class="editor-field">
+              <span>Значение JSON</span>
+              <textarea id="editor-value" name="value" rows="4" placeholder='{"limit": 10}' aria-describedby="json-hint" spellcheck="false" required></textarea>
+              <span class="field-hint" id="json-hint">Строки вводите в двойных кавычках.</span>
+            </label>
+          </fieldset>
+          <fieldset class="editor-fields" id="editor-flag" hidden disabled>
+            <label class="editor-check">
+              <input id="editor-enabled" name="enabled" type="checkbox" />
+              <span>Флаг включён</span>
+            </label>
+            <label class="editor-field">
+              <span>Раскатка, %</span>
+              <input id="editor-rollout" name="rollout" type="number" min="0" max="100" step="1" required />
+            </label>
+            <div class="editor-grid">
+              <label class="editor-field">
+                <span>Принудительно включить</span>
+                <textarea id="editor-included" name="included" rows="3" placeholder="42, 108" aria-describedby="users-hint"></textarea>
+              </label>
+              <label class="editor-field">
+                <span>Принудительно исключить</span>
+                <textarea id="editor-excluded" name="excluded" rows="3" placeholder="87, 121" aria-describedby="users-hint"></textarea>
+              </label>
+            </div>
+            <p class="field-hint" id="users-hint">ID пользователей через запятую или с новой строки.</p>
+          </fieldset>
+        </fieldset>
+        <p class="form-error" id="editor-error" role="alert" hidden></p>
+        <div class="dialog-actions">
+          <button class="secondary-button" type="button" id="cancel-editor">Отмена</button>
+          <button class="primary-button" type="submit" id="save-key">Сохранить</button>
+        </div>
+      </form>
+    </dialog>
+  </body>
+</html>

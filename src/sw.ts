@@ -20,7 +20,7 @@ registerRoute(new NavigationRoute(async (options) => {
   } catch {
     return offlinePage(options);
   }
-}, { denylist: [/^\/api(?:\/|\?|$)/] }));
+}, { denylist: [/^\/api(?:\/|\?|$)/, /^\/admin\/onlineconf(?:\/|\?|$)/] }));
 addRoute();
 
 // Кэшируется только общий список вакансий. Ответы, зависящие от сессии (например, /api/me), всегда идут в сеть:

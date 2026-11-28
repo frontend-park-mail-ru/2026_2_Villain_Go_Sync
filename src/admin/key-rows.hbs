@@ -1,0 +1,30 @@
+{{#each rows}}
+  <tr role="row">
+    <th class="key-cell" scope="row" role="rowheader">
+      <button type="button" class="key-name" data-key-index="{{this.rowIndex}}">{{this.name}}</button>
+      {{#if description}}<span class="key-description">{{this.description}}</span>{{/if}}
+    </th>
+    <td class="scope-cell" role="cell"><span class="scope-chip">{{this.scope}}</span></td>
+    <td class="type-cell" role="cell">
+      {{#if isFlag}}
+        <span class="type-chip type-chip--flag"><span class="icon-toggle" aria-hidden="true"></span>Флаг</span>
+      {{else}}
+        <span class="type-chip type-chip--config"><span class="icon-config" aria-hidden="true">{ }</span>Конфиг</span>
+      {{/if}}
+    </td>
+    <td class="value-cell" role="cell">
+      {{#if isFlag}}
+        <div class="rollout{{#unless this.enabled}} rollout--disabled{{/unless}}">
+          {{#if this.enabled}}
+            <progress value="{{this.rollout}}" max="100" aria-hidden="true"></progress>
+            <span>{{this.rollout}}%</span>
+          {{else}}
+            <span>Выключен · {{this.rollout}}%</span>
+          {{/if}}
+        </div>
+      {{else}}
+        <code class="config-value">{{this.preview}}</code>
+      {{/if}}
+    </td>
+  </tr>
+{{/each}}

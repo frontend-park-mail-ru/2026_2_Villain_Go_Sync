@@ -258,6 +258,8 @@ function refreshSession(): Promise<boolean> {
  * @param options.signal Сигнал для отмены запроса.
  * @param options.canRefresh Можно ли продлить сессию и повторить запрос при 401.
  * @param options.canRetryCsrf Можно ли обновить CSRF-cookie после отказа проверки токена.
+ * @param options.normalizeText Нужно ли декодировать HTML-сущности в текстовых полях.
+ * @param options.baseURL Базовый URL сервиса. Сессия продлевается через продуктовый API.
  * @returns Содержимое поля `data` из ответа или `null`, если его нет.
  * @throws {ApiError} Сервер недоступен или ответил ошибкой; в `body` — текст из поля `error`.
  */
@@ -269,7 +271,9 @@ async function request(
     signal,
     canRefresh = !NO_REFRESH_PATHS.includes(path),
     canRetryCsrf = true,
-  }: { body?: unknown; signal?: AbortSignal; canRefresh?: boolean; canRetryCsrf?: boolean } = {},
+    normalizeText = true,
+    baseURL = API_URL,
+  }: { body?: unknown; signal?: AbortSignal; canRefresh?: boolean; canRetryCsrf?: boolean; normalizeText?: boolean; baseURL?: string } = {},
 ): Promise<unknown> {
   const init: RequestInit = { method, credentials: 'include', signal };
   const headers = new Headers();
@@ -297,7 +301,7 @@ async function request(
   let data: unknown;
 
   try {
-    response = await fetch(`${API_URL}${path}`, init);
+    response = await fetch(`${baseURL}${path}`, init);
     data = await readBody(response);
   } catch (error) {
     if (signal?.aborted) {
@@ -309,7 +313,7 @@ async function request(
 
   if (response.status === 401 && canRefresh) {
     if (await refreshSession()) {
-      return request(method, path, { body, signal, canRefresh: false, canRetryCsrf });
+      return request(method, path, { body, signal, canRefresh: false, canRetryCsrf, normalizeText, baseURL });
     }
 
     // Продлить не получилось — сессия закончилась, страницы для вошедших больше недоступны.
@@ -319,7 +323,7 @@ async function request(
   // CSRF проверяется до обработчика: отклонённый запрос ещё не изменил данные.
   if (response.status === 403 && canRetryCsrf && CSRF_ERRORS.has(String(getField(data, 'error')))) {
     if (await refreshSession()) {
-      return request(method, path, { body, signal, canRefresh: false, canRetryCsrf: false });
+      return request(method, path, { body, signal, canRefresh: false, canRetryCsrf: false, normalizeText, baseURL });
     }
     setCurrentUser(null);
   }
@@ -329,7 +333,19 @@ async function request(
     throw new ApiError(response.status, getField(data, 'error') ?? data);
   }
 
-  return normalizeAPIText(getField(data, 'data') ?? null);
+  const payload = getField(data, 'data') ?? null;
+  return normalizeText ? normalizeAPIText(payload) : payload;
+}
+
+/**
+ * Отправляет запрос к административному API OnlineConf на текущем домене.
+ * @param method HTTP-метод.
+ * @param path Путь после /api/onlineconf/admin.
+ * @param body Тело запроса для записи.
+ * @returns Поле data ответа.
+ */
+export function onlineConfRequest(method: string, path: string, body?: unknown): Promise<unknown> {
+  return request(method, `/onlineconf/admin${path}`, { body, normalizeText: false, baseURL: '/api' });
 }
 
 /**

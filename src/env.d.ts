@@ -9,5 +9,6 @@ declare const process: {
   env: {
     API_URL: string;
     NODE_ENV: string;
+    ONLINECONF_DEMO: string;
   };
 };
