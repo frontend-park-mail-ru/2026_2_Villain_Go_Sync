@@ -31,7 +31,6 @@
       <div class="workspace">
         <header class="topbar">
           <span class="breadcrumb">Управление <span aria-hidden="true">/</span> <strong>Ключи</strong></span>
-          <span class="demo-label" title="Локальный каталог с тестовыми данными" id="demo-label" hidden>Демо-данные</span>
         </header>
 
         <main class="content">
@@ -109,7 +108,9 @@
           <h2 id="dialog-title"></h2>
         </div>
         <form method="dialog">
-          <button class="secondary-button" type="submit" autofocus>Закрыть</button>
+          <button class="secondary-button dialog-close" type="submit" aria-label="Закрыть" title="Закрыть" autofocus>
+            <span aria-hidden="true">×</span>
+          </button>
         </form>
       </div>
       <p class="dialog-description" id="dialog-description"></p>
@@ -147,7 +148,9 @@
     <dialog class="key-dialog management-dialog" id="management-dialog" aria-labelledby="management-title">
       <div class="dialog-heading">
         <h2 id="management-title"></h2>
-        <button class="secondary-button" type="button" id="management-close" autofocus>Закрыть</button>
+        <button class="secondary-button dialog-close" type="button" id="management-close" aria-label="Закрыть" title="Закрыть" autofocus>
+          <span aria-hidden="true">×</span>
+        </button>
       </div>
       <p class="management-status" id="management-status" role="status"></p>
       <button class="secondary-button" type="button" id="management-retry" hidden>Повторить</button>
@@ -192,7 +195,9 @@
       <div class="dialog-heading">
         <h2 id="history-title">История изменений</h2>
         <form method="dialog">
-          <button class="secondary-button" type="submit" autofocus>Закрыть</button>
+          <button class="secondary-button dialog-close" type="submit" aria-label="Закрыть" title="Закрыть" autofocus>
+            <span aria-hidden="true">×</span>
+          </button>
         </form>
       </div>
       <div class="history-list" id="history-list"></div>

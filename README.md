@@ -39,7 +39,7 @@ npm run lint       # проверка линтером (npm run lint:fix — и�
 фронт и продуктовый API через один hostname, например `localhost`, чтобы браузер передавал cookie сессии.
 
 Webpack проксирует `/api/onlineconf/` на `ONLINECONF_DEV_TARGET` (по умолчанию
-`http://127.0.0.1:8081`). Если нужен автономный демо-каталог, укажите `ONLINECONF_DEMO=true` в `.env`
+`http://127.0.0.1:8081`). Если сервис слушает другой порт, задайте `ONLINECONF_DEV_TARGET` в `.env`
 и перезапустите dev-сервер.
 
 При деплое веб-сервер должен отдавать `dist/admin/onlineconf/index.html` для `/admin/onlineconf/`,

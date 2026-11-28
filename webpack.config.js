@@ -25,7 +25,6 @@ const ONLINECONF_DEV_TARGET = process.env.ONLINECONF_DEV_TARGET || 'http://127.0
 
 export default (env, { mode }) => {
   const isProduction = mode === 'production';
-  const onlineConfDemo = !isProduction && process.env.ONLINECONF_DEMO === 'true';
   const hash = isProduction ? '.[contenthash]' : '';
 
   return {
@@ -63,10 +62,7 @@ export default (env, { mode }) => {
       }),
       new MiniCssExtractPlugin({ filename: `css/[name]${hash}.css` }),
       new CopyPlugin({ patterns: [{ from: 'public' }] }),
-      new webpack.DefinePlugin({
-        'process.env.API_URL': JSON.stringify(API_URL),
-        'process.env.ONLINECONF_DEMO': JSON.stringify(String(onlineConfDemo)),
-      }),
+      new webpack.DefinePlugin({ 'process.env.API_URL': JSON.stringify(API_URL) }),
       new ForkTsCheckerWebpackPlugin(),
       ...(isProduction ? [new WorkboxPlugin.InjectManifest({
         swSrc: './src/sw.ts',

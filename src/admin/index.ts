@@ -41,7 +41,7 @@ let keys: OnlineConfKey[] = [];
 let visibleKeys: OnlineConfKey[] = [];
 let kind: KindFilter = 'all';
 let selectedKey: OnlineConfKey | undefined;
-let liveCatalog: OnlineConfCatalog | undefined;
+let loadedCatalog: OnlineConfCatalog | undefined;
 let detailRequest = 0;
 let deletingKeyId: number | undefined;
 
@@ -52,8 +52,7 @@ const openEditor = bindKeyEditor(persistKey, showSavedKey);
  * @returns Уникальные названия областей.
  */
 function scopes(): string[] {
-  const names = liveCatalog ? liveCatalog.scopes.map((entry) => entry.name) : keys.map((key) => key.scope);
-  return [...new Set(names)].sort();
+  return loadedCatalog?.scopes.map((entry) => entry.name).sort() ?? [];
 }
 
 /** Обновляет список областей и счётчики после изменения каталога. */
@@ -148,14 +147,12 @@ function openKey(key: OnlineConfKey): void {
   overridePanel.hidden = true;
   overrideStatus.hidden = true;
   deleteError.hidden = true;
-  deleteButton.hidden = !liveCatalog || key.id === undefined;
+  deleteButton.hidden = key.id === undefined;
   deleteButton.disabled = deletingKeyId !== undefined;
   editButton.disabled = keyIsDeleting(key);
-  prepareFlagCheck(isFlag && liveCatalog ? key.id : undefined);
+  prepareFlagCheck(isFlag ? key.id : undefined);
   dialog.showModal();
-  if (isFlag) {
-    if (liveCatalog) { void loadOverrides(key, version); } else { renderOverrides(key); }
-  }
+  if (isFlag) { void loadOverrides(key, version); }
 }
 
 /**
@@ -208,10 +205,10 @@ async function removeKey(): Promise<void> {
  * @param next Актуальные области из API.
  */
 function updateScopes(next: OnlineConfScope[]): void {
-  if (!liveCatalog) { return; }
-  const selected = liveCatalog.scopes.find((entry) => entry.name === scope.value)?.id;
+  if (!loadedCatalog) { return; }
+  const selected = loadedCatalog.scopes.find((entry) => entry.name === scope.value)?.id;
   const names = new Map(next.map((entry) => [entry.id, entry.name]));
-  liveCatalog.scopes = next;
+  loadedCatalog.scopes = next;
   keys = keys.flatMap((key) => {
     const name = key.scopeId === undefined ? key.scope : names.get(key.scopeId);
     return name === undefined ? [] : [{ ...key, scope: name }];
@@ -227,7 +224,7 @@ function updateScopes(next: OnlineConfScope[]): void {
  */
 function editKey(key?: OnlineConfKey): void {
   saveFeedback.textContent = '';
-  openEditor({ key, scope: scope.value, kind: kind === 'flag' ? 'flag' : 'config', scopes: scopes(), live: Boolean(liveCatalog) });
+  openEditor({ key, scope: scope.value, kind: kind === 'flag' ? 'flag' : 'config', scopes: scopes() });
 }
 
 /**
@@ -240,21 +237,15 @@ function updateKey(key: OnlineConfKey): void {
 }
 
 /**
- * Сохраняет ключ в демо-каталоге или через API.
+ * Сохраняет ключ через API OnlineConf.
  * @param key Данные из формы.
  * @param original Сохранённая версия при редактировании.
  * @param pending ID с незавершёнными изменениями.
  * @returns Сохранённый ключ.
  */
 async function persistKey(key: OnlineConfKey, original?: OnlineConfKey, pending?: string[]): Promise<OnlineConfKey> {
-  if (process.env.ONLINECONF_DEMO === 'true') {
-    const { saveDemoKey } = await import('./demo-keys');
-    keys = saveDemoKey(key, original !== undefined);
-    return key;
-  }
-
-  if (!liveCatalog) { throw new Error('Каталог OnlineConf не загружен'); }
-  let saved = await saveOnlineConfKey(liveCatalog, key, original);
+  if (!loadedCatalog) { throw new Error('Каталог OnlineConf не загружен'); }
+  let saved = await saveOnlineConfKey(loadedCatalog, key, original);
   if (!sameKey(key, saved) || key.kind !== saved.kind) { throw new TypeError('API вернул другой ключ OnlineConf'); }
 
   if (saved.kind === 'flag' && key.kind === 'flag') {
@@ -292,13 +283,8 @@ async function loadCatalog(): Promise<void> {
   signIn.hidden = true;
 
   try {
-    if (process.env.ONLINECONF_DEMO === 'true') {
-      keys = (await import('./demo-keys')).getDemoKeys();
-      document.querySelector<HTMLElement>('#demo-label')!.hidden = false;
-    } else {
-      liveCatalog = await getOnlineConfCatalog();
-      keys = liveCatalog.keys;
-    }
+    loadedCatalog = await getOnlineConfCatalog();
+    keys = loadedCatalog.keys;
   } catch (error) {
     const status = error instanceof ApiError ? error.status : undefined;
     if (status === 401) {
@@ -314,10 +300,8 @@ async function loadCatalog(): Promise<void> {
   }
 
   refreshFilters();
-  if (liveCatalog) {
-    enableHistory();
-    enableManagement(liveCatalog.ownerUserId, liveCatalog.role, updateScopes);
-  }
+  enableHistory();
+  enableManagement(loadedCatalog.ownerUserId, loadedCatalog.role, updateScopes);
   loadState.hidden = true;
   createButton.hidden = false;
   catalog.hidden = false;

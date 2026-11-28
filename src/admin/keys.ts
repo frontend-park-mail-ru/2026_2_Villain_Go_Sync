@@ -47,19 +47,6 @@ function isOnlineConfKey(entry: unknown): entry is OnlineConfKey {
 }
 
 /**
- * Проверяет формат каталога из API.
- * @param data Поле data ответа.
- * @returns Ключи, готовые к показу.
- * @throws {TypeError} Формат каталога неизвестен.
- */
-export function parseKeys(data: unknown): OnlineConfKey[] {
-  if (!Array.isArray(data) || !data.every(isOnlineConfKey)) {
-    throw new TypeError('Некорректный список ключей OnlineConf');
-  }
-  return data;
-}
-
-/**
  * Проверяет формат сохранённого ключа.
  * @param data Поле data ответа.
  * @returns Ключ в формате каталога.

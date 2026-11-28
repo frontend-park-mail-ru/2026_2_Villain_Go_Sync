@@ -7,7 +7,6 @@ interface EditorOptions {
   scope: string;
   kind: OnlineConfKey['kind'];
   scopes: string[];
-  live: boolean;
 }
 
 const dialog = document.querySelector<HTMLDialogElement>('#key-editor')!;
@@ -108,7 +107,7 @@ export function bindKeyEditor(
   onSaved: (saved: OnlineConfKey) => void,
 ): (options: EditorOptions) => void {
   let original: OnlineConfKey | undefined;
-  let allowedScopes: string[] | undefined;
+  let allowedScopes: string[] = [];
   let pending: string[] = [];
 
   /** Проверяет форму и сохраняет ключ, пока поле ввода заблокировано. */
@@ -117,10 +116,10 @@ export function bindKeyEditor(
     let draft: OnlineConfKey;
     try {
       draft = readKey(original);
-      if (allowedScopes && !allowedScopes.includes(draft.scope)) {
+      if (!allowedScopes.includes(draft.scope)) {
         throw new Error('Выберите существующий scope из списка.');
       }
-      if (allowedScopes && draft.kind === 'flag') {
+      if (draft.kind === 'flag') {
         const users = [...(draft.included_users ?? []), ...(draft.excluded_users ?? [])];
         if (users.some((id) => !/^[1-9]\d*$/.test(String(id)) || !Number.isSafeInteger(Number(id)))) {
           throw new Error('ID пользователя должен быть положительным целым числом.');
@@ -180,10 +179,10 @@ export function bindKeyEditor(
     if (saveButton.disabled) { event.preventDefault(); }
   });
 
-  return ({ key, scope, kind, scopes, live }) => {
+  return ({ key, scope, kind, scopes }) => {
     original = key;
     pending = [];
-    allowedScopes = live ? scopes : undefined;
+    allowedScopes = scopes;
     const edit = key !== undefined;
     form.reset();
     errorText.hidden = true;
