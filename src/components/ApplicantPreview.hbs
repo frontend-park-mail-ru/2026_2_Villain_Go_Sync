@@ -1,7 +1,11 @@
 <dialog class="modal candidate-preview" aria-labelledby="candidate-name">
   <div class="modal__content">
-    <p class="candidate-preview__label">Быстрый просмотр</p>
     <button class="modal__close" type="button" aria-label="Закрыть">×</button>
+    {{#if actionTitle}}
+      <h2 class="modal__title" id="candidate-name">{{actionTitle}}</h2>
+      <p class="candidate-preview__label">{{first_name}} {{last_name}} · {{vacancy_title}}</p>
+    {{else}}
+    <p class="candidate-preview__label">Быстрый просмотр</p>
     <header class="candidate-preview__heading">
       <span class="applicant-card__avatar" data-image-url="{{avatar_url}}" aria-hidden="true">{{initials}}</span>
       <h2 class="modal__title" id="candidate-name">{{first_name}} {{last_name}}</h2>
@@ -24,8 +28,10 @@
       <p>Текущий этап · {{status}}</p>
     </section>
     {{#if status_comment}}<p class="detail__text">{{status_comment}}</p>{{/if}}
+    <a href="/applicants/{{application_id}}">Подробная карточка кандидата</a>
+    {{/if}}
     <form class="candidate-preview__form">
-      <label class="field">Изменить этап
+      <label class="field" {{#if actionTitle}}hidden{{/if}}>Изменить этап
         <select name="status" class="field__input" required>
           <option value="">Выберите этап</option><option value="reviewing">Рассмотрение</option>
           <option value="interview">Собеседование</option><option value="offer">Предложение</option>

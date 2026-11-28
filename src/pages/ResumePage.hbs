@@ -49,7 +49,7 @@
       <div class="detail__column">
         <article class="detail__card">
           <h1 class="detail__name detail__name_large">{{resume.title}}</h1>
-          <p class="detail__subtitle">Профиль соискателя</p>
+          <p class="detail__subtitle">{{#if showSeekerProfile}}<a href="/seekers/{{resume.seeker_id}}">Профиль соискателя</a>{{else}}Профиль соискателя{{/if}}</p>
         </article>
         {{#each sections}}
           <section class="detail__card">

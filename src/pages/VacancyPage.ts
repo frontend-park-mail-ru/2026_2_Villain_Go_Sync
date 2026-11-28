@@ -110,6 +110,7 @@ export default class VacancyPage implements Page {
     this.#container.innerHTML = template({
       vacancy, conditions: conditions(vacancy), level: workLabel('experience_level', vacancy.experience_level),
       company: vacancy.company_name,
+      companyPath: Number.isSafeInteger(vacancy.employer_id) && vacancy.employer_id > 0 ? `/employers/${vacancy.employer_id}` : '',
       isOwner,
       // Гостя кнопка отклика ведёт на вход, работодателю отклик не нужен.
       isGuest: !isAuthorized(),

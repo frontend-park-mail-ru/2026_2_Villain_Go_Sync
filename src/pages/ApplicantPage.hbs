@@ -1,0 +1,114 @@
+<section class="profile profile_application">
+  <nav class="detail__breadcrumbs" aria-label="Навигация">
+    <a href="/applicants">Отклики</a>
+    <span aria-hidden="true">›</span>
+    <span class="detail__breadcrumb-current">{{#if name}}{{name}}{{else}}Отклик кандидата{{/if}}</span>
+  </nav>
+  {{#if isLoading}}
+    <div class="profile__card profile__identity" role="status" aria-label="Загрузка отклика">
+      <div class="skeleton profile__avatar profile__avatar_skeleton"></div>
+      <div class="skeleton detail__skeleton-line"></div>
+    </div>
+  {{else if notFound}}
+    <div class="empty-state">
+      <h1 class="empty-state__title">Отклик не найден</h1>
+      <a class="button button_outline" href="/applicants">К откликам</a>
+    </div>
+  {{else if error}}
+    <div class="empty-state">
+      <h1 class="empty-state__title">Не удалось загрузить отклик</h1>
+      <p class="empty-state__text">{{error}}</p>
+      <button class="button button_secondary empty-state__button" type="button" data-action="retry">Повторить</button>
+    </div>
+  {{else}}
+    <header class="profile__card profile__identity">
+      <div class="profile__avatar" aria-hidden="true"></div>
+      <div class="profile__identity-copy">
+        <h1 class="profile__name">{{#if seekerPath}}<a href="{{seekerPath}}" title="Профиль соискателя">{{name}}</a>{{else}}{{name}}{{/if}}</h1>
+        {{#if meta}}<p class="profile__subtitle">{{meta}}</p>{{/if}}
+        <p class="profile__caption">Отклик на вакансию «{{applicant.vacancy_title}}»{{#if date}} · {{date}}{{/if}}</p>
+      </div>
+    </header>
+    <div class="profile__columns">
+      <div class="profile__column">
+        <section class="profile__card">
+          <h2 class="profile__section-title">Опыт работы</h2>
+          {{#if experience}}
+            {{> "../components/ProfileRecords" records=experience}}
+          {{else}}
+            <p class="profile__text">{{#if experienceText}}{{experienceText}}{{else}}Опыт не указан{{/if}}</p>
+          {{/if}}
+        </section>
+        <section class="profile__card">
+          <h2 class="profile__section-title">Навыки</h2>
+          {{#if skills}}
+            <ul class="chips profile__tags">{{#each skills}}<li class="chip">{{name}}</li>{{/each}}</ul>
+          {{else}}
+            <p class="profile__caption">Навыки не указаны</p>
+          {{/if}}
+        </section>
+        <section class="profile__card">
+          <h2 class="profile__section-title">Сопроводительное письмо</h2>
+          <p class="profile__text">{{#if applicant.cover_letter}}{{applicant.cover_letter}}{{else}}Письмо не приложено{{/if}}</p>
+        </section>
+        <section class="profile__card">
+          <h2 class="profile__section-title">История отклика</h2>
+          <ul class="profile__timeline">
+            <li class="profile__caption">{{#if date}}{{date}} · {{/if}}Отклик получен</li>
+            {{#if historyEvent}}
+              <li class="profile__caption">{{historyEvent.date}} · {{historyEvent.text}}</li>
+            {{/if}}
+          </ul>
+          {{#if applicant.status_comment}}<p class="profile__text">{{applicant.status_comment}}</p>{{/if}}
+        </section>
+      </div>
+      <div class="profile__column">
+        <section class="profile__card">
+          <h2 class="profile__section-title">Действия</h2>
+          <p class="profile__caption">Этап меняется только для этого отклика.</p>
+          <button class="button button_secondary" type="button" data-action="stage" data-stage="interview" {{#if isInterview}}disabled{{/if}}>Перевести на собеседование</button>
+          <button class="button button_outline" type="button" data-action="stage" data-stage="rejected" {{#if isRejected}}disabled{{/if}}>Отказать кандидату</button>
+        </section>
+        <section class="profile__card">
+          <div>
+            <h2 class="profile__section-title">Контакты кандидата</h2>
+            <p class="profile__subtitle">Для связи · из профиля соискателя</p>
+          </div>
+          {{#if contactsUnavailable}}
+            <p class="profile__caption">Не удалось загрузить контакты кандидата</p>
+            <button class="button button_outline" type="button" data-action="retry">Повторить</button>
+          {{else}}
+            {{> "../components/ProfileValues" values=contacts}}
+          {{/if}}
+        </section>
+        <section class="profile__card">
+          <h2 class="profile__section-title">Отклик</h2>
+          <dl class="profile__values">
+            <div><dt class="profile__label">Вакансия</dt><dd class="profile__value">{{applicant.vacancy_title}}</dd></div>
+            <div><dt class="profile__label">Дата отклика</dt><dd class="profile__value">{{#if date}}{{date}}{{else}}Не указана{{/if}}</dd></div>
+            <div><dt class="profile__label">Текущий этап</dt><dd class="profile__value">{{status}}</dd></div>
+          </dl>
+          {{#if resumePath}}<a class="profile__link" href="{{resumePath}}">Смотреть резюме</a>{{/if}}
+        </section>
+        <section class="profile__card profile__note">
+          <div class="profile__note-heading">
+            <h2 class="profile__section-title">Внутренняя заметка</h2>
+            <button class="icon-button profile__note-edit" type="button" data-action="edit-note" aria-label="Редактировать заметку" {{#if editingNote}}hidden{{/if}}></button>
+          </div>
+          <p class="profile__caption" data-note-text {{#if editingNote}}hidden{{/if}}>{{#if note}}{{note}}{{else}}Заметка не добавлена{{/if}}</p>
+          <form class="profile__note-form" data-note-form {{#unless editingNote}}hidden{{/unless}}>
+            <label class="field">Заметка в этой вкладке
+              <textarea class="field__input" name="note" maxlength="2000" rows="3">{{noteDraft}}</textarea>
+            </label>
+            <p class="field__message" role="alert"></p>
+            <div class="modal__actions">
+              <button class="button button_secondary" type="submit">Сохранить</button>
+              <button class="button button_outline" type="button" data-action="cancel-note">Отмена</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+    <a class="button button_outline profile__back" href="/applicants">← Вернуться к откликам</a>
+  {{/if}}
+</section>

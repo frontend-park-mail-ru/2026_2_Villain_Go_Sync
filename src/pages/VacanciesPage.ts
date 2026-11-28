@@ -22,6 +22,7 @@ export default class VacanciesPage implements Page {
   #vacancies: Vacancy[] | null = null;
   #listFilters = new ListFilters();
   #query = '';
+  #employerId = Number(new URLSearchParams(location.search).get('employer_id'));
   #selectedCategory: string | null = null;
   #page = 1;
   #input!: HTMLInputElement;
@@ -33,7 +34,8 @@ export default class VacanciesPage implements Page {
    * @param container Контейнер страницы.
    */
   render(container: HTMLElement): void {
-    container.innerHTML = template();
+    const employerId = this.#companyFilter;
+    container.innerHTML = template({ employerId });
 
     this.#input = container.querySelector<HTMLInputElement>('#vacancies-query')!;
     this.#filters = container.querySelector<HTMLElement>('.vacancies__filters')!;
@@ -96,6 +98,13 @@ export default class VacanciesPage implements Page {
   }
 
   /**
+   * @returns Идентификатор компании из ссылки профиля, если он корректен.
+   */
+  get #companyFilter(): number | undefined {
+    return Number.isSafeInteger(this.#employerId) && this.#employerId > 0 ? this.#employerId : undefined;
+  }
+
+  /**
    * Загружает вакансии и показывает скелетон, список или ошибку.
    */
   async #load(): Promise<void> {
@@ -108,7 +117,7 @@ export default class VacanciesPage implements Page {
     });
 
     try {
-      this.#vacancies = await getVacancies({ signal });
+      this.#vacancies = await getVacancies({ signal, employerId: this.#companyFilter });
     } catch (error) {
       if (!signal.aborted) {
         this.#results.innerHTML = resultsTemplate({ error: (error as Error).message });

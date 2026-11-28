@@ -1,7 +1,12 @@
 <section class="vacancies">
   <div>
-    <h1 class="vacancies__title">Вакансии</h1>
-    <p class="vacancies__subtitle">Найдите работу, которая подходит именно вам.</p>
+    {{#if employerId}}
+      <h1 class="vacancies__title">Вакансии компании</h1>
+      <a href="/employers/{{employerId}}">К профилю компании</a>
+    {{else}}
+      <h1 class="vacancies__title">Вакансии</h1>
+      <p class="vacancies__subtitle">Найдите работу, которая подходит именно вам.</p>
+    {{/if}}
   </div>
 
   <form class="vacancies__search" novalidate>

@@ -1,4 +1,5 @@
 import { openApplicantPreview } from '../components/ApplicantPreview';
+import { applicationStatuses } from '../components/application-status';
 import { mountCardImages } from '../components/profile-images';
 import { getEmployerApplicants, type Applicant } from '../api';
 import { renderPagination } from '../components/pagination';
@@ -10,18 +11,6 @@ const SKELETON_COUNT = 3;
 const PAGE_SIZE = 12;
 
 const dateFormat = new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
-
-// Старые записи и текущий API используют разные названия некоторых этапов.
-const STATUSES: Record<string, { type: string; label: string }> = {
-  pending: { type: 'new', label: 'Новый' },
-  created: { type: 'new', label: 'Новый' },
-  reviewing: { type: 'viewed', label: 'Рассмотрение' },
-  offer: { type: 'accepted', label: 'Предложение' },
-  viewed: { type: 'viewed', label: 'Просмотрен' },
-  interview: { type: 'interview', label: 'Собеседование' },
-  accepted: { type: 'accepted', label: 'Принят' },
-  rejected: { type: 'rejected', label: 'Отклонён' },
-};
 
 /**
  * Страница «Отклики»: отклики на все вакансии вошедшего работодателя.
@@ -73,7 +62,7 @@ export default class ApplicantsPage implements Page {
       const date = new Date(applicant.applied_at);
       openApplicantPreview(container, applicant, {
         date: Number.isNaN(date.getTime()) ? '' : dateFormat.format(date),
-        status: STATUSES[applicant.status]?.label ?? 'Неизвестный статус',
+        status: applicationStatuses[applicant.status]?.label ?? 'Неизвестный статус',
       }, this.#abortController.signal, () => this.#renderList(), nextStage);
     };
 
@@ -200,7 +189,7 @@ export default class ApplicantsPage implements Page {
         initials: [applicant.first_name, applicant.last_name]
           .map((word) => word.trim().charAt(0).toUpperCase())
           .join(''),
-        status: STATUSES[applicant.status] ?? { type: 'unknown', label: 'Неизвестный статус' },
+        status: applicationStatuses[applicant.status] ?? { type: 'unknown', label: 'Неизвестный статус' },
         date: Number.isNaN(date.getTime()) ? '' : dateFormat.format(date),
         vacancy: applicant.vacancy_title,
         resume: applicant.resume_title,

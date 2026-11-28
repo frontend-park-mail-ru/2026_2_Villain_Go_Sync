@@ -191,6 +191,130 @@
 
 .profile [hidden] { display: none; }
 
+.profile {
+  &__identity-copy { min-width: 0; }
+
+  &__caption {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--color-text-muted);
+    overflow-wrap: anywhere;
+  }
+
+  &__identity &__caption { margin-top: 4px; }
+
+  &__records,
+  &__timeline {
+    display: grid;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__record {
+    display: grid;
+    gap: 4px;
+
+    & + & {
+      padding-top: 16px;
+      border-top: 1px solid var(--color-border);
+    }
+  }
+
+  &__record-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: inherit;
+    overflow-wrap: anywhere;
+  }
+
+  &__values {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+
+    &_columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  &__values &__label { font-weight: 400; }
+  &__values &__value a { color: inherit; }
+
+  &__tags {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    .chip {
+      max-width: 100%;
+      min-height: 32px;
+      height: auto;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &_public &__tags .chip {
+    min-height: 28px;
+    border-color: transparent;
+    font-size: 14px;
+    color: var(--color-accent-hover);
+    background: var(--color-accent-soft);
+  }
+
+  &_public &__text { color: var(--color-text-muted); }
+
+  &_application &__columns {
+    grid-template-columns: minmax(0, 824fr) minmax(0, 496fr);
+
+    @include mobile { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  &_application &__column { gap: 20px; }
+  &_application &__identity { gap: 20px; }
+  &_application &__avatar { width: 68px; height: 68px; }
+  &_application &__name { font-size: 32px; line-height: 40px; }
+  &_application &__name a, &_application .detail__breadcrumbs a { color: inherit; }
+  &_application .button_outline { border-color: var(--color-border); }
+  &_application &__card .button {
+    min-height: 48px;
+    height: auto;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  &__columns &__note {
+    min-height: 140px;
+    gap: 8px;
+    padding: 12px;
+  }
+  &__note-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  &__note-heading &__section-title { font-size: 14px; }
+  &__note-edit { --icon: url('/images/edit.svg'); flex: none; }
+  &__note-form { display: grid; gap: 8px; }
+  &__note [data-note-text] { font-size: 13px; white-space: pre-wrap; }
+
+  &__back {
+    align-self: flex-start;
+    justify-content: flex-start;
+    width: 380px;
+    max-width: 100%;
+  }
+
+  @include mobile {
+    &__values_columns { grid-template-columns: minmax(0, 1fr); }
+    &_application &__name { font-size: 28px; line-height: 36px; }
+  }
+}
+
 .profile-image {
   flex-direction: row;
   align-items: center;

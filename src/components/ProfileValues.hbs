@@ -1,0 +1,14 @@
+<dl class="profile__values{{#if columns}} profile__values_columns{{/if}}">
+  {{#each values}}
+    <div>
+      <dt class="profile__label">{{label}}</dt>
+      <dd class="profile__value">
+        {{#if href}}
+          <a href="{{href}}" target="_blank" rel="noopener noreferrer">{{value}}</a>
+        {{else}}
+          {{value}}
+        {{/if}}
+      </dd>
+    </div>
+  {{/each}}
+</dl>
